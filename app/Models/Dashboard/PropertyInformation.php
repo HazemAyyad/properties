@@ -10,8 +10,18 @@ use Spatie\Translatable\HasTranslations;
 class PropertyInformation extends Model
 {
     use HasFactory,HasTranslations;
-     protected $table='property_informations';
-     protected $guarded=[];
+    protected $table = 'property_informations';
+    protected $guarded = [];
+    protected $casts = [
+        'extra_features' => 'array',
+        'furnished' => 'integer',
+        'size' => 'float',
+        'size_max' => 'float',
+        'land_area_min' => 'float',
+        'land_area_max' => 'float',
+        'price_min' => 'float',
+        'price_max' => 'float',
+    ];
     public $translatable = [
         'content',
     ];

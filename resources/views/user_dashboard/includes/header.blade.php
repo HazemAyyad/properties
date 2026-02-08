@@ -128,17 +128,17 @@
                                         </div>
                                         <p class="name">{{ Auth::guard('web')->user()->name }}<span class="icon icon-arr-down"></span></p>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="{{route('user.properties.index')}}">{{__('My Properties')}}</a>
-                                            <a class="dropdown-item" href="my-invoices.html">{{__('My Invoices')}}</a>
-                                            <a class="dropdown-item" href="{{route('user.favorites.index')}}">{{__('My Favorites')}}</a>
-                                            <a class="dropdown-item" href="{{route('user.reviews.index')}}">{{__('Reviews')}}</a>
-                                            <a class="dropdown-item" href="{{route('user.profile.index')}}">{{__('My Profile')}}</a>
-                                            <a class="dropdown-item" href="{{route('user.properties.create')}}">{{__('Add Property')}}</a>
+                                            <a class="dropdown-item" href="{{route('user.properties.index')}}"><span class="icon icon-list-dashes me-2"></span>{{__('My Properties')}}</a>
+                                            <a class="dropdown-item" href="my-invoices.html"><span class="icon icon-file-text me-2"></span>{{__('My Invoices')}}</a>
+                                            <a class="dropdown-item" href="{{route('user.favorites.index')}}"><span class="icon icon-heart me-2"></span>{{__('My Favorites')}}</a>
+                                            <a class="dropdown-item" href="{{route('user.reviews.index')}}"><span class="icon icon-review me-2"></span>{{__('Reviews')}}</a>
+                                            <a class="dropdown-item" href="{{route('user.profile.index')}}"><span class="icon icon-profile me-2"></span>{{__('My Profile')}}</a>
+                                            <a class="dropdown-item" href="{{route('user.properties.create')}}"><span class="icon icon-plus me-2"></span>{{__('Add Property')}}</a>
 
                                             <a class="dropdown-item" href="{{ route('logout') }}"
                                                onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
-                                                <i class="ti ti-logout me-2 ti-sm"></i>
+                                                <span class="icon icon-sign-out me-2"></span>
                                                 <span class="align-middle">{{__('Log Out')}}</span>
                                             </a>
 

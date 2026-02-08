@@ -20,75 +20,33 @@
                                 <input type="text" class="form-control" placeholder="{{__('Search Keyword')}}" value="{{ request('keyword') }}" name="keyword" title="Search for">
                             </div>
                             <div class="form-style">
-                                <label class="title-select">{{__('Governorate')}}</label>
-                                <select name="governorate_id" id="filter_governorate" class="form-control">
-                                    <option value="">{{__('Select Governorate')}}</option>
-                                    @isset($governorates)
-                                        @foreach($governorates as $gov)
-                                            <option value="{{ $gov->governorate_id }}" {{ request('governorate_id') == $gov->governorate_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $gov->governorate_name_ar : ($gov->governorate_name_en ?? $gov->governorate_name_ar) }}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
-                            </div>
-                            <div class="form-style">
-                                <label class="title-select">{{__('Department')}}</label>
-                                <select name="department_id" id="filter_department" class="form-control">
-                                    <option value="">{{__('Select Department')}}</option>
-                                    @isset($filterDepartments)
-                                        @foreach($filterDepartments as $dept)
-                                            <option value="{{ $dept->department_id }}" {{ request('department_id') == $dept->department_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $dept->department_name_ar : ($dept->department_name_en ?? $dept->department_name_ar) }}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
-                            </div>
-                            <div class="form-style">
-                                <label class="title-select">{{__('Village')}}</label>
-                                <select name="village_id" id="filter_village" class="form-control">
-                                    <option value="">{{__('Select Village')}}</option>
-                                    @isset($filterVillages)
-                                        @foreach($filterVillages as $vill)
-                                            <option value="{{ $vill->village_id }}" {{ request('village_id') == $vill->village_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $vill->village_name_ar : ($vill->village_name_en ?? $vill->village_name_ar) }}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
+                                <label class="title-select">{{__('Location')}}</label>
+                                <div class="group-ip ip-icon">
+                                    <input type="text" class="form-control" placeholder="{{__('Search Location')}}" value="{{ request('location') }}" name="location" id="filter_location_input" title="Search for" readonly>
+                                    <a href="#" class="icon-right icon-location" id="filter_open_location_popup" title="{{__('Select Location')}}"></a>
+                                    <input type="hidden" name="governorate_id" id="filter_governorate_id" value="{{ request('governorate_id') }}">
+                                    <input type="hidden" name="department_id" id="filter_department_id" value="{{ request('department_id') }}">
+                                    <input type="hidden" name="village_id" id="filter_village_id" value="{{ request('village_id') }}">
+                                    <input type="hidden" name="hod_id" id="filter_hod_id" value="{{ request('hod_id') }}">
+                                    <input type="hidden" name="hay_id" id="filter_hay_id" value="{{ request('hay_id') }}">
+                                    <input type="hidden" name="plot_number" id="filter_plot_number" value="{{ request('plot_number') }}">
+                                </div>
                             </div>
                             <div class="form-style">
                                 <label class="title-select">{{__('Type')}}</label>
                                 <div class="group-select">
-                                    <select name="category_id" class="form-control">
-                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                    <select name="category_id" id="filter_category_id" class="form-control">
+                                        <option value="" data-slug="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                            @php $catSlug = $category->getTranslation('slug', 'en') ?: $category->getTranslation('slug', 'ar'); @endphp
+                                            <option value="{{ $category->id }}" data-slug="{{ $catSlug }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-style box-select">
-                                <label class="title-select">{{__('Rooms')}}</label>
-                                <select name="rooms" class="form-control">
-                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                    @for ($i = 1; $i <= 10; $i++)
-                                        <option value="{{ $i }}" {{ request('rooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="form-style box-select">
-                                <label class="title-select">{{__('Bathrooms')}}</label>
-                                <select name="bathrooms" class="form-control">
-                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                    @for ($i = 1; $i <= 10; $i++)
-                                        <option value="{{ $i }}" {{ request('bathrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="form-style box-select">
-                                <label class="title-select">{{__('Bedrooms')}}</label>
-                                <select name="bedrooms" class="form-control">
-                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                    @for ($i = 1; $i <= 10; $i++)
-                                        <option value="{{ $i }}" {{ request('bedrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                    @endfor
-                                </select>
+                            <div id="filter-category-fields" style="width:100%;">
+                                <p class="filter-hint-empty text-muted small mb-2" style="display:none;">{{__('Select property type above to show relevant filters.')}}</p>
+                                @include('site.properties.partials.filter_category_sections')
                             </div>
                             <div class="form-style widget-price">
                                 <div class="box-title-price">
@@ -134,19 +92,6 @@
                                     <span class="text-advanced">{{__('Show Advanced')}}</span>
                                 </a>
                             </div>
-                            <div class="form-style wd-amenities">
-                                <div class="group-checkbox">
-                                    <div class="text-1">{{__('Amenities:')}}</div>
-                                    <div class="group-amenities">
-                                        @foreach($features as $feature)
-                                            <fieldset class="amenities-item">
-                                                <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
-                                                <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
-                                            </fieldset>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
                             <div class="form-style btn-hide-advanced">
                                 <a class="filter-advanced pull-right">
                                     <span class="icon icon-faders"></span>
@@ -162,6 +107,97 @@
             </div>
         </div>
 
+    </div>
+</div>
+<script>
+(function() {
+    function toggleFilterFieldsByCategory() {
+        var cat = document.getElementById('filter_category_id');
+        if (!cat) return;
+        var opt = cat.options[cat.selectedIndex];
+        var slug = (opt && opt.getAttribute('data-slug')) || '';
+        var hint = document.querySelector('.filter-hint-empty');
+        var visibleSection = null;
+        document.querySelectorAll('.filter-category-section').forEach(function(el) {
+            var show = el.getAttribute('data-category') === slug.toLowerCase();
+            el.style.display = show ? '' : 'none';
+            el.querySelectorAll('input, select').forEach(function(inp) { inp.disabled = !show; });
+            if (show) visibleSection = el;
+        });
+        if (hint) hint.style.display = slug ? 'none' : '';
+        if (visibleSection && typeof $ !== 'undefined' && $.fn.niceSelect) {
+            $(visibleSection).find('select').niceSelect('update');
+        }
+    }
+    function initFilterCategoryToggle() {
+        var cat = document.getElementById('filter_category_id');
+        if (!cat) return;
+        toggleFilterFieldsByCategory();
+        cat.addEventListener('change', toggleFilterFieldsByCategory);
+        document.addEventListener('click', function(e) {
+            if (e.target.closest && e.target.closest('.nice-select .option')) {
+                setTimeout(toggleFilterFieldsByCategory, 50);
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFilterCategoryToggle);
+    } else {
+        initFilterCategoryToggle();
+    }
+})();
+</script>
+<!-- Location Popup Modal for filter -->
+<div class="modal fade" id="filterLocationPopupModal" tabindex="-1" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title">{{__('Select Location')}}</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-2">
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Governorate')}}</label>
+                    <select id="filter_popup_governorate" class="form-control form-control-sm select2-popup">
+                        <option value="">{{__('Select Governorate')}}</option>
+                        @isset($governorates)
+                            @foreach($governorates as $gov)
+                                <option value="{{ $gov->governorate_id }}">{{ app()->getLocale() == 'ar' ? $gov->governorate_name_ar : ($gov->governorate_name_en ?? $gov->governorate_name_ar) }}</option>
+                            @endforeach
+                        @endisset
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Department')}}</label>
+                    <select id="filter_popup_department" class="form-control form-control-sm select2-popup">
+                        <option value="">{{__('Select Department')}}</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Village')}}</label>
+                    <select id="filter_popup_village" class="form-control form-control-sm select2-popup">
+                        <option value="">{{__('Select Village')}}</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Hod')}}</label>
+                    <select id="filter_popup_hod" class="form-control form-control-sm select2-popup">
+                        <option value="">{{__('Select Hod')}}</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Hay')}}</label>
+                    <select id="filter_popup_hay" class="form-control form-control-sm select2-popup">
+                        <option value="">{{__('Select Hay')}}</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">{{__('Plot Number')}}</label>
+                    <input type="text" id="filter_popup_plot_number" class="form-control form-control-sm" placeholder="{{__('Plot Number')}}" value="{{ request('plot_number') }}">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm w-100" id="filter_apply_location_popup">{{__('Apply')}}</button>
+            </div>
+        </div>
     </div>
 </div>
 

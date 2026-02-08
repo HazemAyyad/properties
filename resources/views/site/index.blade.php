@@ -35,7 +35,7 @@
                                     </p>
                                 </div>
 
-                                @include('site.includes.filter_search_master')
+                                @include('site.includes.filter_search_master', ['categories' => $filterCategories ?? $categories])
                             </div>
                         </div>
                     </div>
@@ -917,49 +917,104 @@
 
             // Init Select2 for modal location selects
             var loadingText = '{{ __("Loading...") }}';
-            $('#popup_governorate, #popup_department, #popup_village').select2({
+            var selectDept = '{{ __("Select Department") }}';
+            var selectVillage = '{{ __("Select Village") }}';
+            var selectHod = '{{ __("Select Hod") }}';
+            var selectHay = '{{ __("Select Hay") }}';
+            $('#popup_governorate, #popup_department, #popup_village, #popup_hod, #popup_hay').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
                 placeholder: function() { return $(this).data('placeholder') || '{{ __("Select") }}'; }
             });
-            $('#popup_department').data('placeholder', '{{ __("Select Department") }}');
-            $('#popup_village').data('placeholder', '{{ __("Select Village") }}');
+            $('#popup_department').data('placeholder', selectDept);
+            $('#popup_village').data('placeholder', selectVillage);
+            $('#popup_hod').data('placeholder', selectHod);
+            $('#popup_hay').data('placeholder', selectHay);
+
+            function resetHodHay() {
+                var $hod = $('#popup_hod'), $hay = $('#popup_hay');
+                $hod.empty().append('<option value="">' + selectHod + '</option>').val('').prop('disabled', true).trigger('change');
+                $hay.empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', true).trigger('change');
+            }
+            function resetVillageHodHay() {
+                var $village = $('#popup_village');
+                $village.empty().append('<option value="">' + selectVillage + '</option>').val('').prop('disabled', true).trigger('change');
+                resetHodHay();
+            }
 
             // Cascading in popup (use localized URL for Laravel Localization)
             var departmentsUrl = '{{ LaravelLocalization::localizeURL("/jordan/departments") }}';
             var villagesUrl = '{{ LaravelLocalization::localizeURL("/jordan/villages") }}';
+            var hodsUrl = '{{ LaravelLocalization::localizeURL("/jordan/hods") }}';
+            var haysUrl = '{{ LaravelLocalization::localizeURL("/jordan/hays") }}';
             $('#popup_governorate').on('change', function() {
                 var id = $(this).val();
                 var $dept = $('#popup_department');
-                var $village = $('#popup_village');
                 $dept.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
-                $village.empty().append('<option value="">{{__('Select Village')}}</option>').val('').prop('disabled', true).trigger('change');
+                resetVillageHodHay();
                 if (id) {
                     $.get(departmentsUrl + '/' + id, function(data) {
-                        $dept.empty().append('<option value="">{{__('Select Department')}}</option>');
+                        $dept.empty().append('<option value="">' + selectDept + '</option>');
                         $.each(data, function(i, item) {
                             $dept.append('<option value="' + item.id + '">' + item.name + '</option>');
                         });
                         $dept.prop('disabled', false).val('').trigger('change');
                     });
                 } else {
-                    $dept.empty().append('<option value="">{{__('Select Department')}}</option>').prop('disabled', false).trigger('change');
+                    $dept.empty().append('<option value="">' + selectDept + '</option>').prop('disabled', false).trigger('change');
                 }
             });
             $('#popup_department').on('change', function() {
                 var id = $(this).val();
                 var $village = $('#popup_village');
+                resetVillageHodHay();
                 if (id) {
                     $village.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
                     $.get(villagesUrl + '/' + id, function(data) {
-                        $village.empty().append('<option value="">{{__('Select Village')}}</option>');
+                        $village.empty().append('<option value="">' + selectVillage + '</option>');
                         $.each(data, function(i, item) {
                             $village.append('<option value="' + item.id + '">' + item.name + '</option>');
                         });
                         $village.prop('disabled', false).val('').trigger('change');
                     });
                 } else {
-                    $village.empty().append('<option value="">{{__('Select Village')}}</option>').val('').prop('disabled', false).trigger('change');
+                    $village.prop('disabled', false).trigger('change');
+                }
+            });
+            $('#popup_village').on('change', function() {
+                var villId = $(this).val();
+                var deptId = $('#popup_department').val();
+                var $hod = $('#popup_hod'), $hay = $('#popup_hay');
+                $hod.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                $hay.empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', true).trigger('change');
+                if (deptId && villId) {
+                    $.get(hodsUrl + '/' + deptId + '/' + villId, function(data) {
+                        $hod.empty().append('<option value="">' + selectHod + '</option>');
+                        $.each(data, function(i, item) {
+                            $hod.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                        $hod.prop('disabled', false).val('').trigger('change');
+                    });
+                } else {
+                    $hod.empty().append('<option value="">' + selectHod + '</option>').prop('disabled', false).trigger('change');
+                }
+            });
+            $('#popup_hod').on('change', function() {
+                var hodId = $(this).val();
+                var deptId = $('#popup_department').val();
+                var villId = $('#popup_village').val();
+                var $hay = $('#popup_hay');
+                if (deptId && villId && hodId) {
+                    $hay.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                    $.get(haysUrl + '/' + deptId + '/' + villId + '/' + hodId, function(data) {
+                        $hay.empty().append('<option value="">' + selectHay + '</option>');
+                        $.each(data, function(i, item) {
+                            $hay.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                        $hay.prop('disabled', false).val('').trigger('change');
+                    });
+                } else {
+                    $hay.empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', false).trigger('change');
                 }
             });
 
@@ -968,16 +1023,27 @@
                 var govId = $('#popup_governorate').val();
                 var deptId = $('#popup_department').val();
                 var villId = $('#popup_village').val();
+                var hodId = $('#popup_hod').val();
+                var hayId = $('#popup_hay').val();
+                var plotNum = $('#popup_plot_number').val();
                 var govText = $('#popup_governorate option:selected').text();
                 var deptText = $('#popup_department option:selected').text();
                 var villText = $('#popup_village option:selected').text();
+                var hodText = $('#popup_hod option:selected').text();
+                var hayText = $('#popup_hay option:selected').text();
                 $('#home_governorate_id').val(govId || '');
                 $('#home_department_id').val(deptId || '');
                 $('#home_village_id').val(villId || '');
+                $('#home_hod_id').val(hodId || '');
+                $('#home_hay_id').val(hayId || '');
+                $('#home_plot_number').val(plotNum || '');
                 var parts = [];
                 if (govId) parts.push(govText);
                 if (deptId) parts.push(deptText);
                 if (villId) parts.push(villText);
+                if (hodId) parts.push(hodText);
+                if (hayId) parts.push(hayText);
+                if (plotNum) parts.push(plotNum);
                 $('#home_location_input').val(parts.join(', '));
                 bootstrap.Modal.getInstance(document.getElementById('locationPopupModal')).hide();
             });

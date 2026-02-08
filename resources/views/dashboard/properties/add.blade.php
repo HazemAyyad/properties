@@ -165,8 +165,8 @@
                                                                     <label class="form-label" for="type">{{__('Property Type')}}</label>
 
                                                                     <select name="type" id="type" class="form-select">
-                                                                        <option value="0">{{__('Rent')}}</option>
-                                                                        <option value="1">{{__('Sold')}}</option>
+                                                                        <option value="0">{{__('For Rent')}}</option>
+                                                                        <option value="1">{{__('For Sale')}}</option>
                                                                     </select>
                                                                 </div>
                                                              </div>
@@ -372,114 +372,53 @@
                                             <!-- /Price -->
                                         </div>
                                         <div class="row mt-2">
-                                            <!-- Additional Information -->
+                                            <!-- Categories - قبل Property Details -->
                                             <div class="col-12">
                                                 <div class="card">
-                                                    <h5 class="card-header">{{__('Additional Information')}}</h5>
+                                                    <h5 class="card-header">{{ __('Categories') }}</h5>
                                                     <div class="card-body">
-
-                                                        <div class="row">
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="size">{{__('Size (m²)')}}</label>
-                                                                    <input type="number" required class="form-control" name="size" id="size" placeholder="" >
-
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="land_area">{{__('Land Area (m²)')}}</label>
-                                                                    <input type="number" required class="form-control" name="land_area" id="land_area" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="rooms">{{__('Rooms')}}</label>
-                                                                    <input type="number" required class="form-control" name="rooms" id="rooms" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="bedrooms">{{__('Bedrooms')}}</label>
-                                                                    <input type="number" required class="form-control" name="bedrooms" id="bedrooms" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="bathrooms">{{__('Bathrooms')}}</label>
-                                                                    <input type="number" required class="form-control" name="bathrooms" id="bathrooms" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="garages">{{__('Garages')}}</label>
-                                                                    <input type="number" required class="form-control" name="garages" id="garages" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="garages_size">{{__('Garages Size  (m²)')}}</label>
-                                                                    <input type="number" required class="form-control" name="garages_size" id="garages_size" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="floors">{{__('Floors')}}</label>
-                                                                    <input type="number" required class="form-control" name="floors" id="floors" placeholder="" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="form-group mb-3">
-                                                                    <label class="form-label" for="year_built">{{__('Year Built')}}</label>
-                                                                    <input type="number" required class="form-control" name="year_built" id="year_built" placeholder="" >
-                                                                </div>
-                                                            </div>
+                                                        <div class="form-group mb-0">
+                                                            <label class="form-label">{{ __('Property Type') }}</label>
+                                                            <select name="category_id" id="category_id" class="form-control select2" required>
+                                                                @foreach($categories as $category)
+                                                                    @php $catSlug = $category->getTranslation('slug', 'en') ?: $category->getTranslation('slug', 'ar'); @endphp
+                                                                    <option value="{{ $category->id }}" data-slug="{{ $catSlug }}">{{ $category->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            <small class="form-hint">{{ __('Select property type to show relevant fields below.') }}</small>
                                                         </div>
-
-
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- /Additional Information -->
                                         </div>
                                         <div class="row mt-2">
-                                            <!-- Amenities -->
+                                            <!-- Category-specific: Property details by type -->
                                             <div class="col-12">
                                                 <div class="card">
-                                                    <h5 class="card-header">{{__('Amenities & Features')}}</h5>
+                                                    <h5 class="card-header">{{ __('Property Details') }} <span class="text-muted">({{ __('by property type') }})</span></h5>
                                                     <div class="card-body">
-                                                        <div class="row">
-                                                            @foreach($feature_categories as $f_category)
-                                                                <div class="col-md-4 p-6">
-
-                                                                    @if($f_category->features->isNotEmpty())
-                                                                        <small class="text-black fw-bold">{{$f_category->name}}</small>
-                                                                        @foreach($f_category->features as $feature)
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input" required type="checkbox" value="{{$feature->id}}" id="defaultCheck{{$feature->id}}"  name="property_features[]">
-                                                                                <label class="form-check-label" for="defaultCheck{{$feature->id}}">
-                                                                                    {{$feature->name}}
-                                                                                </label>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    @endif
-
-
-
-
-                                                                </div>
-
-                                                            @endforeach
-
-
+                                                        <p id="category-fields-hint" class="text-muted small mb-3">{{ __('Select property type above to show relevant fields.') }}</p>
+                                                        <div id="category-fields-apartment" class="category-fields-section" data-category="apartment" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_apartment')
                                                         </div>
-
-
-
+                                                        <div id="category-fields-villa" class="category-fields-section" data-category="villa" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_villa')
+                                                        </div>
+                                                        <div id="category-fields-office" class="category-fields-section" data-category="office" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_office')
+                                                        </div>
+                                                        <div id="category-fields-commercial" class="category-fields-section" data-category="commercial" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_commercial')
+                                                        </div>
+                                                        <div id="category-fields-farm" class="category-fields-section" data-category="farm" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_farm')
+                                                        </div>
+                                                        <div id="category-fields-land" class="category-fields-section" data-category="land" style="display:none;">
+                                                            @include('user_dashboard.properties.partials.category_fields_land')
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- /Amenities -->
                                         </div>
                                         <div class="row mt-2">
                                             <!-- Distance key between facilities -->
@@ -590,23 +529,6 @@
                                                                 <option value="0">{{__('Pending')}}</option>
                                                                 <option value="1">{{__('Published')}}</option>
                                                                 <option value="2">{{__('draft')}}</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 mt-2">
-                                                <div class="card">
-                                                    <div class="card-header">{{__('Categories')}}</div>
-                                                    <div class="card-body">
-                                                        <div class="form-group mb-3">
-                                                             <select name="category_id" required id="category_id" class="form-select select2">
-
-                                                                  @foreach($categories as $category)
-                                                                     <option value="{{$category->id}}">{{$category->name}}</option>
-                                                                 @endforeach
-
-
                                                             </select>
                                                         </div>
                                                     </div>
@@ -739,19 +661,18 @@
         document.addEventListener('DOMContentLoaded', function () {
             var typeSelect = document.getElementById('type');
             var periodDiv = document.getElementById('period').closest('.col-md-4');
+            var neverExpiredDiv = document.getElementById('never_expired') && document.getElementById('never_expired').closest('.col-md-6');
+            var autoRenewDiv = document.getElementById('auto_renew') && document.getElementById('auto_renew').closest('.form-group');
 
-            function togglePeriod() {
-                if (typeSelect.value === '0') { // Sold
-                    periodDiv.style.display = 'block';
-                } else { //  Rent
-                    periodDiv.style.display = 'none';
-                }
+            function toggleRentOnlyFields() {
+                var isForRent = (typeSelect.value === '0');
+                periodDiv.style.display = isForRent ? 'block' : 'none';
+                if (neverExpiredDiv) neverExpiredDiv.style.display = isForRent ? 'block' : 'none';
+                if (autoRenewDiv) autoRenewDiv.style.display = isForRent ? 'block' : 'none';
             }
 
-            typeSelect.addEventListener('change', togglePeriod);
-
-            // Initial check
-            togglePeriod();
+            typeSelect.addEventListener('change', toggleRentOnlyFields);
+            toggleRentOnlyFields();
         });
     </script>
     <script>
@@ -780,6 +701,19 @@
         $(document).ready(function() {
             // Initialize Select2 elements
             $('.select2').select2();
+
+            // Show/hide category-specific fields when category changes
+            function showCategoryFields() {
+                var slug = $('#category_id option:selected').data('slug') || '';
+                $('#category-fields-hint').toggle(!slug);
+                $('.category-fields-section').hide();
+                if (slug && $('#category-fields-' + slug).length) {
+                    $('#category-fields-' + slug).show();
+                }
+            }
+            $('#category_id').on('change', showCategoryFields);
+            showCategoryFields();
+
             // Initialize Select2 for user list with AJAX and allowClear option
             $('#user-list').select2({
                 placeholder: 'Search for a user',

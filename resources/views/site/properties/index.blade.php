@@ -1,7 +1,12 @@
 @extends('site.layouts.app')
 
 @section('style')
-    <!-- Add your styles here if needed -->
+    <link rel="stylesheet" href="{{ asset('site/select2/select2.min.css') }}" />
+    @if (App::isLocale('ar'))
+    <link rel="stylesheet" href="{{ asset('site/select2/select2-bootstrap-5-theme.rtl.min.css') }}" />
+    @else
+    <link rel="stylesheet" href="{{ asset('site/select2/select2-bootstrap-5-theme.min.css') }}" />
+    @endif
 @endsection
 
 @section('content')
@@ -286,40 +291,150 @@
     </section>
 @endsection
 @section('scripts')
+    <script src="{{ asset('site/select2/select2.full.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            $('select').niceSelect();
+            $('select:not(.select2-popup)').niceSelect();
 
-            $('#per_page, #sort_by').on('change', function() {
+            $('#per_page, #sort_by, #sort_field').on('change', function() {
                 $('#filterForm').submit();
             });
 
-            // Jordan location cascading (filter)
-            $('#filter_governorate').on('change', function() {
+            $('#filterLocationPopupModal').appendTo('body');
+            $('#filter_open_location_popup').on('click', function(e) {
+                e.preventDefault();
+                var modalEl = document.getElementById('filterLocationPopupModal');
+                if (!modalEl) return;
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+
+            var loadingText = '{{ __("Loading...") }}';
+            var selectDept = '{{ __("Select Department") }}';
+            var selectVillage = '{{ __("Select Village") }}';
+            var selectHod = '{{ __("Select Hod") }}';
+            var selectHay = '{{ __("Select Hay") }}';
+            $('#filter_popup_governorate, #filter_popup_department, #filter_popup_village, #filter_popup_hod, #filter_popup_hay').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: function() { return $(this).data('placeholder') || '{{ __("Select") }}'; }
+            });
+            $('#filter_popup_department').data('placeholder', selectDept);
+            $('#filter_popup_village').data('placeholder', selectVillage);
+            $('#filter_popup_hod').data('placeholder', selectHod);
+            $('#filter_popup_hay').data('placeholder', selectHay);
+
+            function filterResetHodHay() {
+                $('#filter_popup_hod').empty().append('<option value="">' + selectHod + '</option>').val('').prop('disabled', true).trigger('change');
+                $('#filter_popup_hay').empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', true).trigger('change');
+            }
+            function filterResetVillageHodHay() {
+                $('#filter_popup_village').empty().append('<option value="">' + selectVillage + '</option>').val('').prop('disabled', true).trigger('change');
+                filterResetHodHay();
+            }
+
+            var departmentsUrl = '{{ LaravelLocalization::localizeURL("/jordan/departments") }}';
+            var villagesUrl = '{{ LaravelLocalization::localizeURL("/jordan/villages") }}';
+            var hodsUrl = '{{ LaravelLocalization::localizeURL("/jordan/hods") }}';
+            var haysUrl = '{{ LaravelLocalization::localizeURL("/jordan/hays") }}';
+
+            $('#filter_popup_governorate').on('change', function() {
                 var id = $(this).val();
-                $('#filter_department, #filter_village').empty().append('<option value="">{{__('Select')}}</option>');
+                var $dept = $('#filter_popup_department');
+                $dept.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                filterResetVillageHodHay();
                 if (id) {
-                    $.get('{{ url('/jordan/departments') }}/' + id, function(data) {
-                        $('#filter_department').empty().append('<option value="">{{__('Select Department')}}</option>');
+                    $.get(departmentsUrl + '/' + id, function(data) {
+                        $dept.empty().append('<option value="">' + selectDept + '</option>');
                         $.each(data, function(i, item) {
-                            $('#filter_department').append('<option value="' + item.id + '">' + item.name + '</option>');
+                            $dept.append('<option value="' + item.id + '">' + item.name + '</option>');
                         });
-                        if (typeof $('select').niceSelect === 'function') $('select').niceSelect('update');
+                        $dept.prop('disabled', false).val('').trigger('change');
                     });
+                } else {
+                    $dept.empty().append('<option value="">' + selectDept + '</option>').prop('disabled', false).trigger('change');
                 }
             });
-            $('#filter_department').on('change', function() {
+            $('#filter_popup_department').on('change', function() {
                 var id = $(this).val();
-                $('#filter_village').empty().append('<option value="">{{__('Select')}}</option>');
+                filterResetVillageHodHay();
                 if (id) {
-                    $.get('{{ url('/jordan/villages') }}/' + id, function(data) {
-                        $('#filter_village').empty().append('<option value="">{{__('Select Village')}}</option>');
+                    $('#filter_popup_village').empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                    $.get(villagesUrl + '/' + id, function(data) {
+                        $('#filter_popup_village').empty().append('<option value="">' + selectVillage + '</option>');
                         $.each(data, function(i, item) {
-                            $('#filter_village').append('<option value="' + item.id + '">' + item.name + '</option>');
+                            $('#filter_popup_village').append('<option value="' + item.id + '">' + item.name + '</option>');
                         });
-                        if (typeof $('select').niceSelect === 'function') $('select').niceSelect('update');
+                        $('#filter_popup_village').prop('disabled', false).val('').trigger('change');
                     });
+                } else {
+                    $('#filter_popup_village').prop('disabled', false).trigger('change');
                 }
+            });
+            $('#filter_popup_village').on('change', function() {
+                var villId = $(this).val();
+                var deptId = $('#filter_popup_department').val();
+                var $hod = $('#filter_popup_hod'), $hay = $('#filter_popup_hay');
+                $hod.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                $hay.empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', true).trigger('change');
+                if (deptId && villId) {
+                    $.get(hodsUrl + '/' + deptId + '/' + villId, function(data) {
+                        $hod.empty().append('<option value="">' + selectHod + '</option>');
+                        $.each(data, function(i, item) {
+                            $hod.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                        $hod.prop('disabled', false).val('').trigger('change');
+                    });
+                } else {
+                    $hod.empty().append('<option value="">' + selectHod + '</option>').prop('disabled', false).trigger('change');
+                }
+            });
+            $('#filter_popup_hod').on('change', function() {
+                var hodId = $(this).val();
+                var deptId = $('#filter_popup_department').val();
+                var villId = $('#filter_popup_village').val();
+                var $hay = $('#filter_popup_hay');
+                if (deptId && villId && hodId) {
+                    $hay.empty().append('<option value="">' + loadingText + '</option>').val('').prop('disabled', true).trigger('change');
+                    $.get(haysUrl + '/' + deptId + '/' + villId + '/' + hodId, function(data) {
+                        $hay.empty().append('<option value="">' + selectHay + '</option>');
+                        $.each(data, function(i, item) {
+                            $hay.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                        $hay.prop('disabled', false).val('').trigger('change');
+                    });
+                } else {
+                    $hay.empty().append('<option value="">' + selectHay + '</option>').val('').prop('disabled', false).trigger('change');
+                }
+            });
+
+            $('#filter_apply_location_popup').on('click', function() {
+                var govId = $('#filter_popup_governorate').val();
+                var deptId = $('#filter_popup_department').val();
+                var villId = $('#filter_popup_village').val();
+                var hodId = $('#filter_popup_hod').val();
+                var hayId = $('#filter_popup_hay').val();
+                var plotNum = $('#filter_popup_plot_number').val();
+                var govText = $('#filter_popup_governorate option:selected').text();
+                var deptText = $('#filter_popup_department option:selected').text();
+                var villText = $('#filter_popup_village option:selected').text();
+                var hodText = $('#filter_popup_hod option:selected').text();
+                var hayText = $('#filter_popup_hay option:selected').text();
+                $('#filter_governorate_id').val(govId || '');
+                $('#filter_department_id').val(deptId || '');
+                $('#filter_village_id').val(villId || '');
+                $('#filter_hod_id').val(hodId || '');
+                $('#filter_hay_id').val(hayId || '');
+                $('#filter_plot_number').val(plotNum || '');
+                var parts = [];
+                if (govId) parts.push(govText);
+                if (deptId) parts.push(deptText);
+                if (villId) parts.push(villText);
+                if (hodId) parts.push(hodText);
+                if (hayId) parts.push(hayText);
+                if (plotNum) parts.push(plotNum);
+                $('#filter_location_input').val(parts.join(', '));
+                bootstrap.Modal.getInstance(document.getElementById('filterLocationPopupModal')).hide();
             });
         });
     </script>

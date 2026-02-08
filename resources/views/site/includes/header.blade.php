@@ -164,8 +164,6 @@
             color: #000;
         }
 
-
-
     </style>
 </head>
 
@@ -194,7 +192,7 @@
     <div id="pagee" class="clearfix">
 
         <!-- Main Header -->
-        <header class="main-header fixed-header">
+        <header class="main-header fixed-header @auth header-dashboard @endauth">
             <!-- Header Lower -->
             <div class="header-lower">
                 <div class="row">
@@ -267,6 +265,7 @@
 
 
 
+                                @guest
                                 <div class="register">
                                     <ul class="d-flex">
                                         <li><a href="#modalLogin" data-bs-toggle="modal">{{__('Login')}}</a></li>
@@ -274,6 +273,32 @@
                                         <li><a href="#modalRegister" data-bs-toggle="modal">{{__('Register')}}</a></li>
                                     </ul>
                                 </div>
+                                @else
+                                    <a href="#" class="box-avatar dropdown-toggle" data-bs-toggle="dropdown">
+                                        <div class="avatar avt-40 round">
+                                            @php
+                                                $imagePath = asset(Auth::guard('web')->user()->photo);
+                                                $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
+                                            @endphp
+                                            <img src="{{ $correctedImagePath }}" alt="avt">
+                                        </div>
+                                        <p class="name">{{ Auth::guard('web')->user()->name }}<span class="icon icon-arr-down"></span></p>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="{{ route('user.properties.index') }}"><span class="icon icon-list-dashes me-2"></span>{{ __('My Properties') }}</a>
+                                            <a class="dropdown-item" href="my-invoices.html"><span class="icon icon-file-text me-2"></span>{{ __('My Invoices') }}</a>
+                                            <a class="dropdown-item" href="{{ route('user.favorites.index') }}"><span class="icon icon-heart me-2"></span>{{ __('My Favorites') }}</a>
+                                            <a class="dropdown-item" href="{{ route('user.reviews.index') }}"><span class="icon icon-review me-2"></span>{{ __('Reviews') }}</a>
+                                            <a class="dropdown-item" href="{{ route('user.profile.index') }}"><span class="icon icon-profile me-2"></span>{{ __('My Profile') }}</a>
+                                            <a class="dropdown-item" href="{{ route('user.properties.create') }}"><span class="icon icon-plus me-2"></span>{{ __('Add Property') }}</a>
+                                            <a class="dropdown-item" href="{{ route('logout') }}"
+                                               onclick="event.preventDefault(); document.getElementById('header-logout-form').submit();">
+                                                <span class="icon icon-sign-out me-2"></span>
+                                                <span class="align-middle">{{ __('Log Out') }}</span>
+                                            </a>
+                                            <form id="header-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                                        </div>
+                                    </a>
+                                @endguest
                                 <div class="flat-bt-top">
                                     <a class="tf-btn primary" href="{{route('user.properties.create')}}">{{__('Submit Property')}}</a>
                                 </div>
@@ -295,11 +320,20 @@
                     <div class="nav-logo"><a href="{{route('site.index')}}"><img src="{{asset('/site/images/logo/logo@2x.png')}}" alt="nav-logo" width="174" height="44"></a></div>
                     <div class="bottom-canvas">
 
+                        @guest
                         <div class="login-box flex align-items-center">
                             <a href="#modalLogin" data-bs-toggle="modal">{{__('Login')}}</a>
                             <span>/</span>
                             <a href="#modalRegister" data-bs-toggle="modal">{{__('Register')}}</a>
                         </div>
+                        @else
+                        <div class="login-box flex align-items-center">
+                            <a href="{{ route('user.dashboard') }}">{{ __('Dashboard') }}</a>
+                            <span>/</span>
+                            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('mobile-logout-form').submit();">{{ __('Logout') }}</a>
+                            <form id="mobile-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                        </div>
+                        @endguest
                         <div class="menu-outer"></div>
                         <div class="button-mobi-sell">
                             <a class="tf-btn primary" href="{{route('user.properties.create')}}">{{__('Submit Property')}}</a>

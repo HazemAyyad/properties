@@ -182,16 +182,28 @@ class PropertyController extends Controller
             'currency' => 'required',
 //            'period' => 'required',
 
-            'size' => 'required',
-            'land_area' => 'required',
-            'rooms' => 'required',
-            'bedrooms' => 'required',
-            'bathrooms' => 'required',
-            'garages' => 'required',
-            'garages_size' => 'required',
-            'floors' => 'required',
-            'year_built' => 'required',
-            'property_features' => 'required',
+            'size' => 'nullable',
+            'land_area' => 'nullable',
+            'rooms' => 'nullable',
+            'bedrooms' => 'nullable',
+            'bathrooms' => 'nullable',
+            'garages' => 'nullable',
+            'garages_size' => 'nullable',
+            'floors' => 'nullable',
+            'year_built' => 'nullable',
+            'property_features' => 'nullable',
+            'building_age' => 'nullable',
+            'floor' => 'nullable',
+            'furnished' => 'nullable',
+            'size_max' => 'nullable',
+            'land_area_min' => 'nullable',
+            'land_area_max' => 'nullable',
+            'zoning' => 'nullable',
+            'land_type' => 'nullable',
+            'services' => 'nullable',
+            'price_min' => 'nullable',
+            'price_max' => 'nullable',
+            'extra_features' => 'nullable',
 
         ]);
         if ($validator->fails()) {
@@ -226,15 +238,27 @@ class PropertyController extends Controller
                     'property_id' => $property->id,
                     'content' => $request['content'],
                     'video_url' => $request->video_url,
-                    'size' => $request->size,
-                    'land_area' => $request->land_area,
-                    'rooms' => $request->rooms,
-                    'bedrooms' => $request->bedrooms,
-                    'bathrooms' => $request->bathrooms,
-                    'garages' => $request->garages,
-                    'garages_size' => $request->garages_size,
-                    'floors' => $request->floors,
-                    'year_built' => $request->year_built,
+                    'size' => $request->size ?? 0,
+                    'land_area' => $request->land_area ?? $request->land_area_min ?? $request->land_area_max ?? 0,
+                    'rooms' => $request->rooms ?? 0,
+                    'bedrooms' => $request->bedrooms ?? 0,
+                    'bathrooms' => $request->bathrooms ?? 0,
+                    'garages' => $request->garages ?? 0,
+                    'garages_size' => $request->garages_size ?? 0,
+                    'floors' => $request->floors ?? 0,
+                    'year_built' => $request->year_built ?? '',
+                    'building_age' => $request->building_age,
+                    'floor' => $request->floor,
+                    'furnished' => $request->furnished,
+                    'size_max' => $request->size_max,
+                    'land_area_min' => $request->land_area_min,
+                    'land_area_max' => $request->land_area_max,
+                    'zoning' => $request->zoning,
+                    'land_type' => $request->land_type,
+                    'services' => $request->services,
+                    'price_min' => $request->price_min,
+                    'price_max' => $request->price_max,
+                    'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : null,
                 ]);
                 if ($request->auto_renew=='on'){
                     $auto_renew=1;
@@ -269,7 +293,7 @@ class PropertyController extends Controller
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
                 ]);
-                if (count($request->property_features) != 0) {
+                if (!empty($request->property_features) && is_array($request->property_features)) {
                     foreach ($request->property_features as $feature) {
                         PropertyFeature::query()->create([
                             'property_id' => $property->id,
@@ -370,18 +394,16 @@ class PropertyController extends Controller
             'currency' => 'required',
 //            'period' => 'required',
 
-            'size' => 'required',
-            'land_area' => 'required',
-            'rooms' => 'required',
-            'bedrooms' => 'required',
-            'bathrooms' => 'required',
-            'garages' => 'required',
-            'garages_size' => 'required',
-            'floors' => 'required',
-            'year_built' => 'required',
-            'property_features' => 'required',
-
-
+            'size' => 'nullable',
+            'land_area' => 'nullable',
+            'rooms' => 'nullable',
+            'bedrooms' => 'nullable',
+            'bathrooms' => 'nullable',
+            'garages' => 'nullable',
+            'garages_size' => 'nullable',
+            'floors' => 'nullable',
+            'year_built' => 'nullable',
+            'property_features' => 'nullable',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
@@ -407,18 +429,29 @@ class PropertyController extends Controller
                 ]);
                 $information = PropertyInformation::query()->where('property_id',$id)->first();
                 $information->update([
-
                     'content' => $request['content'],
                     'video_url' => $request->video_url,
-                    'size' => $request->size,
-                    'land_area' => $request->land_area,
-                    'rooms' => $request->rooms,
-                    'bedrooms' => $request->bedrooms,
-                    'bathrooms' => $request->bathrooms,
-                    'garages' => $request->garages,
-                    'garages_size' => $request->garages_size,
-                    'floors' => $request->floors,
-                    'year_built' => $request->year_built,
+                    'size' => $request->size ?? $information->size,
+                    'land_area' => $request->land_area ?? $request->land_area_min ?? $information->land_area,
+                    'rooms' => $request->rooms ?? $information->rooms,
+                    'bedrooms' => $request->bedrooms ?? $information->bedrooms,
+                    'bathrooms' => $request->bathrooms ?? $information->bathrooms,
+                    'garages' => $request->garages ?? $information->garages,
+                    'garages_size' => $request->garages_size ?? $information->garages_size,
+                    'floors' => $request->floors ?? $information->floors,
+                    'year_built' => $request->year_built ?? $information->year_built,
+                    'building_age' => $request->building_age,
+                    'floor' => $request->floor,
+                    'furnished' => $request->furnished,
+                    'size_max' => $request->size_max,
+                    'land_area_min' => $request->land_area_min,
+                    'land_area_max' => $request->land_area_max,
+                    'zoning' => $request->zoning,
+                    'land_type' => $request->land_type,
+                    'services' => $request->services,
+                    'price_min' => $request->price_min,
+                    'price_max' => $request->price_max,
+                    'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : $information->extra_features,
                 ]);
                 if ($request->auto_renew=='on'){
                     $auto_renew=1;
@@ -454,8 +487,8 @@ class PropertyController extends Controller
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
                 ]);
-                if (count($request->property_features) != 0) {
-                      PropertyFeature::query()->where('property_id',$id)->delete();
+                if (!empty($request->property_features) && is_array($request->property_features)) {
+                    PropertyFeature::query()->where('property_id',$id)->delete();
                     foreach ($request->property_features as $feature) {
                         PropertyFeature::query()->create([
                             'property_id' => $property->id,

@@ -83,7 +83,8 @@ class SiteController extends Controller
           $blogs=Blog::query()->with(['user','category'])->take(3)->get();
         $sliders= Slider::where('page', 'slider')->get();
         $governorates = \App\Models\Jordan\Governorate::orderBy('governorate_name_ar')->get();
-        return view('site.index',compact('categories','top_properties','features','agents',
+        $filterCategories = Category::where('status', 1)->orderBy('id')->get();
+        return view('site.index',compact('categories','filterCategories','top_properties','features','agents',
         'people_says','benefits','services','locations','partners','blogs','sliders','governorates'));
     }
     public function privacy_policy()
@@ -116,10 +117,20 @@ class SiteController extends Controller
         $governorateId = $request->input('governorate_id');
         $departmentId = $request->input('department_id');
         $villageId = $request->input('village_id');
+        $hodId = $request->input('hod_id');
+        $hayId = $request->input('hay_id');
+        $plotNumber = $request->input('plot_number');
         $categoryId = $request->input('category_id');
         $rooms = $request->input('rooms');
         $bathrooms = $request->input('bathrooms');
         $bedrooms = $request->input('bedrooms');
+        $buildingAge = $request->input('building_age');
+        $floor = $request->input('floor');
+        $furnished = $request->input('furnished');
+        $zoning = $request->input('zoning');
+        $landType = $request->input('land_type');
+        $services = $request->input('services');
+        $extraFeatures = $request->input('extra_features', []);
         $minPrice = $request->input('min-value', 0);
         $maxPrice = $request->input('max-value', 1000000);
         $minSize = $request->input('min-value2', 0);
@@ -131,7 +142,7 @@ class SiteController extends Controller
             ->where('moderation_status', 1)
             ->with([
                 'images' => fn($q) => $q->take(1),
-                'price', 'more_info', 'user', 'features',
+                'price', 'more_info', 'user', 'features', 'category',
                 'address' => fn($q) => $q->with(['governorate', 'department', 'village', 'city', 'state', 'country']),
             ]);
 
@@ -141,9 +152,9 @@ class SiteController extends Controller
         }
 
         if ($selectedTab) {
-            is_array($selectedTab)
-                ? $propertiesQuery->whereIn('type', $selectedTab)
-                : $propertiesQuery->where('type', $selectedTab);
+            $typeValues = is_array($selectedTab) ? $selectedTab : [$selectedTab];
+            $mapped = collect($typeValues)->map(fn($t) => $t === 'rent' ? 0 : ($t === 'sale' ? 1 : $t))->toArray();
+            $propertiesQuery->whereIn('type', $mapped);
         }
 
         if ($categoryId) {
@@ -178,6 +189,30 @@ class SiteController extends Controller
             $propertiesQuery->whereHas('features', fn($q) => $q->whereIn('id', $features));
         }
 
+        if ($buildingAge) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('building_age', $buildingAge));
+        }
+        if ($floor !== null && $floor !== '') {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('floor', $floor));
+        }
+        if ($furnished !== null && $furnished !== '') {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('furnished', (int) $furnished));
+        }
+        if ($zoning) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('zoning', $zoning));
+        }
+        if ($landType) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('land_type', $landType));
+        }
+        if ($services) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('services', $services));
+        }
+        if (!empty($extraFeatures) && is_array($extraFeatures)) {
+            foreach ($extraFeatures as $ef) {
+                $propertiesQuery->whereHas('more_info', fn($q) => $q->whereJsonContains('extra_features', $ef));
+            }
+        }
+
         if ($governorateId) {
             $propertiesQuery->whereHas('address', fn($q) => $q->where('governorate_id', $governorateId));
         }
@@ -186,6 +221,15 @@ class SiteController extends Controller
         }
         if ($villageId) {
             $propertiesQuery->whereHas('address', fn($q) => $q->where('village_id', $villageId));
+        }
+        if ($hodId) {
+            $propertiesQuery->whereHas('address', fn($q) => $q->where('hod_id', $hodId));
+        }
+        if ($hayId) {
+            $propertiesQuery->whereHas('address', fn($q) => $q->where('hay_id', $hayId));
+        }
+        if ($plotNumber) {
+            $propertiesQuery->whereHas('address', fn($q) => $q->where('plot_number', 'like', '%' . $plotNumber . '%'));
         }
 
         // Sorting
@@ -230,6 +274,13 @@ class SiteController extends Controller
         $rooms = $request->input('rooms');
         $bathrooms = $request->input('bathrooms');
         $bedrooms = $request->input('bedrooms');
+        $buildingAge = $request->input('building_age');
+        $floor = $request->input('floor');
+        $furnished = $request->input('furnished');
+        $zoning = $request->input('zoning');
+        $landType = $request->input('land_type');
+        $services = $request->input('services');
+        $extraFeatures = $request->input('extra_features', []);
         $minPrice = $request->input('min-value', 0);
         $maxPrice = $request->input('max-value', 1000000);
         $minSize = $request->input('min-value2', 0);
@@ -257,13 +308,9 @@ class SiteController extends Controller
             $propertiesQuery->where('title', 'like', "%{$keyword}%");
         }
         if ($selectedTab) {
-            if (is_array($selectedTab)) {
-                // Use whereIn if $selectedTab is an array
-                $propertiesQuery->whereIn('type', $selectedTab);
-            } else {
-                // Use where if $selectedTab is a single value
-                $propertiesQuery->where('type', $selectedTab);
-            }
+            $typeValues = is_array($selectedTab) ? $selectedTab : [$selectedTab];
+            $mapped = collect($typeValues)->map(fn($t) => $t === 'rent' ? 0 : ($t === 'sale' ? 1 : $t))->toArray();
+            $propertiesQuery->whereIn('type', $mapped);
         }
         if ($categoryId) {
             $propertiesQuery->where('category_id', $categoryId);
@@ -309,6 +356,29 @@ class SiteController extends Controller
             $propertiesQuery->whereHas('features', function ($query) use ($features) {
                 $query->whereIn('id', $features);
             });
+        }
+        if ($buildingAge) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('building_age', $buildingAge));
+        }
+        if ($floor !== null && $floor !== '') {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('floor', $floor));
+        }
+        if ($furnished !== null && $furnished !== '') {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('furnished', (int) $furnished));
+        }
+        if ($zoning) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('zoning', $zoning));
+        }
+        if ($landType) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('land_type', $landType));
+        }
+        if ($services) {
+            $propertiesQuery->whereHas('more_info', fn($q) => $q->where('services', $services));
+        }
+        if (!empty($extraFeatures) && is_array($extraFeatures)) {
+            foreach ($extraFeatures as $ef) {
+                $propertiesQuery->whereHas('more_info', fn($q) => $q->whereJsonContains('extra_features', $ef));
+            }
         }
         if ($location) {
             $propertiesQuery->whereHas('address', function ($query) use ($location) {

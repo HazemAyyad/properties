@@ -20,21 +20,25 @@
                             </div>
                             <div class="form-group-2 form-style">
                                 <label>{{__('Location')}}</label>
-                                <div class="group-ip">
+                                <div class="group-ip ip-icon">
                                     <input type="text" class="form-control" placeholder="{{__('Search Location')}}" value="{{ request('location') }}" name="location" id="home_location_input" title="Search for">
-                                    <a href="javascript:void(0)" class="icon icon-location" id="open_location_popup" title="{{__('Select Location')}}"></a>
+                                    <a href="#" class="icon-right icon-location" id="open_location_popup" title="{{__('Select Location')}}"></a>
                                     <input type="hidden" name="governorate_id" id="home_governorate_id" value="{{ request('governorate_id') }}">
                                     <input type="hidden" name="department_id" id="home_department_id" value="{{ request('department_id') }}">
                                     <input type="hidden" name="village_id" id="home_village_id" value="{{ request('village_id') }}">
+                                    <input type="hidden" name="hod_id" id="home_hod_id" value="{{ request('hod_id') }}">
+                                    <input type="hidden" name="hay_id" id="home_hay_id" value="{{ request('hay_id') }}">
+                                    <input type="hidden" name="plot_number" id="home_plot_number" value="{{ request('plot_number') }}">
                                 </div>
                             </div>
                             <div class="form-group-3 form-style">
                                 <label>{{__('Type')}}</label>
                                 <div class="group-select">
-                                    <select name="category_id" class="form-control">
-                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                    <select name="category_id" id="filter_category_id" class="form-control">
+                                        <option value="" data-slug="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                            @php $catSlug = $category->getTranslation('slug', 'en') ?: $category->getTranslation('slug', 'ar'); @endphp
+                                            <option value="{{ $category->id }}" data-slug="{{ $catSlug }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -85,102 +89,56 @@
                             </div>
 
                         </div>
-                        <div class="grid-2 group-box">
-                            <div class="group-select grid-2">
-                                <div class="box-select">
-                                    <label class="title-select text-variant-1">{{__('Rooms')}}</label>
-                                    <select name="rooms" class="form-control">
-                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                        @for ($i = 1; $i <= 10; $i++)
-                                            <option value="{{ $i }}" {{ request('rooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
-                                <div class="box-select">
-                                    <label class="title-select text-variant-1">{{__('Bathrooms')}}</label>
-                                    <select name="bathrooms" class="form-control">
-                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                        @for ($i = 1; $i <= 10; $i++)
-                                            <option value="{{ $i }}" {{ request('bathrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="group-select grid-2">
-                                <div class="box-select">
-                                    <label class="title-select text-variant-1">{{__('Bedrooms')}}</label>
-                                    <select name="bedrooms" class="form-control">
-                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
-                                        @for ($i = 1; $i <= 10; $i++)
-                                            <option value="{{ $i }}" {{ request('bedrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="group-checkbox">
-                            <div class="text-1">{{__('Amenities:')}}</div>
-                            <div class="group-amenities mt-8 grid-6">
-                                @php
-                                    $quarter = ceil($features->count() / 4);
-                                    $featuresFirst = $features->take($quarter);
-                                    $featuresSecond = $features->skip($quarter)->take($quarter);
-                                    $featuresThird = $features->skip($quarter * 2)->take($quarter);
-                                    $featuresFourth = $features->skip($quarter * 3);
-                                @endphp
-                                <div class="box-amenities">
-
-                                    @foreach($featuresFirst  as $feature)
-                                        <fieldset class="amenities-item">
-                                            <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
-                                            <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
-                                        </fieldset>
-                                    @endforeach
-
-                                </div>
-                                <div class="box-amenities">
-
-                                    @foreach($featuresSecond as $feature)
-                                        <fieldset class="amenities-item">
-                                            <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
-                                            <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
-                                        </fieldset>
-                                    @endforeach
-
-                                </div>
-                                <div class="box-amenities">
-
-                                    @foreach($featuresThird as $feature)
-                                        <fieldset class="amenities-item">
-                                            <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
-                                            <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
-                                        </fieldset>
-                                    @endforeach
-
-                                </div>
-                                <div class="box-amenities">
-
-                                    @foreach($featuresFourth as $feature)
-                                        <fieldset class="amenities-item">
-                                            <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
-                                            <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
-                                        </fieldset>
-                                    @endforeach
-
-                                </div>
-                            </div>
-
+                        <div class="group-box" id="filter-category-fields" style="display: grid; grid-template-columns: 1fr; width: 100%; grid-column: 1 / -1;">
+                            <p class="filter-hint-empty text-muted small mb-2" style="display:none;">{{__('Select property type above to show relevant filters.')}}</p>
+                            @include('site.properties.partials.filter_category_sections')
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    <script>
+    (function() {
+        function toggleFilterFieldsByCategory() {
+            var cat = document.getElementById('filter_category_id');
+            if (!cat) return;
+            var opt = cat.options[cat.selectedIndex];
+            var slug = (opt && opt.getAttribute('data-slug')) || '';
+            var hint = document.querySelector('.filter-hint-empty');
+            var visibleSection = null;
+            document.querySelectorAll('.filter-category-section').forEach(function(el) {
+                var show = el.getAttribute('data-category') === slug.toLowerCase();
+                el.style.display = show ? '' : 'none';
+                el.querySelectorAll('input, select').forEach(function(inp) { inp.disabled = !show; });
+                if (show) visibleSection = el;
+            });
+            if (hint) hint.style.display = slug ? 'none' : '';
+            if (visibleSection && typeof $ !== 'undefined' && $.fn.niceSelect) {
+                $(visibleSection).find('select').niceSelect('update');
+            }
+        }
+        function initFilterCategoryToggle() {
+            var cat = document.getElementById('filter_category_id');
+            if (!cat) return;
+            toggleFilterFieldsByCategory();
+            cat.addEventListener('change', toggleFilterFieldsByCategory);
+            document.addEventListener('click', function(e) {
+                if (e.target.closest && e.target.closest('.nice-select .option')) {
+                    setTimeout(toggleFilterFieldsByCategory, 50);
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFilterCategoryToggle);
+        } else {
+            initFilterCategoryToggle();
+        }
+    })();
+    </script>
     <!-- Location Popup Modal - moved to body to fix backdrop z-index -->
     <div class="modal fade" id="locationPopupModal" tabindex="-1" data-bs-backdrop="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header py-2">
                     <h6 class="modal-title">{{__('Select Location')}}</h6>
@@ -209,6 +167,22 @@
                         <select id="popup_village" class="form-control form-control-sm select2-popup">
                             <option value="">{{__('Select Village')}}</option>
                         </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">{{__('Hod')}}</label>
+                        <select id="popup_hod" class="form-control form-control-sm select2-popup">
+                            <option value="">{{__('Select Hod')}}</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">{{__('Hay')}}</label>
+                        <select id="popup_hay" class="form-control form-control-sm select2-popup">
+                            <option value="">{{__('Select Hay')}}</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">{{__('Plot Number')}}</label>
+                        <input type="text" id="popup_plot_number" class="form-control form-control-sm" placeholder="{{__('Plot Number')}}" value="{{ request('plot_number') }}">
                     </div>
                     <button type="button" class="btn btn-primary btn-sm w-100" id="apply_location_popup">{{__('Apply')}}</button>
                 </div>

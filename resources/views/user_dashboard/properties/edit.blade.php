@@ -132,8 +132,8 @@
                                                             <label class="form-label" for="type">{{__('Property Type')}}</label>
 
                                                             <select name="type" id="type" class="form-select">
-                                                                <option value="0" {{ (old('type', $property->type ?? 0) == 0) ? 'selected' : '' }}>{{__('Rent')}}</option>
-                                                                <option value="1" {{ (old('type', $property->type ?? 0) == 1) ? 'selected' : '' }}>{{__('Sold')}}</option>
+                                                                <option value="0" {{ (old('type', $property->type ?? 0) == 0) ? 'selected' : '' }}>{{__('For Rent')}}</option>
+                                                                <option value="1" {{ (old('type', $property->type ?? 0) == 1) ? 'selected' : '' }}>{{__('For Sale')}}</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -292,13 +292,9 @@
                                                     <div class="col-md-4">
                                                         <div class="form-group">
                                                             <label for="currency">{{__('Currency')}}:</label>
-                                                            <select id="currency" required name="currency" class="select2 form-select">
-                                                                @foreach($uniqueCurrencies as $currency)
-                                                                    <option value="{{ $currency }}" {{ $currency == $property->price->currency ? 'selected' : '' }}>
-                                                                        {{ $currency }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
+                                                            <input type="text" class="form-control" value="{{ __('Jordanian Dinar') }} (JOD)" readonly>
+                                                            <input type="hidden" name="currency" value="JOD">
+                                                            <small class="form-hint">{{ __('Properties in Jordan use Jordanian Dinar only.') }}</small>
                                                         </div>
 
                                                     </div>
@@ -354,79 +350,53 @@
                                     <!-- /Price -->
                                 </div>
                                 <div class="row mt-2">
-                                    <!-- Additional Information -->
+                                    <!-- Categories - قبل Property Details -->
                                     <div class="col-12">
                                         <div class="card widget-box-2">
-
-                                            <h6 class="title">{{__('Additional Information')}}</h6>
+                                            <h6 class="title">{{ __('Categories') }}</h6>
                                             <div class="card-body">
-                                                <div class="row">
-                                                    @foreach([
-                                                        'size' => __('Size (m²)'),
-                                                        'land_area' => __('Land Area (m²)'),
-                                                        'rooms' => __('Rooms'),
-                                                        'bedrooms' => __('Bedrooms'),
-                                                        'bathrooms' => __('Bathrooms'),
-                                                        'garages' => __('Garages'),
-                                                        'garages_size' => __('Garages Size (m²)'),
-                                                        'floors' => __('Floors'),
-                                                        'year_built' => __('Year Built')
-                                                    ] as $field => $label)
-                                                        <div class="col-md-4">
-                                                            <div class="form-group mb-3">
-                                                                <label class="form-label" for="{{ $field }}">{{ $label }}</label>
-                                                                <input type="number" class="form-control" name="{{ $field }}" id="{{ $field }}"
-                                                                       placeholder="" value="{{ old($field, $property->more_info->$field ?? '') }}" required>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
+                                                <div class="form-group mb-0">
+                                                    <label class="form-label">{{ __('Property Type') }}</label>
+                                                    <select name="category_id" id="category_id" class="form-control select2">
+                                                        @foreach($categories as $category)
+                                                            @php $catSlug = $category->getTranslation('slug', 'en') ?: $category->getTranslation('slug', 'ar'); @endphp
+                                                            <option value="{{ $category->id }}" data-slug="{{ $catSlug }}" {{ $category->id == old('category_id', $property->category_id) ? 'selected' : '' }}>{{ $category->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <small class="form-hint">{{ __('Select property type to show relevant fields below.') }}</small>
                                                 </div>
-
-
-
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- /Additional Information -->
                                 </div>
                                 <div class="row mt-2">
-                                    <!-- Amenities -->
+                                    <!-- Category-specific: Property details by type -->
                                     <div class="col-12">
                                         <div class="card widget-box-2">
-
-                                             <h6 class="title">{{__('Amenities & Features')}}<span>*</span></h6>
-
+                                            <h6 class="title">{{ __('Property Details') }} <span class="text-muted">({{ __('by property type') }})</span></h6>
                                             <div class="card-body">
-                                                <div class="row box-amenities-property">
-                                                    @php
-                                                        // Collect feature IDs from property
-                                                        $selectedFeatureIds = $property->features->pluck('feature_id')->toArray();
-                                                    @endphp
-
-                                                    @foreach($feature_categories as $f_category)
-                                                        @if($f_category->features->isNotEmpty())
-                                                            <div class="col-md-4 box-amenities">
-                                                                <small class="title-amenities fw-7">{{ $f_category->name }}</small>
-                                                                @foreach($f_category->features as $feature)
-                                                                    <div class="amenities-item">
-                                                                        <input class="tf-checkbox style-1 primary" type="checkbox"
-                                                                               value="{{ $feature->id }}" id="defaultCheck{{ $feature->id }}"
-                                                                               name="property_features[]"
-                                                                            {{ in_array($feature->id, $selectedFeatureIds) ? 'checked' : '' }}>
-                                                                        <label class="text-cb-amenities" for="defaultCheck{{ $feature->id }}">
-                                                                            {{ $feature->name }}
-                                                                        </label>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
-
+                                                <p id="category-fields-hint" class="text-muted small mb-3">{{ __('Select property type above to show relevant fields.') }}</p>
+                                                <div id="category-fields-apartment" class="category-fields-section" data-category="apartment" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_apartment', ['info' => $property->more_info ?? null])
+                                                </div>
+                                                <div id="category-fields-villa" class="category-fields-section" data-category="villa" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_villa', ['info' => $property->more_info ?? null])
+                                                </div>
+                                                <div id="category-fields-office" class="category-fields-section" data-category="office" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_office', ['info' => $property->more_info ?? null])
+                                                </div>
+                                                <div id="category-fields-commercial" class="category-fields-section" data-category="commercial" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_commercial', ['info' => $property->more_info ?? null])
+                                                </div>
+                                                <div id="category-fields-farm" class="category-fields-section" data-category="farm" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_farm', ['info' => $property->more_info ?? null])
+                                                </div>
+                                                <div id="category-fields-land" class="category-fields-section" data-category="land" style="display:none;">
+                                                    @include('user_dashboard.properties.partials.category_fields_land', ['info' => $property->more_info ?? null])
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- /Amenities -->
                                 </div>
                                 <div class="row mt-2">
                                     <!-- Distance key between facilities -->
@@ -527,26 +497,6 @@
                                                         <option value="4" {{ $property->status == 4 ? 'selected' : '' }}>{{ __('Renting') }}</option>
                                                         <option value="5" {{ $property->status == 5 ? 'selected' : '' }}>{{ __('Rented') }}</option>
                                                         <option value="6" {{ $property->status == 6 ? 'selected' : '' }}>{{ __('Building') }}</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <div class="col-12 mt-2">
-                                        <div class="card widget-box-2">
-
-                                            <h6 class="title">{{__('Categories')}}</h6>
-                                            <div class="card-body">
-                                                <div class="form-group mb-3">
-                                                    <select name="category_id" id="category_id" class="form-select select2">
-
-                                                        @foreach($categories as $category)
-                                                            <option value="{{ $category->id }}" {{ $category->id == old('category_id', $property->category_id) ? 'selected' : '' }}>
-                                                                {{ $category->name }}
-                                                            </option>
-                                                        @endforeach
-
-
                                                     </select>
                                                 </div>
                                             </div>
@@ -664,38 +614,18 @@
         document.addEventListener('DOMContentLoaded', function () {
             var typeSelect = document.getElementById('type');
             var periodDiv = document.getElementById('period').closest('.col-md-4');
-
-            function togglePeriod() {
-                if (typeSelect.value === '0') { // Sold
-                    periodDiv.style.display = 'block';
-                } else { //  Rent
-                    periodDiv.style.display = 'none';
-                }
-            }
-
-            typeSelect.addEventListener('change', togglePeriod);
-
-            // Initial check
-            togglePeriod();
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var neverExpiredCheckbox = document.getElementById('never_expired');
+            var neverExpiredDiv = document.getElementById('never_expired').closest('.col-md-6');
             var autoRenewDiv = document.getElementById('auto_renew').closest('.form-group');
 
-            function toggleAutoRenew() {
-                if (neverExpiredCheckbox.checked) {
-                    autoRenewDiv.style.display = 'block';
-                } else {
-                    autoRenewDiv.style.display = 'none';
-                }
+            function toggleRentOnlyFields() {
+                var isForRent = (typeSelect.value === '0');
+                periodDiv.style.display = isForRent ? 'block' : 'none';
+                if (neverExpiredDiv) neverExpiredDiv.style.display = isForRent ? 'block' : 'none';
+                if (autoRenewDiv) autoRenewDiv.style.display = isForRent ? 'block' : 'none';
             }
 
-            neverExpiredCheckbox.addEventListener('change', toggleAutoRenew);
-
-            // Initial check
-            toggleAutoRenew();
+            typeSelect.addEventListener('change', toggleRentOnlyFields);
+            toggleRentOnlyFields();
         });
     </script>
 
@@ -706,7 +636,20 @@
             $('.select2').select2({
                 theme: 'bootstrap-5',
             });
-// Jordan location hierarchy
+
+            // Show/hide category-specific fields when category changes
+            function showCategoryFields() {
+                var slug = $('#category_id option:selected').data('slug') || '';
+                $('#category-fields-hint').toggle(!slug);
+                $('.category-fields-section').hide();
+                if (slug && $('#category-fields-' + slug).length) {
+                    $('#category-fields-' + slug).show();
+                }
+            }
+            $('#category_id').on('change', showCategoryFields);
+            showCategoryFields();
+
+            // Jordan location hierarchy
             var editAddress = @json($property->address ?? null);
             var govId = editAddress ? (editAddress.governorate_id || '') : '';
             var deptId = editAddress ? (editAddress.department_id || '') : '';

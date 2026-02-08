@@ -1,0 +1,168 @@
+<div class="flat-tab flat-tab-form widget-filter-search widget-box bg-surface">
+    <div class="h7 title fw-7">{{__('Search')}}</div>
+    <ul class="nav-tab-form" role="tablist">
+        <li class="nav-tab-item" role="presentation">
+            <a href="#rent" class="nav-link-item {{ request('tab', 'rent') == 'rent' ? 'active' : '' }}" data-bs-toggle="tab">{{__('For Rent')}}</a>
+        </li>
+        <li class="nav-tab-item" role="presentation">
+            <a href="#sale" class="nav-link-item {{ request('tab', 'rent') == 'sale' ? 'active' : '' }}" data-bs-toggle="tab">{{__('For Sale')}}</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade  active show" role="tabpanel" >
+            <div class="form-sl">
+                <form method="GET" action="{{ route('site.properties') }}">
+                    <input type="hidden" name="tab" id="selectedTab" value="{{ request('tab') }}">
+                    <div class="wd-filter-select">
+                        <div class="inner-group inner-filter">
+                            <div class="form-style">
+                                <label class="title-select">{{__('Keyword')}}</label>
+                                <input type="text" class="form-control" placeholder="{{__('Search Keyword')}}" value="{{ request('keyword') }}" name="keyword" title="Search for">
+                            </div>
+                            <div class="form-style">
+                                <label class="title-select">{{__('Governorate')}}</label>
+                                <select name="governorate_id" id="filter_governorate" class="form-control">
+                                    <option value="">{{__('Select Governorate')}}</option>
+                                    @isset($governorates)
+                                        @foreach($governorates as $gov)
+                                            <option value="{{ $gov->governorate_id }}" {{ request('governorate_id') == $gov->governorate_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $gov->governorate_name_ar : ($gov->governorate_name_en ?? $gov->governorate_name_ar) }}</option>
+                                        @endforeach
+                                    @endisset
+                                </select>
+                            </div>
+                            <div class="form-style">
+                                <label class="title-select">{{__('Department')}}</label>
+                                <select name="department_id" id="filter_department" class="form-control">
+                                    <option value="">{{__('Select Department')}}</option>
+                                    @isset($filterDepartments)
+                                        @foreach($filterDepartments as $dept)
+                                            <option value="{{ $dept->department_id }}" {{ request('department_id') == $dept->department_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $dept->department_name_ar : ($dept->department_name_en ?? $dept->department_name_ar) }}</option>
+                                        @endforeach
+                                    @endisset
+                                </select>
+                            </div>
+                            <div class="form-style">
+                                <label class="title-select">{{__('Village')}}</label>
+                                <select name="village_id" id="filter_village" class="form-control">
+                                    <option value="">{{__('Select Village')}}</option>
+                                    @isset($filterVillages)
+                                        @foreach($filterVillages as $vill)
+                                            <option value="{{ $vill->village_id }}" {{ request('village_id') == $vill->village_id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $vill->village_name_ar : ($vill->village_name_en ?? $vill->village_name_ar) }}</option>
+                                        @endforeach
+                                    @endisset
+                                </select>
+                            </div>
+                            <div class="form-style">
+                                <label class="title-select">{{__('Type')}}</label>
+                                <div class="group-select">
+                                    <select name="category_id" class="form-control">
+                                        <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-style box-select">
+                                <label class="title-select">{{__('Rooms')}}</label>
+                                <select name="rooms" class="form-control">
+                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                    @for ($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}" {{ request('rooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-style box-select">
+                                <label class="title-select">{{__('Bathrooms')}}</label>
+                                <select name="bathrooms" class="form-control">
+                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                    @for ($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}" {{ request('bathrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-style box-select">
+                                <label class="title-select">{{__('Bedrooms')}}</label>
+                                <select name="bedrooms" class="form-control">
+                                    <option value="" data-display="{{__('select')}}">{{__('Nothing')}}</option>
+                                    @for ($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}" {{ request('bedrooms') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-style widget-price">
+                                <div class="box-title-price">
+                                    <span class="title-price">{{__('Price Range')}}</span>
+                                    <div class="caption-price">
+                                        <span>{{__('from')}}</span>
+                                        <span id="slider-range-value1" class="fw-7">{{ request('min-value', '0') }}</span>
+                                        <span>{{__('to')}}</span>
+                                        <span id="slider-range-value2" class="fw-7">{{ request('max-value', '1000000') }}</span>
+                                    </div>
+                                </div>
+                                <div id="slider-range"></div>
+                                <div class="slider-labels">
+
+                                    <!-- Hidden inputs for price range -->
+                                    <input type="hidden" name="min-value" value="{{ request('min-value', 0) }}">
+                                    <input type="hidden" name="max-value" value="{{ request('max-value', 1000000) }}">
+
+
+
+                                </div>
+                            </div>
+                            <div class="form-style widget-price wd-price-2">
+                                <div class="box-title-price">
+                                    <span class="title-price">{{__('Size Range')}}</span>
+                                    <div class="caption-price">
+                                        <span>{{__('from')}}</span>
+                                        <span id="slider-range-value01" class="fw-7">{{ request('min-value2', '0') }}</span>
+                                        <span>{{__('to')}}</span>
+                                        <span id="slider-range-value02" class="fw-7">{{ request('max-value2', '10000') }}</span>
+                                    </div>
+                                </div>
+                                <div id="slider-range2"></div>
+                                <div class="slider-labels">
+                                    <!-- Hidden inputs for size range -->
+                                    <input type="hidden" name="min-value2" value="{{ request('min-value2', 0) }}">
+                                    <input type="hidden" name="max-value2" value="{{ request('max-value2', 10000) }}">
+                                </div>
+                            </div>
+                            <div class="form-style btn-show-advanced">
+                                <a class="filter-advanced pull-right">
+                                    <span class="icon icon-faders"></span>
+                                    <span class="text-advanced">{{__('Show Advanced')}}</span>
+                                </a>
+                            </div>
+                            <div class="form-style wd-amenities">
+                                <div class="group-checkbox">
+                                    <div class="text-1">{{__('Amenities:')}}</div>
+                                    <div class="group-amenities">
+                                        @foreach($features as $feature)
+                                            <fieldset class="amenities-item">
+                                                <input type="checkbox" class="tf-checkbox style-1" name="features[]" value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, request('features', [])) ? 'checked' : '' }}>
+                                                <label for="feature_{{ $feature->id }}" class="text-cb-amenities">{{ $feature->name }}</label>
+                                            </fieldset>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-style btn-hide-advanced">
+                                <a class="filter-advanced pull-right">
+                                    <span class="icon icon-faders"></span>
+                                    <span class="text-advanced">{{__('Hide Advanced')}}</span>
+                                </a>
+                            </div>
+                            <div class="form-style">
+                                <button type="submit" class="tf-btn primary">{{__('Find Properties')}}</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+

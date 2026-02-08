@@ -1,0 +1,217 @@
+@extends('dashboard.layouts.app')
+@section('style')
+    <link rel="stylesheet" href="{{ asset('assets/css/form-validation.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css ') }}" />
+@endsection
+@section('content')
+    <!-- Content -->
+
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{route('dashboard')}}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{route('settings.index')}}">{{__('Settings')}}</a>
+                </li>
+                <li class="breadcrumb-item active">{{__('Edit Settings')}}</li>
+                <!-- Basic table -->
+
+
+                <!--/ Basic table -->
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-xl">
+        <!--begin::Card-->
+        <div class="card">
+            <!--begin::Card body-->
+            <div class="card-body pt-3">
+                <form class="form fv-plugins-bootstrap5 fv-plugins-framework" id="mainAdd" method="post" action="javascript:void(0)" >
+                    <div class="kt-portlet__body">
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                            <!--begin::Label-->
+                            <div class="button-container">
+                                <button type="button" class="btn btn-success" onclick="selectAll()">Select All</button>
+                                <button type="button" class="btn btn-danger" onclick="deselectAll()">Deselect All</button>
+                            </div>
+                            <label class="required fw-bold fs-6 mb-2" for="user_id">{{__('Users')}}</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <select class="form-control js-example-basic-single" name="user_id[]" multiple id="user_id" required >
+                                @foreach($users_all as $item)
+                                    <option value="{{$item->id}}" >{{$item->name .' - ' .$item->email.' - ' .$item->user_no}}</option>
+                                @endforeach
+                            </select>                            <!--end::Input-->
+                        </div>
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                            <!--begin::Label-->
+                            <label class="required fw-bold fs-6 mb-2" for="subject">{{__('Subject')}}</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <input type="text" name="subject" id="subject" class="form-control form-control-solid mb-3 mb-lg-0" placeholder="{{__('Subject')}}"  required>
+                            <!--end::Input-->
+                        </div>
+                        <div class="fv-row mb-7 fv-plugins-icon-container">
+                            <!--begin::Label-->
+                            <label class="required fw-bold fs-6 mb-2" for="description">{{__('Description')}}</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+{{--                            <textarea name="description" id="description" required class="form-control form-control-solid mb-3 mb-lg-0" placeholder="{{__('Description')}}" rows="4"></textarea>--}}
+                            <textarea  id="description" name="description"></textarea>
+                            <!--end::Input-->
+                        </div>
+
+                    </div>
+                    <div class="text-center pt-15">
+                        <button type="submit" class="btn btn-primary" id="add_form" data-kt-users-modal-action="submit">
+                            <span class="indicator-label">Submit</span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+            <!--end::Card body-->
+        </div>
+        <!--end::Card-->
+
+            </div>
+
+        </div>
+    </div>
+    <!-- / Content -->
+
+@endsection
+@section('scripts')
+    <!-- BEGIN: Page Vendor JS-->
+    <script src="{{asset('assets/js/jquery.validate.min.js')}}"></script>
+{{--    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>--}}
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
+
+    <script>
+        $('#user_id').select2({
+            // theme: "classic"
+        });
+        function selectAll() {
+            $("#user_id > option").prop("selected", true);
+            $("#user_id").trigger("change");
+        }
+
+        function deselectAll() {
+            $("#user_id > option").prop("selected", false);
+            $("#user_id").trigger("change");
+        }
+    </script>
+    <!-- END: Page JS-->
+
+    <script type="text/javascript">
+        CKEDITOR.replace('description', {
+            filebrowserUploadUrl: "{{route('ckeditor.image-upload', ['_token' => csrf_token() ])}}",
+            filebrowserUploadMethod: 'form'
+        });
+    </script>
+    <script>
+
+        var data_url='{{ route('users.send_email_all')}}'
+
+        $(document).ready(function() {
+            function myHandel(obj, id) {
+                if ('responseJSON' in obj)
+                    obj.messages = obj.responseJSON;
+                $('input,select,textarea').each(function () {
+                    var parent = "";
+                    if ($(this).parents('.form-group').length > 0)
+                        parent = $(this).parents('.form-group');
+                    if ($(this).parents('.input-group').length > 0)
+                        parent = $(this).parents('.input-group');
+                    var name = $(this).attr("name");
+                    if (obj.messages && obj.messages[name] && ($(this).attr('type') !== 'hidden')) {
+                        var error_message = '<div class="col-md-8 offset-md-3 custom-error"><p style="color: red">' + obj.messages[name][0] + '</p></div>'
+                        parent.append(error_message);
+                    }
+                });
+            }
+
+            $(document).on("click", "#add_form", function() {
+                var form = $(this.form);
+                if(! form.valid()) {
+                    return false
+                };
+                if (form.valid()) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+
+                    });
+                    // var Content = CKEDITOR.instances['description'].getData();
+
+                    var postData = new FormData(this.form);
+                    // postData['description']=Content
+                    postData.append('description', CKEDITOR.instances['description'].getData());
+                    // console.log(postData)
+                    $('#add_form').html('');
+                    $('#add_form').append('<span class="spinner-border spinner-border-sm align-middle ms-2"></span>' +
+                        '<span class="ml-25 align-middle">{{__('Saving')}}...</span>');
+                    $.ajax({
+                        url: data_url,
+                        type: "POST",
+                        data: postData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            $('#add_form').empty();
+                            $('#add_form').html('{{__('Save')}}');
+                            // swal.fire({
+                            //     type: 'success',
+                            //     title: response.success
+                            // });
+                            setTimeout(function () {
+                                toastr['success'](
+                                    response.success,
+                                    {
+                                        closeButton: true,
+                                        tapToDismiss: false
+                                    }
+                                );
+                            }, 200);
+                            document.getElementById("mainAdd").reset();
+                            $('.custom-error').remove();
+
+                        },
+                        error: function (data) {
+                            $('.custom-error').remove();
+                            $('#add_form').empty();
+                            $('#add_form').html('{{__('Save')}}');
+                            var response = data.responseJSON;
+                            if (data.status == 422) {
+                                if (typeof (response.responseJSON) != "undefined") {
+                                    myHandel(response);
+                                    setTimeout(function () {
+                                        toastr['error'](
+                                            response.message,
+                                            {
+                                                closeButton: true,
+                                                tapToDismiss: false
+                                            }
+                                        );
+                                    }, 200);
+                                }
+                            } else {
+                                swal.fire({
+                                    icon: 'error',
+                                    title: response.message
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+        });
+
+    </script>
+@endsection
+

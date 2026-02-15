@@ -48,11 +48,25 @@
             color: #245da0;
             margin-top: 5px;
         }
+        #address-loader.address-loader-hidden {
+            display: none !important;
+        }
         .dropzone .dz-preview .dz-image img {
             display: block;
             width: 120px;
             height: 120px;
         }
+        /* Featured Listing card - لون النظام وتنسيق أوضح */
+        .card-featured-listing { border: 1px solid #1779A7; border-radius: 0.375rem; overflow: hidden; }
+        .card-featured-listing .card-header { background-color: #1779A7 !important; border-color: #1779A7; color: #fff; padding: 0.75rem 1rem; font-weight: 600; }
+        .card-featured-listing .card-body { padding: 1rem; }
+        .card-featured-listing .btn-outline-primary { border-color: #1779A7; color: #1779A7; }
+        .card-featured-listing .btn-outline-primary:hover { background-color: #1779A7; color: #fff; border-color: #1779A7; }
+        .card-featured-listing .receipt-line { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .card-featured-listing .receipt-line strong { margin: 0 0.25rem 0 0; }
+        .card-featured-listing .pending-msg { background: #fff8e6; border: 1px solid #f0c674; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #856404; font-size: 0.9375rem; line-height: 1.4; }
+        .card-featured-listing .approve-form { margin-top: 0.5rem; }
+        .card-featured-listing .btn-success { padding: 0.375rem 0.75rem; }
     </style>
 @endsection
 @section('content')
@@ -69,12 +83,11 @@
                     <a href="{{route('admin.properties.index',1)}}">{{__('Properties')}}</a>
                 </li>
                 <li class="breadcrumb-item active">{{__('Edit Property')}}</li>
-                <!-- Basic table -->
-
-
-                <!--/ Basic table -->
             </ol>
         </nav>
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        @endif
         <div class="row">
             <div class="col-xl">
                 <div class="card mb-4">
@@ -198,64 +211,84 @@
                                         <!-- /Images -->
                                     </div>
                                     <div class="row mt-2">
-                                        <!-- address -->
+                                        <!-- address - مثل اليوزر: العنوان للأردن -->
                                         <div class="col-12">
                                             <div class="card">
-                                                <h5 class="card-header">{{ __('Address') }}</h5>
-                                                <div class="card-body">
-                                                    <div class="row">
+                                                <h5 class="card-header">{{ __('Address') }} - {{ __('Jordan') }}</h5>
+                                                <div class="card-body position-relative">
+                                                    <div id="address-loader" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.85); z-index: 5;">
+                                                        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{{ __('Loading...') }}</span></div>
+                                                    </div>
+                                                    <div id="address-fields" class="row">
                                                         <div class="col-md-4">
                                                             <div class="form-group">
-                                                                <label for="country">{{ __('Country') }}:</label>
-                                                                <select id="country" required name="country_id" class="form-control select2">
-                                                                    <option value="">{{ __('Select Country') }}</option>
-                                                                    @foreach($countries as $country)
-                                                                        <option value="{{ $country->id }}" {{ (old('country_id', $property->address->country_id ?? 0) == $country->id ) ? 'selected' : '' }}>{{ $country->name }}</option>
-                                                                    @endforeach
+                                                                <label for="governorate">{{ __('Governorate') }}:</label>
+                                                                <select id="governorate" required name="governorate_id" class="form-control select2">
+                                                                    <option value="">{{ __('Select Governorate') }}</option>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-group">
-                                                                <label for="state">{{ __('State') }}:</label>
-                                                                <select id="state" required name="state_id" class="form-control select2">
-                                                                    <option value="">{{ __('Select State') }}</option>
-                                                                    <option value="{{ $property->address->state_id}}" selected>{{ $property->address->state->name }}</option>
-
+                                                                <label for="department">{{ __('Department') }}:</label>
+                                                                <select id="department" required name="department_id" class="form-control select2">
+                                                                    <option value="">{{ __('Select Department') }}</option>
                                                                 </select>
-                                                                <div id="state-loading" class="loading-indicator" style="display: none;">Loading states...</div>
+                                                                <div id="department-loading" class="loading-indicator" style="display: none;">{{ __('Loading...') }}</div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-group">
-                                                                <label for="city">{{ __('City') }}:</label>
-                                                                <select id="city" required name="city_id" class="form-control select2">
-                                                                    <option value="">{{ __('Select City') }}</option>
-                                                                    <option value="{{ $property->address->city_id}}" selected>{{ $property->address->city->name }}</option>
+                                                                <label for="village">{{ __('Village') }}:</label>
+                                                                <select id="village" required name="village_id" class="form-control select2">
+                                                                    <option value="">{{ __('Select Village') }}</option>
                                                                 </select>
-                                                                <div id="city-loading" class="loading-indicator" style="display: none;">Loading cities...</div>
+                                                                <div id="village-loading" class="loading-indicator" style="display: none;">{{ __('Loading...') }}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="hod">{{ __('Hod') }}:</label>
+                                                                <select id="hod" name="hod_id" class="form-control select2">
+                                                                    <option value="">{{ __('Select Hod') }}</option>
+                                                                </select>
+                                                                <div id="hod-loading" class="loading-indicator" style="display: none;">{{ __('Loading...') }}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="hay">{{ __('Hay') }}:</label>
+                                                                <select id="hay" name="hay_id" class="form-control select2">
+                                                                    <option value="">{{ __('Select Hay') }}</option>
+                                                                </select>
+                                                                <div id="hay-loading" class="loading-indicator" style="display: none;">{{ __('Loading...') }}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="plot_number">{{ __('Plot Number') }}:</label>
+                                                                <input type="text" class="form-control" name="plot_number" id="plot_number" value="{{ old('plot_number', $property->address?->plot_number ?? '') }}" required>
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                     <div class="row">
                                                         <div class="col-md-4">
                                                             <div class="form-group mb-3">
                                                                 <label class="form-label" for="full_address">{{ __('Full Address') }}</label>
-                                                                <input type="text" required class="form-control" name="full_address" id="full_address" value="{{ old('full_address', $property->address->full_address ?? '') }}" placeholder="{{ __('Full Address') }}">
+                                                                <input type="text" required class="form-control" name="full_address" id="full_address" value="{{ old('full_address', $property->address?->full_address ?? '') }}" placeholder="{{ __('Full Address') }}">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-group mb-3">
                                                                 <label class="form-label" for="latitude">{{ __('Latitude') }}</label>
-                                                                <input type="text" class="form-control" name="latitude" id="latitude" placeholder="{{ __('Ex: 1.462260') }}">
+                                                                <input type="text" class="form-control" name="latitude" id="latitude" value="{{ old('latitude', $property->address?->latitude ?? '') }}" placeholder="{{ __('Ex: 1.462260') }}">
                                                                 <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Latitude from address.') }}</a>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-group mb-3">
                                                                 <label class="form-label" for="longitude">{{ __('Longitude') }}</label>
-                                                                <input type="text" class="form-control" name="longitude" id="longitude" placeholder="{{ __('Ex: 1.462260') }}">
+                                                                <input type="text" class="form-control" name="longitude" id="longitude" value="{{ old('longitude', $property->address?->longitude ?? '') }}" placeholder="{{ __('Ex: 1.462260') }}">
                                                                 <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Longitude from address.') }}</a>
                                                             </div>
                                                         </div>
@@ -478,6 +511,21 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="row">
+                                        <div class="col-12 mt-2">
+                                            <div class="card">
+                                                <div class="card-header">{{ __('Contact information') }}</div>
+                                                <div class="card-body">
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label" for="contact_name">{{ __('Contact Name') }}</label>
+                                                        <input type="text" class="form-control" name="contact_name" id="contact_name" value="{{ old('contact_name', $property->contact_name ?? '') }}" required>
+                                                    </div>
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label" for="contact_phone">{{ __('Contact Phone') }}</label>
+                                                        <input type="text" class="form-control" name="contact_phone" id="contact_phone" value="{{ old('contact_phone', $property->contact_phone ?? '') }}" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-12">
                                             <div class="card">
                                                 <div class="card-header">{{ __('Status') }}</div>
@@ -524,6 +572,36 @@
                                             </div>
                                         </div>
 
+                                        @if($property->is_featured || $property->featured_listing_receipt)
+                                        <div class="col-12 mt-2">
+                                            <div class="card card-featured-listing">
+                                                <div class="card-header text-white">{{ __('Featured Listing') }}</div>
+                                                <div class="card-body">
+                                                    @if($property->featured_listing_receipt)
+                                                        <div class="receipt-line mt-1">
+                                                            <strong>{{ __('Payment receipt') }}:</strong>
+                                                            <a href="{{ asset(ltrim(str_replace('/public', '', $property->featured_listing_receipt), '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('View') }}</a>
+                                                        </div>
+                                                    @endif
+                                                    @if($property->featured_listing_until)
+                                                        @php
+                                                            $until = \Carbon\Carbon::parse($property->featured_listing_until);
+                                                            $active = $until->isFuture();
+                                                        @endphp
+                                                        <p class="mb-1"><strong>{{ __('Valid until') }}:</strong> {{ $property->featured_listing_until }}</p>
+                                                        <p class="mb-2 {{ $active ? 'text-success' : 'text-muted' }}">
+                                                            {{ $active ? __('Remaining') . ': ' . $until->diffForHumans(now(), true) : __('Expired') }}
+                                                        </p>
+                                                    @else
+                                                        <div class="pending-msg">{{ __('Pending approval. Approve to activate featured listing for 1 month.') }}</div>
+                                                        <div class="approve-form">
+                                                            <button type="button" class="btn btn-success btn-approve-featured" data-property-id="{{ $property->id }}" data-url="{{ route('admin.properties.approve-featured', $property->id) }}">{{ __('Approve (1 month)') }}</button>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
 
                                         <div class="col-12 mt-2">
                                             <div class="card">
@@ -546,7 +624,10 @@
                                                         {{--                                                            <div id="hint-message" class="hint-message">Please enter 1 or more characters</div>--}}
 
                                                         <select id="user-list" name="user_id" class="form-select " >
-                                                            <option value=""></option>
+                                                            <option value="">{{ __('Select user') }}</option>
+                                                            @if($property->user_id && $property->user)
+                                                                <option value="{{ $property->user_id }}" selected>{{ $property->user->name }}</option>
+                                                            @endif
                                                         </select>
                                                     </div>
                                                 </div>
@@ -710,11 +791,14 @@
             $('#category_id').on('change', showCategoryFields);
             showCategoryFields();
 
-            // Initialize Select2 for user list with AJAX
+            // Initialize Select2 for user list with AJAX (مع عرض اليوزر الحالي إن وُجد)
+            var selectedUserId = "{{ $property->user_id ?? '' }}";
+            var selectedUserName = {!! json_encode($property->user->name ?? '') !!};
             $('#user-list').select2({
-                placeholder: 'Search for a user',
+                placeholder: '{{ __("Search for a user") }}',
                 allowClear: true,
                 minimumInputLength: 1,
+                data: selectedUserId && selectedUserName ? [{ id: selectedUserId, text: selectedUserName }] : [],
                 ajax: {
                     url: '{{ route('admin.get_users') }}',
                     dataType: 'json',
@@ -732,17 +816,9 @@
                     cache: true
                 }
             });
-
-            // Set the selected user after loading the Select2 options
-            function setSelectedUser(userId) {
-                if (userId) {
-                    $('#user-list').val(userId).trigger('change');
-                }
+            if (selectedUserId) {
+                $('#user-list').val(selectedUserId).trigger('change');
             }
-
-            // Example: Replace this with the actual user ID from your data
-            let selectedUserId = "{{ $property->user_id ?? '' }}";
-            setSelectedUser(selectedUserId);
 
             // Event handling for user-list
             $('#user-list').on('select2:open', function() {
@@ -753,75 +829,93 @@
                 $('#hint-message').hide();
             });
 
-            $('#user-list').on('select2:selecting', function(e) {
-                // Handle the selection of a user
-                let selectedUserName = e.params.args.data.text;
-                $('#user-list').val(selectedUserName).trigger('change');
+            $('#user-list').on('select2:select', function(e) {
                 $('#hint-message').hide();
             });
-            // Event handling for country selection
-            // Handle country change
-            $('#country').change(function() {
-                let countryId = $(this).val();
-                if (countryId) {
-                    $('#state').prop('disabled', true);
-                    $('#state-loading').show();
-
-                    $.ajax({
-                        url: '{{ route('admin.get_states', '') }}/' + countryId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(data) {
-                            let $stateSelect = $('#state');
-                            $stateSelect.prop('disabled', false).empty().append('<option value="">{{ __('Select State') }}</option>');
-                            $.each(data, function(key, state) {
-                                $stateSelect.append('<option value="' + state.id + '">' + state.name + '</option>');
-                            });
-                            $('#city').empty().append('<option value="">{{ __('Select City') }}</option>');
-                            $('#state').trigger('change.select2');
-                            $('#state-loading').hide();
-                        },
-                        error: function() {
-                            $('#state').prop('disabled', false);
-                            $('#state-loading').hide();
-                        }
-                    });
-                } else {
-                    $('#state, #city').empty().append('<option value="">{{ __('Select State') }}</option>');
-                    $('#city').append('<option value="">{{ __('Select City') }}</option>');
-                    $('#state, #city').trigger('change.select2');
-                }
+            // Jordan address - مثل اليوزر (جدول الاحياء؛ hay_id=0 يعتبر لا اختيار)
+            var editAddress = @json($property->address ?? null);
+            var govId = editAddress ? (editAddress.governorate_id || '') : '';
+            var deptId = editAddress ? (editAddress.department_id || '') : '';
+            var villId = editAddress ? (editAddress.village_id || '') : '';
+            var hodId = editAddress ? (editAddress.hod_id || '') : '';
+            var hayId = (editAddress && editAddress.hay_id !== undefined && editAddress.hay_id !== null && editAddress.hay_id !== '') ? editAddress.hay_id : '';
+            function hideAddressLoader() { $('#address-loader').addClass('address-loader-hidden'); }
+            var addressLoadTimeout = setTimeout(hideAddressLoader, 15000);
+            function hideAddressLoaderOnce() { clearTimeout(addressLoadTimeout); hideAddressLoader(); }
+            function loadGovernorates(cb) {
+                $.get('{{ route('admin.jordan.governorates') }}').done(function(data) {
+                    $('#governorate').empty().append('<option value="">{{ __('Select Governorate') }}</option>');
+                    $.each(data, function(i, item) { $('#governorate').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                    if (govId) $('#governorate').val(govId).trigger('change.select2');
+                    if (cb) cb();
+                }).fail(hideAddressLoaderOnce);
+            }
+            loadGovernorates(function() {
+                if (!govId) { hideAddressLoaderOnce(); return; }
+                $.get('{{ route('admin.jordan.departments', '') }}/' + govId).done(function(data) {
+                    $('#department').empty().append('<option value="">{{ __('Select Department') }}</option>');
+                    $.each(data, function(i, item) { $('#department').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                    if (deptId) $('#department').val(deptId);
+                    if (!deptId) { hideAddressLoaderOnce(); return; }
+                    $.get('{{ route('admin.jordan.villages', '') }}/' + deptId).done(function(data2) {
+                        $('#village').empty().append('<option value="">{{ __('Select Village') }}</option>');
+                        $.each(data2, function(i, item) { $('#village').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                        if (villId) $('#village').val(villId);
+                        if (!villId) { hideAddressLoaderOnce(); return; }
+                        $.get(('{{ route("admin.jordan.hods", [0, 0]) }}').replace(/\/0\/0$/, '/' + deptId + '/' + villId)).done(function(data3) {
+                            $('#hod').empty().append('<option value="">{{ __('Select Hod') }}</option>');
+                            $.each(data3, function(i, item) { $('#hod').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                            if (hodId) $('#hod').val(hodId);
+                            if (!hodId) { hideAddressLoaderOnce(); return; }
+                            $.get(('{{ route("admin.jordan.hays", [0, 0, 0]) }}').replace(/\/0\/0\/0$/, '/' + deptId + '/' + villId + '/' + hodId))
+                                .done(function(data4) {
+                                    var $hay = $('#hay');
+                                    try { if ($hay.hasClass('select2-hidden-accessible')) $hay.select2('destroy'); } catch(e) {}
+                                    $hay.empty().append('<option value="">{{ __('Select Hay') }}</option>');
+                                    if (Array.isArray(data4)) { $.each(data4, function(i, item) { $hay.append('<option value="' + String(item.id) + '">' + item.name + '</option>'); }); }
+                                    var valToSet = (hayId !== '' && hayId !== undefined && hayId !== null) ? ((hayId === 0 || hayId === '0') ? '0' : String(hayId)) : '';
+                                    if (valToSet !== '') { $hay.val(valToSet); $hay.find('option').prop('selected', false).filter('[value="' + valToSet + '"]').prop('selected', true); }
+                                    $hay.select2();
+                                    if (valToSet !== '') $hay.val(valToSet).trigger('change');
+                                    hideAddressLoaderOnce();
+                                })
+                                .fail(hideAddressLoaderOnce)
+                                .always(hideAddressLoaderOnce);
+                        }).fail(hideAddressLoaderOnce);
+                    }).fail(hideAddressLoaderOnce);
+                }).fail(hideAddressLoaderOnce);
             });
-
-            // Handle state change
-            $('#state').change(function() {
-                let stateId = $(this).val();
-                if (stateId) {
-                    $('#city').prop('disabled', true);
-                    $('#city-loading').show();
-
-                    $.ajax({
-                        url: '{{ route('admin.get_cities', '') }}/' + stateId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(data) {
-                            let $citySelect = $('#city');
-                            $citySelect.prop('disabled', false).empty().append('<option value="">{{ __('Select City') }}</option>');
-                            $.each(data, function(key, city) {
-                                $citySelect.append('<option value="' + city.id + '">' + city.name + '</option>');
-                            });
-                            $('#city').trigger('change.select2');
-                            $('#city-loading').hide();
-                        },
-                        error: function() {
-                            $('#city').prop('disabled', false);
-                            $('#city-loading').hide();
-                        }
-                    });
-                } else {
-                    $('#city').empty().append('<option value="">{{ __('Select City') }}</option>');
-                    $('#city').trigger('change.select2');
-                }
+            $('#governorate').change(function() {
+                var id = $(this).val();
+                $('#department, #village, #hod, #hay').empty().append('<option value="">{{ __('Select') }}</option>');
+                if (id) $.get('{{ route('admin.jordan.departments', '') }}/' + id, function(data) {
+                    $('#department').empty().append('<option value="">{{ __('Select Department') }}</option>');
+                    $.each(data, function(i, item) { $('#department').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                });
+            });
+            $('#department').change(function() {
+                var id = $(this).val();
+                $('#village, #hod, #hay').empty().append('<option value="">{{ __('Select') }}</option>');
+                if (id) $.get('{{ route('admin.jordan.villages', '') }}/' + id, function(data) {
+                    $('#village').empty().append('<option value="">{{ __('Select Village') }}</option>');
+                    $.each(data, function(i, item) { $('#village').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                });
+            });
+            $('#village').change(function() {
+                var d = $('#department').val(), v = $(this).val();
+                $('#hod, #hay').empty().append('<option value="">{{ __('Select') }}</option>');
+                if (d && v) $.get(('{{ route("admin.jordan.hods", [0, 0]) }}').replace(/\/0\/0$/, '/' + d + '/' + v), function(data) {
+                    $('#hod').empty().append('<option value="">{{ __('Select Hod') }}</option>');
+                    $.each(data, function(i, item) { $('#hod').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                });
+            });
+            $('#hod').change(function() {
+                var d = $('#department').val(), v = $('#village').val(), h = $(this).val();
+                $('#hay').empty().append('<option value="">{{ __('Select') }}</option>');
+                if (d && v && h) $.get(('{{ route("admin.jordan.hays", [0, 0, 0]) }}').replace(/\/0\/0\/0$/, '/' + d + '/' + v + '/' + h), function(data) {
+                    $('#hay').empty().append('<option value="">{{ __('Select Hay') }}</option>');
+                    $.each(data, function(i, item) { $('#hay').append('<option value="' + item.id + '">' + item.name + '</option>'); });
+                });
             });
 
 
@@ -881,15 +975,21 @@
             // previewsContainer: "#dpz-btn-select-files", // Define the container to display the previews
 
             init: function() {
-                // Pre-existing images
-                var existingImages = {!! json_encode($property->images) !!};
+                // Pre-existing images: img_url للعرض (بدون /public في المسار)
+                var existingImages = {!! json_encode($property->images->map(function($img) {
+                    $path = $img->img;
+                    $path = preg_replace('#^/public#', '', $path ?? '');
+                    $path = ltrim($path, '/');
+                    return ['img' => $img->img, 'img_url' => $path ? asset($path) : ''];
+                })->values()) !!};
                 for (var i in existingImages) {
                     var file = existingImages[i];
-                    var mockFile = { name: file.img.split('/').pop(), size: 12345 }; // Mock file object
+                    var thumbUrl = file.img_url || (file.img ? '{{ url("/") }}/' + (file.img).replace(/^\/?public\/?/, '').replace(/^\/+/, '') : '');
+                    var mockFile = { name: (file.img || '').split('/').pop(), size: 12345 };
                     this.options.addedfile.call(this, mockFile);
-                    this.options.thumbnail.call(this, mockFile, file.img);
+                    this.options.thumbnail.call(this, mockFile, thumbUrl);
                     mockFile.previewElement.classList.add('dz-complete');
-                    $('form').append('<input type="hidden" name="images[]" value="' + file.img + '">');
+                    $('form').append('<input type="hidden" name="images[]" value="' + (file.img || '').replace(/"/g, '&quot;') + '">');
                 }
             }
         }
@@ -991,8 +1091,19 @@
                     }
                 });
 
-                // Prepare form data
+                // تعطيل حقول الأقسام المخفية (تفاصيل العقار + ميزات إضافية) حتى FormData يلتقط القسم الظاهر فقط
+                $('.category-fields-section:not(:visible)').find('input, select, textarea').prop('disabled', true);
+
                 var postData = new FormData(this.form);
+
+                // إعادة تفعيل الحقول
+                $('.category-fields-section').find('input, select, textarea').prop('disabled', false);
+
+                // إضافة حقول العنوان (Select2 قد لا يضمّنها في FormData)
+                ['governorate_id', 'department_id', 'village_id', 'hod_id', 'hay_id'].forEach(function(name) {
+                    var val = $('[name="' + name + '"]').val();
+                    if (val !== undefined && val !== null && val !== '') postData.set(name, val);
+                });
 
                 // Append Quill content for each language
                 @foreach ($lang as $locale)
@@ -1098,6 +1209,28 @@
                 // defaults to false.
                 isFirstItemUndeletable: true
             })
+        });
+
+        // زر الموافقة على Featured Listing (لا نستخدم form داخل form فالإرسال عبر AJAX)
+        $(document).on('click', '.btn-approve-featured', function() {
+            var btn = $(this);
+            var url = btn.data('url');
+            var token = $('meta[name="csrf-token"]').attr('content');
+            if (!url) return;
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: { 'X-CSRF-TOKEN': token },
+                data: { _token: token },
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    btn.prop('disabled', false).html('{{ __("Approve (1 month)") }}');
+                    alert('{{ __("An error occurred. Try again.") }}');
+                }
+            });
         });
     </script>
 @endsection

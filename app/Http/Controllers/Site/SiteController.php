@@ -232,6 +232,9 @@ class SiteController extends Controller
             $propertiesQuery->whereHas('address', fn($q) => $q->where('plot_number', 'like', '%' . $plotNumber . '%'));
         }
 
+        // Featured listing first (approved and valid until date), then apply sort
+        $propertiesQuery->orderByRaw('(CASE WHEN properties.is_featured=1 AND properties.featured_listing_until IS NOT NULL AND properties.featured_listing_until >= CURDATE() THEN 0 ELSE 1 END) ASC');
+
         // Sorting
         if ($sortField === 'price') {
             // Sort by related table: property_prices.price
@@ -315,6 +318,7 @@ class SiteController extends Controller
         if ($categoryId) {
             $propertiesQuery->where('category_id', $categoryId);
         }
+        $propertiesQuery->orderByRaw('(CASE WHEN properties.is_featured=1 AND properties.featured_listing_until IS NOT NULL AND properties.featured_listing_until >= CURDATE() THEN 0 ELSE 1 END) ASC');
         if ($sortBy) {
             $propertiesQuery->orderBy('created_at', $sortBy);
         }

@@ -10,6 +10,7 @@ use App\Models\Dashboard\Admin;
 use App\Models\Dashboard\Country;
 use App\Models\Dashboard\HistoryCoins;
 use App\Models\Dashboard\Invoice;
+use App\Models\Dashboard\Plan;
 use App\Models\Dashboard\PackageItem;
 use App\Models\Dashboard\Setting;
 use App\Models\Dashboard\ShipmentPackage;
@@ -477,6 +478,7 @@ class UserController extends Controller
             $data['first_name']=$request->first_name;
             $data['last_name']=$request->last_name;
             $data['name']=$request->first_name.' ' .$request->last_name;
+            $data['plan_id'] = $data['plan_id'] ?? Plan::where('slug', 'trial')->value('id');
             $user = User::query()->create($data);
 
 

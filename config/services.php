@@ -49,4 +49,10 @@ return [
         'client_secret' => env('TWITTER_CLIENT_SECRET'),
         'redirect' => env('TWITTER_CLIENT_REDIRECT'),
     ],
+
+    'telegram_notify' => [
+        'enabled' => env('TELEGRAM_NOTIFY_ENABLED', false),
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'), // Admin chat ID to receive notifications
+    ],
 ];

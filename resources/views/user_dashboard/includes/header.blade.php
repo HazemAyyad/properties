@@ -2,7 +2,7 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ app()->getLocale() === 'ar' ? 'ar' : 'en-US' }}" lang="{{ app()->getLocale() === 'ar' ? 'ar' : 'en-US' }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="utf-8">
@@ -16,7 +16,6 @@
     <!-- Icons -->
     <link rel="stylesheet" href="{{asset('/site/fonts/font-icons.css')}}">
     <link rel="stylesheet" href="{{asset('/site/css/bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{asset('/site/css/apexcharts.css')}}">
     <link rel="stylesheet"type="text/css" href="{{asset('/site/css/jqueryui.min.css')}}"/>
     @if (App::isLocale('en'))
     <link rel="stylesheet"type="text/css" href="{{asset('/site/css/styles.css')}}"/>
@@ -25,8 +24,8 @@
     @endif
 
     <!-- Favicon and Touch Icons  -->
-    <link rel="shortcut icon" href="{{asset('/site/images/logo/favicon.png')}}">
-    <link rel="apple-touch-icon-precomposed" href="{{asset('/site/images/logo/favicon.png')}}">
+    <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
+    <link rel="apple-touch-icon-precomposed" href="{{asset('favicon.ico')}}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 
     <style>
@@ -48,7 +47,7 @@
     @yield('style')
 </head>
 
-<body class="body bg-surface counter-scroll">
+<body class="body bg-surface counter-scroll" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <div class="preload preload-container">
     <div class="boxes ">
@@ -166,7 +165,7 @@
                     <div class="menu-backdrop"></div>
                     <nav class="menu-box">
                         <div class="nav-logo">
-                            <a href="{{route('site.index')}}"><img src="{{asset('/siteimages/logo/logo@2x.png')}}" alt="nav-logo" width="174" height="44"></a></div>
+                            <a href="{{route('site.index')}}"><img src="{{asset('/site/images/logo/logo@2x.png')}}" alt="nav-logo" width="174" height="44"></a></div>
                         <div class="bottom-canvas">
                             <div class="menu-outer"></div>
                             <div class="button-mobi-sell">

@@ -18,14 +18,15 @@ class NotificationEvent implements ShouldBroadcastNow
 
     public function __construct($data)
     {
+        $data['id'] = $data['id'] ?? uniqid();
         $this->data = $data;
 
         // Save notification to the database
         DB::table('notifications')->insert([
-            'id' => uniqid(),
+            'id' => $data['id'],
             'type' => 'App\Events\NotificationEvent', // Example type
             'notifiable_type' => 'App\Models\Admin', // Change to the relevant model
-            'notifiable_id' => $data['user_id'],
+            'notifiable_id' => $data['notifiable_id'] ?? $data['user_id'],
             'data' => json_encode($data),
             'created_at' => now(),
             'updated_at' => now(),

@@ -52,12 +52,27 @@
                                                         <label class="form-label" for="description_{{ $locale }}">{{__('Description')}} ({{ strtoupper($locale) }})</label>
                                                         <input type="text" class="form-control" name="description[{{ $locale }}]" value="{{ $plan->getTranslation('description', $locale) }}" id="description_{{ $locale }}" placeholder="{{ __('Description') . strtoupper($locale) }}" required>
                                                     </div>
-
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label" for="extra_support_{{ $locale }}">{{__('Extra support')}} ({{ strtoupper($locale) }})</label>
+                                                        <input type="text" class="form-control" name="extra_support[{{ $locale }}]" value="{{ $plan->getTranslation('extra_support', $locale) }}" id="extra_support_{{ $locale }}" placeholder="{{ __('Extra support') . ' ' . strtoupper($locale) }}">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label" for="slug">{{__('Slug')}}</label>
+                                <input type="text" class="form-control" name="slug" id="slug" value="{{ $plan->slug }}" placeholder="e.g. trial">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label" for="duration_months">{{__('Duration (months)')}}</label>
+                                <input type="number" class="form-control" name="duration_months" id="duration_months" value="{{ $plan->duration_months }}" placeholder="{{__('Leave empty if N/A')}}" min="0" step="1">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label" for="number_of_properties">{{__('Number of properties')}}</label>
+                                <input type="number" class="form-control" name="number_of_properties" id="number_of_properties" value="{{ $plan->number_of_properties }}" placeholder="-1 = {{__('Unlimited')}}">
                             </div>
                             <div class="form-group mb-3">
                                 <label class="form-label" for="price_monthly">{{__('price monthly')}}</label>

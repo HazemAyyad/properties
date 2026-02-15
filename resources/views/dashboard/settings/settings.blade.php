@@ -143,6 +143,14 @@
                                                 <input type="file" class="form-control" id="secondary_logo" name="secondary_logo" onchange="previewImage('secondary_logo', 'secondary_logo_preview')" />
                                             </div>
                                         </div>
+                                    @elseif($setting->key == 'featured_listing_price')
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label class="form-label" for="featured_listing_price">{{ __('Featured Listing Monthly Price') }}</label>
+                                                <input type="number" step="0.01" class="form-control" id="featured_listing_price" value="{{ $setting->value ?? 50 }}" name="featured_listing_price" placeholder="50"/>
+                                                <small class="text-muted">{{ __('Price in JOD shown to users for featured listing subscription') }}</small>
+                                            </div>
+                                        </div>
                                     @endif
                                 @endforeach
 

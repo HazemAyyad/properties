@@ -10,6 +10,30 @@
             width: 80px;
             height: 80px;
         }
+        /* Pricing cards: flex layout for consistent height & button alignment */
+        .flat-pricing .box-pricing {
+            display: flex;
+            flex-direction: column;
+        }
+        .flat-pricing .box-pricing .list-price {
+            flex: 1;
+            margin-bottom: 24px;
+        }
+        /* Feature items: proper alignment when text wraps */
+        .flat-pricing .list-price .item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .flat-pricing .list-price .check-icon {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .flat-pricing .list-price .item-text {
+            flex: 1;
+            min-width: 0;
+            line-height: 1.5;
+        }
     </style>
     <!-- Add your styles here if needed -->
 @endsection
@@ -34,35 +58,50 @@
                 <div class="text-subtitle text-primary">Pricing</div>
                 <h4 class="mt-4">Our Subscription</h4>
             </div>
-            <div class="row">
+            <div class="row g-4">
                 @foreach($plans as $plan)
-
-
-                <div class="box col-lg-4 col-md-6">
-                    <div class="box-pricing">
+                <div class="col-12 col-sm-6 col-lg-3 mb-4">
+                    <div class="box box-pricing h-100">
                         <div class="price d-flex align-items-end">
-                            <h4> {{$data_settings['currency']}} {{$plan->price_monthly}}</h4>
-                            <span class="body-2 text-variant-1">/month</span>
+                            <h4> {{$data_settings['currency'] ?? 'JOD'}} {{$plan->price_monthly}}</h4>
+                            @if($plan->duration_months)
+                                <span class="body-2 text-variant-1">/{{ $plan->duration_months == 1 ? __('month') : __('months') }}</span>
+                            @else
+                                <span class="body-2 text-variant-1">{{ $plan->price_monthly == 0 ? __('free') : '' }}</span>
+                            @endif
                         </div>
                         <div class="box-title-price">
                             <h6 class="title">{{$plan->title}}</h6>
                             <p class="desc">{{$plan->description}}</p>
                         </div>
                         <ul class="list-price">
+                            @if($plan->duration_months)
+                                <li class="item">
+                                    <span class="check-icon icon-tick"></span>
+                                    <span class="item-text">{{ $plan->duration_months }} {{ $plan->duration_months == 1 ? __('month') : __('months') }}</span>
+                                </li>
+                            @endif
+                            <li class="item">
+                                <span class="check-icon icon-tick"></span>
+                                <span class="item-text">{{ __('Properties') }}: {{ $plan->number_of_properties_display }}</span>
+                            </li>
+                            @if($plan->extra_support && trim((string)$plan->extra_support) !== '' && trim((string)$plan->extra_support) !== 'none')
+                                <li class="item">
+                                    <span class="check-icon icon-tick"></span>
+                                    <span class="item-text">{{ $plan->extra_support }}</span>
+                                </li>
+                            @endif
                             @foreach($plan->features as $feature)
                                 <li class="item">
                                     <span class="check-icon icon-tick {{$feature->status ==0?'disable':''}}"></span>
-                                    {{$feature->title}}
+                                    <span class="item-text">{{$feature->title}}</span>
                                 </li>
                             @endforeach
-
                         </ul>
-                        <a href="https://wa.me/{{$data_settings['whatsapp']}}" target="_blank" class="tf-btn">Choose The Package</a>
+                        <a href="https://wa.me/{{$data_settings['whatsapp'] ?? ''}}" target="_blank" class="tf-btn">{{ __('Choose The Package') }}</a>
                     </div>
                 </div>
                 @endforeach
-
-
             </div>
         </div>
     </section>

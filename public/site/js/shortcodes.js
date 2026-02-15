@@ -78,8 +78,10 @@
   var flatCounter = function () {
     if ($(document.body).hasClass("counter-scroll")) {
       var a = 0;
+      var $counter = $(".tf-counter");
       $(window).scroll(function () {
-        var oTop = $(".tf-counter").offset().top - window.innerHeight;
+        var offset = $counter.offset();
+        var oTop = (offset ? offset.top : 0) - window.innerHeight;
         if (a === 0 && $(window).scrollTop() > oTop) {
           if ($().countTo) {
             $(".tf-counter")

@@ -80,7 +80,9 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-12"><h6 class="mb-2">{{ __('Extra Features') }}</h6></div>
+    <div class="col-12"><h6 class="mb-2 mt-2">{{ __('Extra Features') }}</h6></div>
+</div>
+<div class="row {{ app()->getLocale() === 'ar' ? 'extra-features-rtl' : '' }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
     @php
         $aptFeatures = ['pool' => 'Pool', 'sewage_connected' => 'Sewage Connected', 'water_well' => 'Water Well', 'balcony' => 'Balcony', 'maid_room' => 'Maid Room', 'storage_room' => 'Storage Room', 'laundry_room' => 'Laundry Room', 'central_ac' => 'Central AC', 'car_parking' => 'Car Parking'];
         $exFeat = old('extra_features', optional($info)->extra_features ?? []);
@@ -88,7 +90,7 @@
     @endphp
     @foreach($aptFeatures as $key => $labelKey)
         <div class="col-md-4">
-            <div class="form-check">
+            <div class="form-check {{ app()->getLocale() === 'ar' ? 'extra-features-rtl' : '' }}">
                 <input class="form-check-input" type="checkbox" name="extra_features[]" value="{{ $key }}" id="apt_{{ $key }}" {{ in_array($key, $exFeat) ? 'checked' : '' }}>
                 <label class="form-check-label" for="apt_{{ $key }}">{{ __($labelKey) }}</label>
             </div>

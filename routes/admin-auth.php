@@ -7,6 +7,7 @@ use App\Http\Controllers\Dashboard\NotificationController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\PlanController;
 use App\Http\Controllers\Dashboard\PlanFeatureController;
+use App\Http\Controllers\Dashboard\PlanUpgradeRequestController;
 use App\Http\Controllers\Dashboard\MainController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -140,6 +141,14 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
         Route::post('/plan_feature/store', [PlanFeatureController::class, 'store'])->name('store');
         Route::delete('/plan_feature/delete/{id}', [PlanFeatureController::class, 'delete'])->name('delete');
 
+    });
+    // plan upgrade requests (طلبات الترقية)
+    Route::as('plan-upgrade-requests.')->prefix('plan-upgrade-requests')->group(function () {
+        Route::get('/', [PlanUpgradeRequestController::class, 'index'])->name('index');
+        Route::get('/data', [PlanUpgradeRequestController::class, 'getRequests'])->name('data');
+        Route::get('/{id}', [PlanUpgradeRequestController::class, 'show'])->name('show');
+        Route::post('/{id}/accept', [PlanUpgradeRequestController::class, 'accept'])->name('accept');
+        Route::post('/{id}/reject', [PlanUpgradeRequestController::class, 'reject'])->name('reject');
     });
 //agents
     Route::as('people_say.')->group(function () {
@@ -328,6 +337,8 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
         Route::get('properties/{status}', [PropertyController::class, 'index'])->name('index');
         Route::get('get_properties/{status}', [PropertyController::class, 'get_properties'])->name('get_properties');
         Route::get('/property/edit/{id}', [PropertyController::class, 'edit'])->name('edit');
+        Route::post('/property/approve-featured/{id}', [PropertyController::class, 'approveFeatured'])->name('approve-featured');
+        Route::get('/featured-listings', [PropertyController::class, 'featuredListings'])->name('featured-listings');
         Route::post('/property/updateModerationStatus', [PropertyController::class, 'updateModerationStatus'])->name('updateModerationStatus');
         Route::post('/property/update/{id}', [PropertyController::class, 'update'])->name('update');
         Route::get('/property/create', [PropertyController::class, 'create'])->name('create');

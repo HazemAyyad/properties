@@ -66,6 +66,8 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function()
             Route::post('/update', [UserController::class, 'update'])->name('update');
             Route::post('/update/password', [UserController::class, 'update_password'])->name('update_password');
             Route::delete('/delete', [UserController::class, 'delete_account'])->name('delete_account');
+            Route::get('/upgrade', [UserController::class, 'upgradeForm'])->name('upgrade');
+            Route::post('/upgrade', [UserController::class, 'storeUpgradeRequest'])->name('upgrade.store');
         });
 
         Route::as('properties.')->group(function () {

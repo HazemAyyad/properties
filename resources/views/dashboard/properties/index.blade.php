@@ -15,6 +15,7 @@
             .card{
                 padding: 1.5rem !important;
             }
+            .btn-moderation-status { cursor: pointer; }
         </style>
         @if(App::isLocale('en'))
     @else
@@ -47,6 +48,7 @@
                         <thead>
                         <tr>
                             <th>Name</th>
+                            <th>{{ __('User') }}</th>
                             <th>Views</th>
                             <th>Created AT</th>
                             <th>Status</th>
@@ -118,6 +120,7 @@
                 ajax: data_url,
                 columns: [
                     { data: 'title', name: 'title' },
+                    { data: 'user', name: 'user', orderable: false, searchable: false },
                     { data: 'views', name: 'views' },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'status', name: 'status' },

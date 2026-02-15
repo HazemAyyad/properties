@@ -66,9 +66,11 @@ class PlanController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'required',
-            'price_monthly' => 'required',
-            'price_yearly' => 'required',
-            
+            'price_monthly' => 'required|numeric',
+            'price_yearly' => 'nullable|numeric',
+            'slug' => 'nullable|string|max:80|unique:plans,slug',
+            'duration_months' => 'nullable|integer|min:0',
+            'number_of_properties' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
@@ -76,62 +78,67 @@ class PlanController extends Controller
             return response(["responseJSON" => $errors,"input"=>$input, "message" => 'Verify that the data is correct, fill in all fields'], 422);
         }
         if ($validator->passes()) {
-            $data=$request->all();
-
             $plan = Plan::query()->create([
+                'slug' => $request->filled('slug') ? $request->slug : null,
                 'title'=> [
                     'en' => $request->input('title.en'),
                     'ar' => $request->input('title.ar'),
                 ],
-
                 'description'=> [
                     'en' => $request->input('description.en'),
                     'ar' => $request->input('description.ar'),
                 ],
-
+                'duration_months' => $request->filled('duration_months') ? (int) $request->duration_months : null,
+                'number_of_properties' => $request->filled('number_of_properties') ? (int) $request->number_of_properties : 1,
                 'price_monthly'=>$request->price_monthly,
-                'price_yearly'=>$request->price_yearly,
-
+                'price_yearly'=>$request->filled('price_yearly') ? $request->price_yearly : 0,
+                'extra_support' => [
+                    'en' => $request->input('extra_support.en'),
+                    'ar' => $request->input('extra_support.ar'),
+                ],
+                'status' => 1,
             ]);
 
             return response()->json(['success'=>"The process has successfully"]);
         }
     }
     public function update(Request $request,$id){
-        $agent = Plan::find($id);
+        $plan = Plan::find($id);
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'required',
-            'price_monthly' => 'required',
-            'price_yearly' => 'required',
+            'price_monthly' => 'required|numeric',
+            'price_yearly' => 'nullable|numeric',
             'status' => 'required',
-
-
+            'slug' => 'nullable|string|max:80|unique:plans,slug,' . $id,
+            'duration_months' => 'nullable|integer|min:0',
+            'number_of_properties' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
             $input=$request->all();
             return response(["responseJSON" => $errors,"input"=>$input, "message" => 'Verify that the data is correct, fill in all fields'], 422);
         }
-        $data = $request->all();
-
         if ($validator->passes()) {
-
-            $agent->update([
+            $plan->update([
+                'slug' => $request->filled('slug') ? $request->slug : $plan->slug,
                 'title'=> [
                     'en' => $request->input('title.en'),
                     'ar' => $request->input('title.ar'),
                 ],
-
                 'description'=> [
                     'en' => $request->input('description.en'),
                     'ar' => $request->input('description.ar'),
                 ],
-
+                'duration_months' => $request->filled('duration_months') ? (int) $request->duration_months : null,
+                'number_of_properties' => $request->filled('number_of_properties') ? (int) $request->number_of_properties : 1,
                 'price_monthly'=>$request->price_monthly,
-                'price_yearly'=>$request->price_yearly,
+                'price_yearly'=>$request->filled('price_yearly') ? $request->price_yearly : 0,
+                'extra_support' => [
+                    'en' => $request->input('extra_support.en'),
+                    'ar' => $request->input('extra_support.ar'),
+                ],
                 'status'=>$request->status,
-
             ]);
             return response()->json(['success'=>"The process has successfully"]);
         }

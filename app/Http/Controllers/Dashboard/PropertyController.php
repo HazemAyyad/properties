@@ -73,8 +73,11 @@ class PropertyController extends Controller
         // Get the preferred language or default to 'en'
         $preferredLang = app()->getLocale() ?? 'en';
 
-        return DataTables::of(Property::query()->where(['moderation_status' => $status]))
+        return DataTables::of(Property::query()->where(['moderation_status' => $status])->with('user'))
             ->addIndexColumn()
+            ->addColumn('user', function ($row) {
+                return $row->user ? htmlspecialchars($row->user->name) : '-';
+            })
             ->addColumn('action', function($row) use ($request) {
                 $url = route('admin.properties.edit', $row->id);
 
@@ -123,7 +126,7 @@ class PropertyController extends Controller
                 $statusClass = $statusMap[$moderationStatus]['class'] ?? 'text-danger';
                 $statusLabel = $statusMap[$moderationStatus]['label'] ?? __('Unknown');
 
-                return '<strong class="' . $statusClass . '" tabindex="0" data-id="' . $row->id . '" data-status="' . $moderationStatus . '" onclick="changeModerationStatus(this)" data-toggle="tooltip" title="' . $statusLabel . '">' . $statusLabel . '</strong>';
+                return '<strong class="btn-moderation-status ' . $statusClass . '" tabindex="0" data-id="' . $row->id . '" data-status="' . $moderationStatus . '" onclick="changeModerationStatus(this)" data-toggle="tooltip" title="' . $statusLabel . '">' . $statusLabel . '</strong>';
             })
             ->rawColumns(['title', 'views', 'status', 'moderation_status', 'created_at', 'action'])
             ->make(true);
@@ -143,6 +146,25 @@ class PropertyController extends Controller
         $property->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function approveFeatured($id)
+    {
+        $property = Property::findOrFail($id);
+        $property->featured_listing_until = now()->addMonth()->toDateString();
+        $property->save();
+        return redirect()->route('admin.properties.edit', $id)->with('success', __('Featured listing approved for 1 month.'));
+    }
+
+    public function featuredListings()
+    {
+        $properties = Property::query()
+            ->where('is_featured', 1)
+            ->with(['user', 'price'])
+            ->orderByRaw('CASE WHEN featured_listing_until IS NULL THEN 0 WHEN featured_listing_until >= CURDATE() THEN 1 ELSE 2 END')
+            ->orderBy('featured_listing_until', 'asc')
+            ->get();
+        return view('dashboard.properties.featured_listings', compact('properties'));
     }
 
     public function create(){
@@ -340,8 +362,8 @@ class PropertyController extends Controller
             'governorate_id' => 'required',
             'department_id' => 'required',
             'village_id' => 'required',
-            'hod_id' => 'required',
-            'hay_id' => 'required',
+            'hod_id' => 'nullable',
+            'hay_id' => 'nullable',
             'plot_number' => 'required',
             'price' => 'required',
             'currency' => 'required',
@@ -435,7 +457,7 @@ class PropertyController extends Controller
                     'services' => $request->services,
                     'price_min' => $request->price_min,
                     'price_max' => $request->price_max,
-                    'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : null,
+                    'extra_features' => $request->has('extra_features') ? $request->extra_features : null,
                 ]);
 
                 // Property Price
@@ -456,8 +478,8 @@ class PropertyController extends Controller
                     'governorate_id' => $request->governorate_id,
                     'department_id' => $request->department_id,
                     'village_id' => $request->village_id,
-                    'hod_id' => $request->hod_id,
-                    'hay_id' => $request->hay_id,
+                    'hod_id' => ($request->hod_id !== null && $request->hod_id !== '') ? $request->hod_id : null,
+                    'hay_id' => ($request->hay_id !== null && $request->hay_id !== '') ? $request->hay_id : null,
                     'plot_number' => $request->plot_number,
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
@@ -518,8 +540,8 @@ class PropertyController extends Controller
             'governorate_id' => 'required',
             'department_id' => 'required',
             'village_id' => 'required',
-            'hod_id' => 'required',
-            'hay_id' => 'required',
+            'hod_id' => 'nullable',
+            'hay_id' => 'nullable',
             'plot_number' => 'required',
             'price' => 'required',
             'currency' => 'required',
@@ -614,7 +636,7 @@ class PropertyController extends Controller
                 'services' => $request->services,
                 'price_min' => $request->price_min,
                 'price_max' => $request->price_max,
-                'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : $information->extra_features,
+                'extra_features' => $request->has('extra_features') ? $request->extra_features : $information->extra_features,
             ]);
 
             // Property Price
@@ -635,8 +657,8 @@ class PropertyController extends Controller
                 'governorate_id' => $request->governorate_id,
                 'department_id' => $request->department_id,
                 'village_id' => $request->village_id,
-                'hod_id' => $request->hod_id,
-                'hay_id' => $request->hay_id,
+                'hod_id' => ($request->hod_id !== null && $request->hod_id !== '') ? $request->hod_id : null,
+                'hay_id' => ($request->hay_id !== null && $request->hay_id !== '') ? $request->hay_id : null,
                 'plot_number' => $request->plot_number,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,

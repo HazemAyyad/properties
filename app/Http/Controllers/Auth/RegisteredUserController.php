@@ -35,10 +35,12 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $trialPlanId = \App\Models\Dashboard\Plan::where('slug', 'trial')->value('id');
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'plan_id' => $trialPlanId,
         ]);
 
         event(new Registered($user));

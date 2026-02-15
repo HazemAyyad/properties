@@ -140,7 +140,7 @@ class PropertyController extends Controller
 
     }
     public function edit($id){
-        $property=Property::query()->findOrFail($id);
+        $property = Property::with('address')->findOrFail($id);
         $categories=Category::all();
         $facilities=Facility::all();
         $feature_categories=FeatureCategory::query()->with('features')->get();
@@ -204,6 +204,8 @@ class PropertyController extends Controller
             'price_min' => 'nullable',
             'price_max' => 'nullable',
             'extra_features' => 'nullable',
+            'featured_listing' => 'nullable',
+            'featured_listing_receipt' => 'required_if:featured_listing,1|nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
 
         ]);
         if ($validator->fails()) {
@@ -221,6 +223,21 @@ class PropertyController extends Controller
                     $image_url->move(env('PATH_FILE_URL').'/uploads/registration_document/', $registration_document);
 
                 }
+                $featuredListingReceipt = null;
+                $featuredListingUntil = null;
+                $isFeatured = 0;
+                if ($request->filled('featured_listing') && $request->hasFile('featured_listing_receipt')) {
+                    $receiptFile = $request->file('featured_listing_receipt');
+                    $receiptName = time() . '_featured.' . $receiptFile->getClientOriginalExtension();
+                    $uploadPath = public_path('uploads/featured_listing_receipts');
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0755, true);
+                    }
+                    $receiptFile->move($uploadPath, $receiptName);
+                    $featuredListingReceipt = '/public/uploads/featured_listing_receipts/' . $receiptName;
+                    $featuredListingUntil = null; // pending admin approval
+                    $isFeatured = 1;
+                }
                 $property = Property::query()->create([
                     'title' => $request->name,
                     'user_id' => Auth::guard('web')->user()->id,
@@ -232,7 +249,10 @@ class PropertyController extends Controller
                     'category_id' => $request->category_id,
                     'contact_name' => $request->contact_name,
                     'contact_phone' => $request->contact_phone,
-                    'registration_document' => $registration_document,
+                    'registration_document' => $registration_document ?? null,
+                    'is_featured' => $isFeatured,
+                    'featured_listing_receipt' => $featuredListingReceipt,
+                    'featured_listing_until' => $featuredListingUntil,
                 ]);
                 $information = PropertyInformation::query()->create([
                     'property_id' => $property->id,
@@ -258,7 +278,7 @@ class PropertyController extends Controller
                     'services' => $request->services,
                     'price_min' => $request->price_min,
                     'price_max' => $request->price_max,
-                    'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : null,
+                    'extra_features' => $request->has('extra_features') ? $request->extra_features : null,
                 ]);
                 if ($request->auto_renew=='on'){
                     $auto_renew=1;
@@ -371,7 +391,45 @@ class PropertyController extends Controller
         }
     }
     public function update(Request $request,$id){
-        $property = Property::find($id);
+        $property = Property::with('address')->find($id);
+        // عند التعديل: إذا name أو slug فاضيين استخدم القيمة الحالية (تجنب فشل التحقق بسبب الترجمة أو الـ form)
+        if ($property) {
+            $currentTitle = is_string($property->title) ? $property->title : ($property->getTranslation('title', app()->getLocale()) ?: $property->getTranslation('title', 'en'));
+            $currentSlug = is_string($property->slug) ? $property->slug : ($property->getTranslation('slug', app()->getLocale()) ?: $property->getTranslation('slug', 'en'));
+            if (empty(trim((string) $request->input('name')))) {
+                $request->merge(['name' => $currentTitle ?: '']);
+            }
+            if (empty(trim((string) $request->input('slug')))) {
+                $request->merge(['slug' => $currentSlug ?: '']);
+            }
+            // إذا حقول العنوان فاضية أو غير صالحة (مثلاً "undefined" من الجافا) استخدم قيم العنوان الحالية
+            $addr = $property->address;
+            $isEmpty = function ($v) {
+                if ($v === null || $v === '') return true;
+                $s = trim((string) $v);
+                return $s === '' || $s === 'undefined' || strtolower($s) === 'null';
+            };
+            if ($addr) {
+                if ($isEmpty($request->input('governorate_id')) && $addr->governorate_id !== null) {
+                    $request->merge(['governorate_id' => $addr->governorate_id]);
+                }
+                if ($isEmpty($request->input('department_id')) && $addr->department_id !== null) {
+                    $request->merge(['department_id' => $addr->department_id]);
+                }
+                if ($isEmpty($request->input('village_id')) && $addr->village_id !== null) {
+                    $request->merge(['village_id' => $addr->village_id]);
+                }
+                if ($isEmpty($request->input('hod_id')) && $addr->hod_id !== null) {
+                    $request->merge(['hod_id' => $addr->hod_id]);
+                }
+                if ($isEmpty($request->input('hay_id')) && $addr->hay_id !== null) {
+                    $request->merge(['hay_id' => $addr->hay_id]);
+                }
+                if ($isEmpty($request->input('plot_number'))) {
+                    $request->merge(['plot_number' => (string) ($addr->plot_number ?? '')]);
+                }
+            }
+        }
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'slug' => 'required',
@@ -385,8 +443,8 @@ class PropertyController extends Controller
             'governorate_id' => 'required',
             'department_id' => 'required',
             'village_id' => 'required',
-            'hod_id' => 'required',
-            'hay_id' => 'required',
+            'hod_id' => 'nullable',
+            'hay_id' => 'nullable',
             'plot_number' => 'required',
 //            'latitude' => 'required',
 //            'longitude' => 'required',
@@ -404,6 +462,8 @@ class PropertyController extends Controller
             'floors' => 'nullable',
             'year_built' => 'nullable',
             'property_features' => 'nullable',
+            'featured_listing' => 'nullable',
+            'featured_listing_receipt' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
@@ -413,20 +473,53 @@ class PropertyController extends Controller
         $data = $request->all();
 
         if ($validator->passes()) {
+            // عند التعديل: إذا hod_id أو hay_id فارغان استخدم قيم العنوان الحالية
+            $hodId = $request->input('hod_id');
+            $hayId = $request->input('hay_id');
+            if ($property && $property->address) {
+                if ($hodId === '' || $hodId === null) $hodId = $property->address->hod_id;
+                if ($hayId === '' || $hayId === null) $hayId = $property->address->hay_id;
+            }
+            $hodId = ($hodId === '' || $hodId === null) ? null : $hodId;
+            $hayId = ($hayId === '' || $hayId === null) ? null : $hayId;
 
             DB::beginTransaction();
             try {
-                $property->update([
+                $updateData = [
                     'title' => $request->name,
-                     'description' => $request->description,
+                    'description' => $request->description,
                     'slug' => $request->slug,
                     'type' => $request->type,
                     'status' => $request->status,
-                    'moderation_status' => $request->moderation_status??1,
+                    'moderation_status' => $request->moderation_status ?? $property->moderation_status,
                     'category_id' => $request->category_id,
                     'contact_name' => $request->contact_name,
                     'contact_phone' => $request->contact_phone,
-                ]);
+                ];
+                $hasReceipt = !empty($property->featured_listing_receipt);
+                $hasUntil = !empty($property->featured_listing_until);
+                $isPendingFeatured = $hasReceipt && !$hasUntil && $property->is_featured;
+                if ($isPendingFeatured) {
+                    $updateData['is_featured'] = 1;
+                } elseif ($request->filled('featured_listing')) {
+                    $updateData['is_featured'] = 1;
+                    if ($request->hasFile('featured_listing_receipt')) {
+                        $receiptFile = $request->file('featured_listing_receipt');
+                        $receiptName = time() . '_featured.' . $receiptFile->getClientOriginalExtension();
+                        $uploadPath = public_path('uploads/featured_listing_receipts');
+                        if (!is_dir($uploadPath)) {
+                            mkdir($uploadPath, 0755, true);
+                        }
+                        $receiptFile->move($uploadPath, $receiptName);
+                        $updateData['featured_listing_receipt'] = '/public/uploads/featured_listing_receipts/' . $receiptName;
+                        $updateData['featured_listing_until'] = null;
+                    }
+                } else {
+                    $updateData['is_featured'] = 0;
+                    $updateData['featured_listing_receipt'] = null;
+                    $updateData['featured_listing_until'] = null;
+                }
+                $property->update($updateData);
                 $information = PropertyInformation::query()->where('property_id',$id)->first();
                 $information->update([
                     'content' => $request['content'],
@@ -451,7 +544,7 @@ class PropertyController extends Controller
                     'services' => $request->services,
                     'price_min' => $request->price_min,
                     'price_max' => $request->price_max,
-                    'extra_features' => $request->has('extra_features') ? json_encode($request->extra_features) : $information->extra_features,
+                    'extra_features' => $request->has('extra_features') ? $request->extra_features : $information->extra_features,
                 ]);
                 if ($request->auto_renew=='on'){
                     $auto_renew=1;
@@ -481,8 +574,8 @@ class PropertyController extends Controller
                     'governorate_id' => $request->governorate_id,
                     'department_id' => $request->department_id,
                     'village_id' => $request->village_id,
-                    'hod_id' => $request->hod_id,
-                    'hay_id' => $request->hay_id,
+                    'hod_id' => $hodId,
+                    'hay_id' => $hayId,
                     'plot_number' => $request->plot_number,
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,

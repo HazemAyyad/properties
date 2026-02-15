@@ -512,6 +512,27 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-12 mt-2">
+                                        <div class="card widget-box-2 border-primary">
+                                            <h6 class="title text-primary">{{ __('Featured Listing') }}</h6>
+                                            <div class="card-body">
+                                                <p class="small text-muted mb-2">{{ __('Show your listing first in search results. Monthly fee until the property is sold.') }}</p>
+                                                <p class="mb-2"><strong>{{ __('Monthly subscription fee') }}:</strong> {{ $data_settings['currency'] ?? 'JOD' }} {{ $data_settings['featured_listing_price'] ?? '50' }} / {{ __('month') }}</p>
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="featured_listing" id="featured_listing" value="1">
+                                                    <label class="form-check-label" for="featured_listing">{{ __('Enable Featured Listing') }}</label>
+                                                </div>
+                                                <div id="featured_listing_receipt_box" style="display: none;">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="featured_listing_receipt">{{ __('Payment receipt') }} <span class="text-danger">*</span></label>
+                                                        <input type="file" class="form-control style-1" name="featured_listing_receipt" id="featured_listing_receipt" accept="image/*,.pdf">
+                                                        <small class="form-hint">{{ __('Upload proof of payment for the featured listing fee.') }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                  </div>
                             </div>
                         </div>
@@ -962,6 +983,11 @@
                     toolbar: fullToolbar
                 },
                 theme: 'snow'
+            });
+
+            $('#featured_listing').on('change', function() {
+                $('#featured_listing_receipt_box').toggle(this.checked);
+                if (!this.checked) $('#featured_listing_receipt').val('');
             });
 
             $('#mainAdd').submit(function(e) {

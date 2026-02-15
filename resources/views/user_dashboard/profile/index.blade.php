@@ -18,27 +18,96 @@
             margin-top: 5px;
             font-size: 0.9rem;
         }
+        .current-plan-card {
+            background: linear-gradient(135deg, #1779A7 0%, #1e8fc4 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: #fff;
+        }
+        .current-plan-card .plan-name { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .current-plan-card .plan-desc { opacity: 0.95; margin-bottom: 1rem; font-size: 0.95rem; }
+        .current-plan-card .list-price { list-style: none; padding: 0; margin: 0 0 1rem 0; }
+        .current-plan-card .list-price .item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 0.9rem; }
+        .current-plan-card .list-price .check-icon { flex-shrink: 0; width: 18px; height: 18px; font-size: 11px; background: rgba(255,255,255,0.9); color: #1779A7; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+        .current-plan-card .plan-cost { font-weight: 600; margin-bottom: 1rem; }
+        .current-plan-card .tf-btn { background: #fff; color: #1779A7; border-color: #fff; }
+        .current-plan-card .tf-btn:hover { background: #f0f0f0; color: #1779A7; border-color: #f0f0f0; }
+        .pending-request-msg { background: #fff8e6; border: 1px solid #f0c674; border-radius: 12px; padding: 1rem; color: #856404; margin-top: 0.75rem; }
     </style>
 
 @endsection
 @section('content')
 
     <div class="widget-box-2">
+        {{-- الخطة الحالية وترقية الحساب --}}
+        <div class="box">
+            <h6 class="title">{{ __('Current Plan') }}</h6>
+            <div class="current-plan-card">
+                @if($user->plan)
+                    <div class="plan-name">{{ $user->plan->title }}</div>
+                    <p class="plan-desc mb-0">{{ $user->plan->description }}</p>
+                    <ul class="list-price">
+                        @if($user->plan->duration_months)
+                            <li class="item">
+                                <span class="check-icon icon-tick"></span>
+                                <span>{{ $user->plan->duration_months }} {{ $user->plan->duration_months == 1 ? __('month') : __('months') }}</span>
+                            </li>
+                        @endif
+                        <li class="item">
+                            <span class="check-icon icon-tick"></span>
+                            <span>{{ __('Properties') }}: {{ $user->plan->number_of_properties_display }}</span>
+                        </li>
+                        @if($user->plan->extra_support && trim((string)$user->plan->extra_support) !== '' && trim((string)$user->plan->extra_support) !== 'none')
+                            <li class="item">
+                                <span class="check-icon icon-tick"></span>
+                                <span>{{ $user->plan->extra_support }}</span>
+                            </li>
+                        @endif
+                        @foreach($user->plan->features as $feature)
+                            @if($feature->status != 0)
+                                <li class="item">
+                                    <span class="check-icon icon-tick"></span>
+                                    <span>{{ $feature->title }}</span>
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                    <div class="plan-cost">{{ __('Cost') }}: {{ $user->plan->price_monthly }} JOD @if($user->plan->duration_months)/ {{ __('month') }}@endif</div>
+                    @if(isset($pendingRequest) && $pendingRequest)
+                        <div class="pending-request-msg">
+                            {{ __('You have a request being processed. Please wait for approval or rejection.') }}
+                        </div>
+                    @else
+                        <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade Plan') }}</a>
+                    @endif
+                @else
+                    <p class="plan-desc">{{ __('No plan assigned.') }}</p>
+                    @if(isset($pendingRequest) && $pendingRequest)
+                        <div class="pending-request-msg">
+                            {{ __('You have a request being processed. Please wait for approval or rejection.') }}
+                        </div>
+                    @else
+                        <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Choose a Plan') }}</a>
+                    @endif
+                @endif
+            </div>
+        </div>
+
         <form id="editUserForm" name="editUserForm" class="row g-3" action="javascript:void(0)">
             @csrf
-        <div class="box">
+         <div class="box">
             <h6 class="title">{{__('Account Settings')}}</h6>
-            <div class="box-agent-account">
+            <!-- <div class="box-agent-account">
                 <h6>{{__('Agent Account')}}</h6>
                 <p class="note">{{__('Your current account type is set to agent, if you want to remove your agent account, and return to normal account, you must click the button below')}}</p>
                 <a href="#" class="tf-btn primary">{{__('Remove Agent Account')}}</a>
-            </div>
+            </div> -->
         </div>
-        <div class="box">
+         <div class="box">
             <h6 class="title">{{__('Avatar')}}</h6>
             <div class="box-agent-avt">
                 <div class="avatar">
-                    <img src="{{$user->photo}}" alt="avatar" loading="lazy" width="128" height="128">
+                    <img src="{{ $user->photo ? asset(ltrim(str_replace('/public', '', $user->photo), '/')) : 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-size="48" font-family="sans-serif">?</text></svg>') }}" alt="avatar" loading="lazy" width="128" height="128">
                 </div>
                 <div class="content uploadfile">
                     <p>{{__('Upload a new avatar')}}</p>
@@ -49,7 +118,7 @@
                 </div>
             </div>
         </div>
-        <div class="box">
+        <!-- <div class="box">
             <h6 class="title">{{__('Agent Poster')}}</h6>
             <div class="box-agent-avt">
                 <div class="img-poster">
@@ -63,7 +132,7 @@
                     <span>JPEG 100x100</span>
                 </div>
             </div>
-        </div>
+        </div> -->
         <h6 class="title">{{__('Information')}}</h6>
         <div class="box box-fieldset">
             <label for="name">{{__('Full name')}}:<span>*</span></label>

@@ -1,5 +1,7 @@
-// diagram
-var ctx = document.getElementById("lineChart").getContext("2d");
+// diagram (only run when chart canvas exists, e.g. dashboard home)
+var lineChartEl = document.getElementById("lineChart");
+if (lineChartEl) {
+var ctx = lineChartEl.getContext("2d");
 var myChart = new Chart(ctx, {
   type: "line",
   backgroundColor:
@@ -27,3 +29,4 @@ var myChart = new Chart(ctx, {
     },
   },
 });
+}

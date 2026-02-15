@@ -13,11 +13,29 @@ class Plan extends Model
     // Define which fields are translatable
     public $translatable = [
         'title',
-        'description'
+        'description',
+        'extra_support',
     ];
+
+    public const UNLIMITED_PROPERTIES = -1;
     public function features()
     {
         return $this->hasMany(PlanFeature::class,'plan_id','id');
+    }
+
+    public function users()
+    {
+        return $this->hasMany(\App\Models\User::class, 'plan_id');
+    }
+
+    public function isUnlimitedProperties(): bool
+    {
+        return $this->number_of_properties === self::UNLIMITED_PROPERTIES;
+    }
+
+    public function getNumberOfPropertiesDisplayAttribute(): string
+    {
+        return $this->isUnlimitedProperties() ? __('Unlimited') : (string) $this->number_of_properties;
     }
 
 

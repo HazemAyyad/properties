@@ -56,10 +56,70 @@
         color: #245da0;
         margin-top: 5px;
     }
+    #address-loader.address-loader-hidden {
+        display: none !important;
+    }
+    a.lat-long-link {
+        color: #0d6efd;
+        font-size: 0.9rem;
+    }
+    a.lat-long-link:hover {
+        color: #0a58ca;
+        text-decoration: underline;
+    }
     .dropzone .dz-preview .dz-image img {
         display: block;
         width: 120px;
         height: 120px;
+    }
+    /* بالعربي: التشيك بوكس قبل الكلام - التنسيق الصحيح */
+    .extra-features-rtl .form-check {
+        direction: ltr !important;
+        text-align: right;
+    }
+    .extra-features-rtl .form-check .form-check-input {
+        float: right;
+        margin-right: -1.5em;
+    }
+    /* توحيد ارتفاع الانبت مع السلكت على نفس الخط */
+    .form-control,
+    .form-select,
+    select.form-control,
+    select.form-select {
+        box-sizing: border-box;
+        min-height: 38px;
+        height: 38px;
+        line-height: 1.5;
+        vertical-align: middle;
+    }
+    textarea.form-control {
+        height: auto;
+        min-height: 120px;
+    }
+    .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 5px 16px;
+        padding-right: 2.25rem;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px 12px;
+        min-width: 6em;
+    }
+    [dir="rtl"] .form-select {
+        padding: 5px 16px;
+        padding-left: 2.25rem;
+        background-position: left 16px center;
+        text-align: right;
+    }
+    .select2-container--default .select2-selection--single {
+        min-height: 38px !important;
+        height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px !important;
     }
 </style>
 @endsection
@@ -85,7 +145,10 @@
                                                             <label class="form-label" for="name">{{__('Name')}}
                                                                 <span>*</span>
                                                             </label>
-                                                            <input type="text" class="form-control style-1 style-1" name="name" value="{{ old('title', $property->title ?? '') }}" id="name" placeholder="{{__('Name')}}" required>
+                                                            @php
+                                                                $editTitle = is_string($property->title ?? null) ? $property->title : (method_exists($property, 'getTranslation') ? ($property->getTranslation('title', app()->getLocale()) ?: $property->getTranslation('title', 'en')) : '');
+                                                            @endphp
+                                                            <input type="text" class="form-control style-1 style-1" name="name" value="{{ old('name', $editTitle ?? '') }}" id="name" placeholder="{{__('Name')}}" required>
                                                         </div>
                                                     </div>
 
@@ -94,9 +157,12 @@
                                                             <label class="form-label" for="slug">{{ __('Permalink') }}
                                                                 <span>*</span>
                                                             </label>
+                                                            @php
+                                                                $editSlug = is_string($property->slug ?? null) ? $property->slug : (method_exists($property, 'getTranslation') ? ($property->getTranslation('slug', app()->getLocale()) ?: $property->getTranslation('slug', 'en')) : '');
+                                                            @endphp
                                                             <div class="input-group input-group-merge">
                                                                 <span class="input-group-text" id="slug">{{ config('app.url') }}/property/</span>
-                                                                <input type="text" id="slug" name="slug" class="form-control" value="{{ old('slug', $property->slug ?? '') }}" aria-describedby="slug" readonly>
+                                                                <input type="text" id="slug" name="slug" class="form-control" value="{{ old('slug', $editSlug ?? '') }}" aria-describedby="slug" readonly>
                                                                 <div id="slug-feedback">
                                                                     <i class="fa fa-check text-success d-none"></i>
                                                                     <i class="fa fa-times text-danger d-none"></i>
@@ -193,7 +259,10 @@
                                         <div class="card widget-box-2">
 
                                             <h6 class="title">{{__('Address')}} - {{__('Jordan')}}</h6>
-                                            <div class="card-body">
+                                            <div class="card-body position-relative">
+                                                <div id="address-loader" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.9); z-index: 5;">
+                                                    <div class="spinner-border text-primary" role="status"></div>
+                                                </div>
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <div class="form-group">
@@ -224,18 +293,18 @@
                                                     <div class="col-md-4">
                                                         <div class="form-group">
                                                             <label for="hod">{{ __('Hod') }}:</label>
-                                                            <select id="hod" required name="hod_id" class="form-control select2">
-                                                                <option value="">{{ __('Select Hod') }}</option>
-                                                            </select>
+<select id="hod" name="hod_id" class="form-control select2">
+                                                            <option value="">{{ __('Select Hod') }}</option>
+                                                        </select>
                                                             <div id="hod-loading" class="loading-indicator" style="display: none;">{{__('Loading...')}}</div>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="form-group">
                                                             <label for="hay">{{ __('Hay') }}:</label>
-                                                            <select id="hay" required name="hay_id" class="form-control select2">
-                                                                <option value="">{{ __('Select Hay') }}</option>
-                                                            </select>
+<select id="hay" name="hay_id" class="form-control select2">
+                                                            <option value="">{{ __('Select Hay') }}</option>
+                                                        </select>
                                                             <div id="hay-loading" class="loading-indicator" style="display: none;">{{__('Loading...')}}</div>
                                                         </div>
                                                     </div>
@@ -250,22 +319,29 @@
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <div class="form-group mb-3">
+                                                            @php
+                                                                $fa = optional($property->address)->full_address;
+                                                                $fullAddressVal = old('full_address');
+                                                                if ($fullAddressVal === null && $fa !== null) {
+                                                                    $fullAddressVal = is_string($fa) ? $fa : (is_array($fa) ? ($fa[app()->getLocale()] ?? $fa['en'] ?? $fa['ar'] ?? '') : '');
+                                                                }
+                                                            @endphp
                                                             <label class="form-label" for="full_address">{{ __('Full Address') }}</label>
-                                                            <input type="text" class="form-control" name="full_address" id="full_address" value="{{ old('full_address', $property->address ? (is_string($property->address->full_address) ? $property->address->full_address : (is_array($property->address->full_address) ? ($property->address->full_address['ar'] ?? $property->address->full_address['en'] ?? '') : '')) : '') }}" placeholder="{{ __('Full Address') }}">
+                                                            <input type="text" class="form-control" name="full_address" id="full_address" value="{{ $fullAddressVal ?? '' }}" placeholder="{{ __('Full Address') }}">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="form-group mb-3">
                                                             <label class="form-label" for="latitude">{{ __('Latitude') }}</label>
-                                                            <input type="text" class="form-control" name="latitude" id="latitude" placeholder="{{ __('Ex: 1.462260') }}">
-                                                            <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Latitude from address.') }}</a>
+                                                            <input type="text" class="form-control" name="latitude" id="latitude" value="{{ old('latitude', optional($property->address)->latitude ?? '') }}" placeholder="{{ __('Ex: 1.462260') }}">
+                                                            <a class="form-hint lat-long-link" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Latitude from address.') }}</a>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="form-group mb-3">
                                                             <label class="form-label" for="longitude">{{ __('Longitude') }}</label>
-                                                            <input type="text" class="form-control" name="longitude" id="longitude" placeholder="{{ __('Ex: 1.462260') }}">
-                                                            <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Longitude from address.') }}</a>
+                                                            <input type="text" class="form-control" name="longitude" id="longitude" value="{{ old('longitude', optional($property->address)->longitude ?? '') }}" placeholder="{{ __('Ex: 1.462260') }}">
+                                                            <a class="form-hint lat-long-link" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Longitude from address.') }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -418,7 +494,7 @@
 
                                                                                 <div class="col-md-4 ">
                                                                                     <div class="form-group ">
-                                                                                        <select name="facilities[{{$loop->index}}][facility_id]" required id="" class="form-select">
+                                                                                        <select name="facilities[{{$loop->index}}][facility_id]" required class="form-control form-select facility-select">
                                                                                             <option value="">{{__('Select Facilities')}}</option>
                                                                                             @foreach($facilities as $facility)
                                                                                                 <option value="{{$facility->id}}" {{$item->facility_id==$facility->id?'selected':''}}>{{$facility->name}}</option>
@@ -508,9 +584,54 @@
                                             <h6 class="title">{{__('Video URL')}}</h6>
                                             <div class="card-body">
                                                 <div class="form-group  ">
-                                                    <input type="text" class="form-control style-1" name="video_url" id="video_url" placeholder="{{__('https://youtu.be/xxxx')}}" >
+                                                    <input type="text" class="form-control style-1" name="video_url" id="video_url" placeholder="{{__('https://youtu.be/xxxx')}}" value="{{ old('video_url', $property->more_info->video_url ?? '') }}">
                                                     <small class="form-hint"> {{__('Use the Youtube video link to be able to watch the video directly on the website.')}} </small>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @php
+                                                $hasReceipt = !empty($property->featured_listing_receipt);
+                                                $hasUntil = !empty($property->featured_listing_until);
+                                                $untilFuture = $hasUntil && \Carbon\Carbon::parse($property->featured_listing_until)->isFuture();
+                                                $isPending = $hasReceipt && !$hasUntil && $property->is_featured;
+                                                $isRejected = $hasReceipt && !$hasUntil && !$property->is_featured;
+                                                $isActive = $hasReceipt && $untilFuture;
+                                                $isExpired = $hasReceipt && $hasUntil && !$untilFuture;
+                                                $canSubmitNew = !$isPending;
+                                            @endphp
+                                    <div class="col-12 mt-2">
+                                        <div class="card widget-box-2 border-primary">
+                                            <h6 class="title text-primary">{{ __('Featured Listing') }}</h6>
+                                            <div class="card-body">
+                                                <p class="small text-muted mb-2">{{ __('Show your listing first. Monthly fee until sold.') }}</p>
+                                                <p class="mb-2"><strong>{{ __('Monthly subscription fee') }}:</strong> {{ $data_settings['currency'] ?? 'JOD' }} {{ $data_settings['featured_listing_price'] ?? '50' }} / {{ __('month') }}</p>
+                                                @if($isPending)
+                                                    <p class="text-warning mb-2"><strong>{{ __('Request under review') }}</strong> - {{ __('Pending admin approval.') }}</p>
+                                                    <p class="small text-muted">{{ __('You cannot submit another request until the current one is approved or rejected.') }}</p>
+                                                @elseif($isRejected)
+                                                    <p class="text-danger mb-2"><strong>{{ __('Rejected') }}</strong></p>
+                                                @elseif($isActive)
+                                                    <p class="text-success mb-2"><strong>{{ __('Active until') }}: {{ $property->featured_listing_until }}</strong></p>
+                                                @elseif($isExpired)
+                                                    <p class="text-muted mb-2">{{ __('Expired. Renew below.') }}</p>
+                                                @endif
+                                                @if(!$isPending && !$isActive)
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="featured_listing" id="featured_listing" value="1" {{ $isExpired ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="featured_listing">{{ __('Enable Featured Listing') }}</label>
+                                                </div>
+                                                <div id="featured_listing_receipt_box" style="display: {{ $isExpired ? 'block' : 'none' }};">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="featured_listing_receipt">{{ __('Payment receipt') }} <span class="text-muted">({{ __('renewal or new') }})</span></label>
+                                                        <input type="file" class="form-control style-1" name="featured_listing_receipt" id="featured_listing_receipt" accept="image/*,.pdf">
+                                                        <small class="form-hint">{{ __('Upload proof of payment. Leave empty to keep current.') }}</small>
+                                                    </div>
+                                                </div>
+                                                @else
+                                                    <input type="hidden" name="featured_listing" value="1">
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -637,6 +758,14 @@
                 theme: 'bootstrap-5',
             });
 
+            // تحقق الجافا: تجاهل عناصر Select2 المخفية حتى لا يُعتبر الحقل فارغاً (القيمة في الـ select الأصلي)
+            $('#mainAdd').validate({
+                ignore: '',
+                errorPlacement: function(error, element) {
+                    error.appendTo(element.closest('.form-group'));
+                }
+            });
+
             // Show/hide category-specific fields when category changes
             function showCategoryFields() {
                 var slug = $('#category_id option:selected').data('slug') || '';
@@ -655,37 +784,55 @@
             var deptId = editAddress ? (editAddress.department_id || '') : '';
             var villId = editAddress ? (editAddress.village_id || '') : '';
             var hodId = editAddress ? (editAddress.hod_id || '') : '';
-            var hayId = editAddress ? (editAddress.hay_id || '') : '';
-
+            var hayId = (editAddress && editAddress.hay_id !== undefined && editAddress.hay_id !== null && editAddress.hay_id !== '') ? editAddress.hay_id : '';
+            function hideAddressLoader() { $('#address-loader').addClass('address-loader-hidden'); }
+            var addressLoadTimeout = setTimeout(hideAddressLoader, 15000);
+            function hideAddressLoaderOnce() { clearTimeout(addressLoadTimeout); hideAddressLoader(); }
             function loadGovernorates(cb) {
-                $.get('{{ route('admin.jordan.governorates') }}', function(data) {
+                $.get('{{ route('admin.jordan.governorates') }}').done(function(data) {
                     $('#governorate').empty().append('<option value="">{{__('Select Governorate')}}</option>');
                     $.each(data, function(i, item) { $('#governorate').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                     if (govId) $('#governorate').val(govId);
                     if (cb) cb();
-                });
+                }).fail(hideAddressLoaderOnce);
             }
             loadGovernorates(function() {
-                if (govId) $.get('{{ route('admin.jordan.departments', '') }}/' + govId, function(data) {
+                if (!govId) { hideAddressLoaderOnce(); return; }
+                $.get('{{ route('admin.jordan.departments', '') }}/' + govId).done(function(data) {
                     $('#department').empty().append('<option value="">{{__('Select Department')}}</option>');
                     $.each(data, function(i, item) { $('#department').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                     if (deptId) $('#department').val(deptId);
-                    if (deptId) $.get('{{ route('admin.jordan.villages', '') }}/' + deptId, function(data2) {
+                    if (!deptId) { hideAddressLoaderOnce(); return; }
+                    $.get('{{ route('admin.jordan.villages', '') }}/' + deptId).done(function(data2) {
                         $('#village').empty().append('<option value="">{{__('Select Village')}}</option>');
                         $.each(data2, function(i, item) { $('#village').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                         if (villId) $('#village').val(villId);
-                        if (villId) $.get('{{ url('/jordan/hods') }}/' + deptId + '/' + villId, function(data3) {
+                        if (!villId) { hideAddressLoaderOnce(); return; }
+                        $.get('{{ url('/jordan/hods') }}/' + deptId + '/' + villId).done(function(data3) {
                             $('#hod').empty().append('<option value="">{{__('Select Hod')}}</option>');
                             $.each(data3, function(i, item) { $('#hod').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                             if (hodId) $('#hod').val(hodId);
-                            if (hodId) $.get('{{ url('/jordan/hays') }}/' + deptId + '/' + villId + '/' + hodId, function(data4) {
-                                $('#hay').empty().append('<option value="">{{__('Select Hay')}}</option>');
-                                $.each(data4, function(i, item) { $('#hay').append('<option value="' + item.id + '">' + item.name + '</option>'); });
-                                if (hayId) $('#hay').val(hayId);
-                            });
-                        });
-                    });
-                });
+                            if (!hodId) { hideAddressLoaderOnce(); return; }
+                            $.get('{{ url('/jordan/hays') }}/' + deptId + '/' + villId + '/' + hodId)
+                                .done(function(data4) {
+                                    var $hay = $('#hay');
+                                    try { if ($hay.hasClass('select2-hidden-accessible')) $hay.select2('destroy'); } catch(e) {}
+                                    $hay.empty().append('<option value="">{{__('Select Hay')}}</option>');
+                                    if (Array.isArray(data4)) { $.each(data4, function(i, item) { $hay.append('<option value="' + String(item.id) + '">' + item.name + '</option>'); }); }
+                                    var valToSet = (hayId !== '' && hayId !== undefined && hayId !== null) ? ((hayId === 0 || hayId === '0') ? '0' : String(hayId)) : '';
+                                    if (valToSet !== '') {
+                                        $hay.val(valToSet);
+                                        $hay.find('option').prop('selected', false).filter('[value="' + valToSet + '"]').prop('selected', true);
+                                    }
+                                    $hay.select2({ theme: 'bootstrap-5' });
+                                    if (valToSet !== '') { $hay.val(valToSet).trigger('change'); }
+                                    hideAddressLoaderOnce();
+                                })
+                                .fail(hideAddressLoaderOnce)
+                                .always(hideAddressLoaderOnce);
+                        }).fail(hideAddressLoaderOnce);
+                    }).fail(hideAddressLoaderOnce);
+                }).fail(hideAddressLoaderOnce);
             });
 
             $('#governorate').change(function() {
@@ -780,14 +927,20 @@
             // previewsContainer: "#dpz-btn-select-files", // Define the container to display the previews
 
             init: function() {
-                var existingImages = {!! json_encode($property->images) !!};
+                var existingImages = {!! json_encode($property->images->map(function($img) {
+                    $path = $img->img;
+                    $path = preg_replace('#^/public#', '', $path ?? '');
+                    $path = ltrim($path, '/');
+                    return ['img' => $img->img, 'img_url' => $path ? asset($path) : ''];
+                })->values()) !!};
                 for (var i in existingImages) {
                     var file = existingImages[i];
-                    var mockFile = { name: file.img.split('/').pop(), size: 12345 }; // Mock file object
+                    var thumbUrl = file.img_url || (file.img ? '{{ url("/") }}/' + (file.img).replace(/^\/?public\/?/, '').replace(/^\/+/, '') : '');
+                    var mockFile = { name: (file.img || '').split('/').pop(), size: 12345 };
                     this.options.addedfile.call(this, mockFile);
-                    this.options.thumbnail.call(this, mockFile, file.img);
+                    this.options.thumbnail.call(this, mockFile, thumbUrl);
                     mockFile.previewElement.classList.add('dz-complete');
-                    $('form').append('<input type="hidden" name="images[]" value="' + file.img + '">');
+                    $('form').append('<input type="hidden" name="images[]" value="' + (file.img || '').replace(/"/g, '&quot;') + '">');
                 }
             }
 
@@ -849,6 +1002,11 @@
                     toolbar: fullToolbar
                 },
                 theme: 'snow'
+            });
+
+            $('#featured_listing').on('change', function() {
+                $('#featured_listing_receipt_box').toggle(this.checked);
+                if (!this.checked) $('#featured_listing_receipt').val('');
             });
 
             $('#add_form').click(function(e) {
@@ -939,9 +1097,6 @@
                 // have $(this).show() called on it.
                 show: function() {
                     $(this).slideDown();
-
-
-
                 },
                 // (Optional)
                 // "hide" is called when a user clicks on a data-repeater-delete

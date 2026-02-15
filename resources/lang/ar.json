@@ -159,6 +159,9 @@
   "Address": "العنوان",
   "Person Name": "اسم الشخص",
   "Phone Number": "رقم الهاتف",
+  "Contact Name": "اسم الزبون",
+  "Contact Phone": "رقم الزبون",
+  "Contact information": "بيانات الاتصال",
   "Governorate": "المحافظة",
   "Department": "المديرية",
   "Village": "القرية",
@@ -904,5 +907,24 @@
   "Flat": "مستوية",
   "Mountainous": "جبلية",
   "All Services Connected": "واصل جميع الخدمات (كهرباء، ماء، صرف صحي، شوارع معبدة)",
-  "Near Services": "قرب من الخدمات (مدرسة، مسجد، مطعم، مستشفى)"
+  "Near Services": "قرب من الخدمات (مدرسة، مسجد، مطعم، مستشفى)",
+
+  "Featured Listing": "الإعلان المميز",
+  "Enable Featured Listing": "تفعيل الإعلان المميز",
+  "Show your listing first in search results. Monthly fee until the property is sold.": "اعرض إعلانك في أول نتائج البحث. رسوم شهرية حتى بيع العقار.",
+  "Show your listing first. Monthly fee until sold.": "اعرض إعلانك أولاً. رسوم شهرية حتى البيع.",
+  "Payment receipt": "إيصال الدفع",
+  "Upload proof of payment for the featured listing fee.": "ارفع إثبات الدفع لرسوم الإعلان المميز.",
+  "Upload proof of payment. Leave empty to keep current.": "ارفع إثبات الدفع. اتركه فارغاً للاحتفاظ بالحالي.",
+  "renewal or new": "تجديد أو جديد",
+  "Monthly subscription fee": "رسوم الاشتراك الشهرية",
+  "Request under review": "الطلب قيد المعالجة",
+  "Pending admin approval.": "بانتظار موافقة الإدارة.",
+  "Active until": "ساري حتى",
+  "Expired. Renew below.": "منتهي. يمكنك التجديد أدناه.",
+  "Rejected": "مرفوض",
+  "You cannot submit another request until the current one is approved or rejected.": "لا يمكنك إرسال طلب جديد حتى يتم الموافقة على الطلب الحالي أو رفضه.",
+
+  "Featured Listing Monthly Price": "سعر الإعلان المميز الشهري",
+  "Price in JOD shown to users for featured listing subscription": "السعر بالدينار الأردني المعروض للمستخدمين لاشتراك الإعلان المميز"
 }

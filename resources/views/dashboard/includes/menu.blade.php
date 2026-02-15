@@ -111,6 +111,11 @@
                     </a>
                 </li>
                 <li class="menu-item">
+                    <a href="{{route('admin.properties.featured-listings')}}" class="menu-link">
+                        <div data-i18n="{{__('Featured Listings')}}">{{__('Featured Listings')}}</div>
+                    </a>
+                </li>
+                <li class="menu-item">
                     <a href="{{route('admin.categories.index')}}" class="menu-link">
                         <div data-i18n="{{__('Categories')}}">{{__('Categories')}}</div>
                     </a>
@@ -196,6 +201,11 @@
                     <li class="menu-item">
                         <a href="{{route('admin.plan_features.index')}}" class="menu-link">
                             <div data-i18n="{{__('Plan Feature')}}">{{__('Plan Feature')}}</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ Route::is('admin.plan-upgrade-requests.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.plan-upgrade-requests.index') }}" class="menu-link">
+                            <div data-i18n="{{ __('Plan Upgrade Requests') }}">{{ __('Plan Upgrade Requests') }}</div>
                         </a>
                     </li>
                     <li class="menu-item">

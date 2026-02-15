@@ -305,9 +305,11 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.css
                 var notificationsCountElem = $('#notifications-item-count');
                 var notificationsCount = parseInt(notificationsCountElem.data('count')) || 0;
                 var existingNotifications = notificationsWrapper.html();
+                var notifLink = (data.url) ? data.url : '{{ url("/admin/notification/show") }}/' + (data.id || '');
+                var notifTime = data.timestamp || data.time || '';
                 var newNotificationHtml = `
                 <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                    <a class="d-flex" href="{{url('/admin/notification/show')}}/${data.id}">
+                    <a class="d-flex" href="${notifLink}">
                         <div class="flex-shrink-0 me-3">
                             <div class="avatar">
                                 <img src="{{ asset('bell.png') }}" alt class="h-auto rounded-circle"/>
@@ -315,7 +317,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.css
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-1">${data.title}</h6>
-                            <small class="text-muted">${data.time}</small>
+                            <small class="text-muted">${notifTime}</small>
                         </div>
                         <div class="flex-shrink-0 dropdown-notifications-actions">
                             <span class="dropdown-notifications-read">
@@ -333,7 +335,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.css
 
                 // Show Toastr notification
                 toastr.success(
-                    `<a target="_blank" href="${data.url}">
+                    `<a target="_blank" href="${data.url || '#'}">
                     <div class="notification-content">
                         <i class="fas fa-check-circle" ></i> <!-- Check Icon -->
                         <span>${data.author}</span>
@@ -341,7 +343,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.css
                         <span>${data.title}</span>
                     </div>
                 </a>`,
-                    __('New Aqar '),
+                    '{{ __("New notification") }}',
                     {
                         closeButton: true,          // Show close button
                         progressBar: true,          // Enable progress bar

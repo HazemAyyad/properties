@@ -155,12 +155,25 @@ class MainController extends Controller
     }
     function upload($file)
     {
-
-        $image_name = '/public/upload/properties/' . Uuid::uuid4() . '.' . $file->getClientOriginalExtension();
-        $file->move(env('PATH_FILE_URL').'/upload/properties/', $image_name);
-        return $image_name;
-
-}
+        // Generate unique filename
+        $filename = Uuid::uuid4()->toString() . '.' . $file->getClientOriginalExtension();
+        
+        // Get the full path to the public directory
+        $publicPath = public_path();
+        
+        // Create directory if it doesn't exist
+        $uploadPath = $publicPath . '/upload/properties';
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+        
+        // Move file to the correct location (only filename, not full path)
+        $file->move($uploadPath, $filename);
+        
+        // Return the relative path WITHOUT /public prefix (asset() will add it automatically)
+        // This prevents /public/public/ issue
+        return '/upload/properties/' . $filename;
+    }
     public function saveProjectImages(Request $request)
     {
 

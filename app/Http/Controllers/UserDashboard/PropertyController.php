@@ -321,21 +321,28 @@ class PropertyController extends Controller
                         ]);
                     }
                 }
-                if (count($request->facilities) != 0) {
+                if (!empty($request->facilities) && is_array($request->facilities)) {
                     foreach ($request->facilities as $facility) {
+                        // Skip if facility_id is empty or null
+                        if (empty($facility['facility_id']) || $facility['facility_id'] == '') {
+                            continue;
+                        }
                         PropertyFacility::query()->create([
                             'property_id' => $property->id,
                             'facility_id' => $facility['facility_id'],
-                            'distance' => $facility['distance'],
+                            'distance' => $facility['distance'] ?? null,
                         ]);
                     }
                 }
-                if (count($request->images) != 0) {
+                if (!empty($request->images) && is_array($request->images)) {
                     foreach ($request->images as $image) {
+                        // Skip empty images
+                        if (empty($image) || trim($image) === '') {
+                            continue;
+                        }
                         PropertyImage::query()->create([
                             'property_id' => $property->id,
                             'img' => $image,
-
                         ]);
                     }
                 }
@@ -589,13 +596,17 @@ class PropertyController extends Controller
                         ]);
                     }
                 }
-                if (count($request->facilities) != 0) {
+                if (!empty($request->facilities) && is_array($request->facilities)) {
                     PropertyFacility::query()->where('property_id',$id)->delete();
                     foreach ($request->facilities as $facility) {
+                        // Skip if facility_id is empty or null
+                        if (empty($facility['facility_id']) || $facility['facility_id'] == '') {
+                            continue;
+                        }
                         PropertyFacility::query()->create([
                             'property_id' => $property->id,
                             'facility_id' => $facility['facility_id'],
-                            'distance' => $facility['distance'],
+                            'distance' => $facility['distance'] ?? null,
                         ]);
                     }
                 }

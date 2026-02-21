@@ -25,6 +25,47 @@
     .is-invalid {
         border-color: red;
     }
+    .invalid-feedback {
+        display: block !important;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+    .select2-container .select2-selection.is-invalid {
+        border-color: #dc3545;
+    }
+    .form-group.has-error .form-control,
+    .form-group.has-error .select2-selection {
+        border-color: #dc3545;
+    }
+    #dpz-multiple-files.is-invalid {
+        border: 2px solid #dc3545 !important;
+        border-radius: 4px;
+        background-color: #fff5f5;
+    }
+    .custom-error {
+        display: block !important;
+        width: 100%;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background-color: #fff5f5;
+        border-left: 3px solid #dc3545;
+        border-radius: 4px;
+    }
+    .custom-error p {
+        margin: 0;
+        color: #dc3545;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    #general-errors {
+        margin-bottom: 1rem;
+    }
+    .card .title[style*="color: rgb(220, 53, 69)"] {
+        font-weight: 600;
+    }
 </style>
 <style>
     .hint-message {
@@ -662,6 +703,11 @@
                 theme: 'bootstrap-5',
             });
 
+            // Trigger validation on Select2 change
+            $('.select2').on('change', function() {
+                $(this).valid();
+            });
+
             // Initialize Select2 for user list with AJAX and allowClear option
             $('#user-list').select2({
                 theme: 'bootstrap-5',
@@ -831,6 +877,18 @@
             success: function(file, response) {
                 $('form').append('<input type="hidden" name="images[]" value="' + response.name + '">')
                 uploadedDocumentMap[file.name] = response.name
+                
+                // Clear images validation error when at least one image is uploaded
+                if ($('input[name="images[]"]').length > 0) {
+                    $('#dpz-multiple-files').removeClass('is-invalid');
+                    $('#dpz-multiple-files').css({
+                        'border': '',
+                        'background-color': ''
+                    });
+                    $('#dpz-multiple-files').siblings('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card').find('.title').css('color', '');
+                }
             },
             removedfile: function(file) {
                 file.previewElement.remove()
@@ -841,6 +899,11 @@
                     name = uploadedDocumentMap[file.name]
                 }
                 $('form').find('input[name="images[]"][value="' + name + '"]').remove()
+                
+                // Show error again if no images remain
+                if ($('input[name="images[]"]').length === 0) {
+                    // Don't show error immediately, wait for form submission
+                }
             },
             // previewsContainer: "#dpz-btn-select-files", // Define the container to display the previews
             init: function() {
@@ -987,12 +1050,230 @@
 
             $('#featured_listing').on('change', function() {
                 $('#featured_listing_receipt_box').toggle(this.checked);
-                if (!this.checked) $('#featured_listing_receipt').val('');
+                if (!this.checked) {
+                    $('#featured_listing_receipt').val('');
+                    $('#featured_listing_receipt').valid(); // Re-validate to clear error if unchecked
+                } else {
+                    $('#featured_listing_receipt').valid(); // Validate if checked
+                }
             });
+
+            // Initialize jQuery Validation for the form
+            $('#mainAdd').validate({
+                rules: {
+                    name: {
+                        required: true
+                    },
+                    slug: {
+                        required: true
+                    },
+                    contact_name: {
+                        required: true
+                    },
+                    contact_phone: {
+                        required: true
+                    },
+                    registration_document: {
+                        required: true
+                    },
+                    governorate_id: {
+                        required: true
+                    },
+                    department_id: {
+                        required: true
+                    },
+                    village_id: {
+                        required: true
+                    },
+                    hod_id: {
+                        required: true
+                    },
+                    hay_id: {
+                        required: true
+                    },
+                    plot_number: {
+                        required: true
+                    },
+                    featured_listing_receipt: {
+                        required: function() {
+                            return $('#featured_listing').is(':checked');
+                        }
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "{{ __('Name is required') }}"
+                    },
+                    slug: {
+                        required: "{{ __('Permalink is required') }}"
+                    },
+                    contact_name: {
+                        required: "{{ __('Person Name is required') }}"
+                    },
+                    contact_phone: {
+                        required: "{{ __('Phone Number is required') }}"
+                    },
+                    registration_document: {
+                        required: "{{ __('Registration document is required') }}"
+                    },
+                    governorate_id: {
+                        required: "{{ __('Please select Governorate') }}"
+                    },
+                    department_id: {
+                        required: "{{ __('Please select Department') }}"
+                    },
+                    village_id: {
+                        required: "{{ __('Please select Village') }}"
+                    },
+                    hod_id: {
+                        required: "{{ __('Please select Hod') }}"
+                    },
+                    hay_id: {
+                        required: "{{ __('Please select Hay') }}"
+                    },
+                    plot_number: {
+                        required: "{{ __('Plot Number is required') }}"
+                    },
+                    featured_listing_receipt: {
+                        required: "{{ __('Payment receipt is required when Featured Listing is enabled') }}"
+                    }
+                },
+                errorElement: 'div',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    error.css('display', 'block');
+                    error.css('color', '#dc3545');
+                    error.css('font-size', '0.875rem');
+                    error.css('margin-top', '0.25rem');
+                    
+                    // Handle Select2 fields
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } 
+                    // Handle input-group fields
+                    else if (element.closest('.input-group').length) {
+                        error.insertAfter(element.closest('.input-group'));
+                    } 
+                    // Handle regular form-group fields
+                    else if (element.closest('.form-group').length) {
+                        error.insertAfter(element);
+                    } 
+                    // Default fallback
+                    else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function(element) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                    $(element).closest('.form-group').addClass('has-error');
+                    
+                    // Handle Select2 styling
+                    if ($(element).hasClass('select2-hidden-accessible')) {
+                        $(element).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    }
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('is-invalid').addClass('is-valid');
+                    $(element).closest('.form-group').removeClass('has-error');
+                    
+                    // Handle Select2 styling
+                    if ($(element).hasClass('select2-hidden-accessible')) {
+                        $(element).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                    }
+                }
+            });
+
+            // Custom validation method for images
+            $.validator.addMethod("imagesRequired", function(value, element) {
+                var imageInputs = $('input[name="images[]"]');
+                return imageInputs.length > 0;
+            }, "{{ __('Images are required') }}");
 
             $('#mainAdd').submit(function(e) {
                 e.preventDefault();
 
+                // Clear previous images errors
+                $('#dpz-multiple-files').removeClass('is-invalid');
+                $('#dpz-multiple-files').css({
+                    'border': '',
+                    'background-color': ''
+                });
+                $('#dpz-multiple-files').siblings('.custom-error').remove();
+                $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                $('#dpz-multiple-files').closest('.card').find('.title').css({
+                    'color': '',
+                    'font-weight': ''
+                });
+
+                // Validate images before form validation
+                var imageInputs = $('input[name="images[]"]');
+                var hasImages = imageInputs.length > 0;
+                
+                if (!hasImages) {
+                    // Show error on Dropzone
+                    var error_message = '<div class="custom-error"><p>{{ __('Images are required') }}</p></div>';
+                    
+                    // Remove existing errors first
+                    $('#dpz-multiple-files').siblings('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.col-lg-12').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.form-group').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                    
+                    // Add error message after the col-lg-12 div (which contains Dropzone)
+                    var colDiv = $('#dpz-multiple-files').closest('.col-lg-12');
+                    if (colDiv.length) {
+                        colDiv.after(error_message);
+                    } else {
+                        // Fallback: add after form-group
+                        var formGroup = $('#dpz-multiple-files').closest('.form-group');
+                        if (formGroup.length) {
+                            formGroup.after(error_message);
+                        } else {
+                            $('#dpz-multiple-files').after(error_message);
+                        }
+                    }
+                    
+                    // Also add at end of card-body for extra visibility
+                    var imagesCard = $('#dpz-multiple-files').closest('.card-body');
+                    if (imagesCard.length) {
+                        // Check if error already exists in card-body
+                        if (!imagesCard.find('.custom-error').length) {
+                            imagesCard.append(error_message.clone());
+                        }
+                    }
+                    
+                    // Add visual styling
+                    $('#dpz-multiple-files').addClass('is-invalid');
+                    $('#dpz-multiple-files').css({
+                        'border': '2px solid #dc3545',
+                        'border-radius': '4px',
+                        'background-color': '#fff5f5'
+                    });
+                    
+                    // Highlight title
+                    var titleElement = $('#dpz-multiple-files').closest('.card').find('.title');
+                    if (titleElement.length) {
+                        titleElement.css({
+                            'color': '#dc3545',
+                            'font-weight': '600'
+                        });
+                    }
+                    
+                    // Scroll to images section
+                    $('html, body').animate({
+                        scrollTop: $('#dpz-multiple-files').offset().top - 150
+                    }, 500);
+                    
+                    // Show toast notification
+                    toastr.error('{{ __('Please upload at least one image') }}', '{{ __('Validation Error') }}', {
+                        closeButton: true,
+                        timeOut: 5000
+                    });
+                    
+                    return false;
+                }
+
+                // Validate other form fields
                 if (!$(this).valid()) {
                     return false;
                 }
@@ -1006,6 +1287,12 @@
                 var postData = new FormData(this);
                 var quillContent = fullEditor.root.innerHTML;
                 postData.append('content', quillContent);
+                
+                // FormData(this) should automatically include hidden inputs including images[]
+                // But let's verify images are included by logging (for debugging)
+                console.log('Images to be sent:', $('input[name="images[]"]').map(function() {
+                    return $(this).val();
+                }).get());
 
                 $('#add_form').html('');
                 $('#add_form').append('<span class="spinner-border spinner-border-sm align-middle ms-2"></span>' +
@@ -1019,31 +1306,141 @@
                     contentType: false,
                     success: function(response) {
                         $('#add_form').html('{{ __('Save') }}');
+                        
+                        // Show success message
+                        toastr.success(response.success || '{{ __('Property saved successfully') }}', {
+                            closeButton: true,
+                            tapToDismiss: false,
+                            timeOut: 2000
+                        });
+                        
+                        // Redirect to properties list after 1.5 seconds
                         setTimeout(function() {
-                            toastr.success(response.success, {
-                                closeButton: true,
-                                tapToDismiss: false
-                            });
-                        }, 200);
-                        $('#mainAdd')[0].reset();
-                        $('.custom-error').remove();
-                        fullEditor.root.innerHTML = '';
+                            window.location.href = '{{ route('user.properties.index') }}';
+                        }, 1500);
                     },
-                    error: function(data) {
+                    error: function(xhr, status, error) {
                         $('.custom-error').remove();
+                        $('.invalid-feedback').remove();
+                        $('#general-errors').remove();
                         $('#add_form').html('{{ __('Save') }}');
-                        var response = data.responseJSON;
-                        if (data.status == 422) {
+                        
+                        var response = xhr.responseJSON;
+                        
+                        if (xhr.status == 422) {
                             if (response && response.errors) {
                                 $.each(response.errors, function(key, value) {
-                                    var error_message = '<div class="custom-error"><p style="color: red">' + value[0] + '</p></div>';
-                                    $('[name="' + key + '"]').closest('.form-group').append(error_message);
+                                    var errorText = Array.isArray(value) ? value[0] : value;
+                                    var error_message = '<div class="custom-error"><p style="color: red; margin-top: 5px; font-size: 0.875rem;">' + errorText + '</p></div>';
+                                    
+                                    // Handle special case for images field (Dropzone)
+                                    if (key === 'images') {
+                                        // Remove any existing error messages for images
+                                        $('#dpz-multiple-files').siblings('.custom-error').remove();
+                                        $('#dpz-multiple-files').closest('.col-lg-12').find('.custom-error').remove();
+                                        $('#dpz-multiple-files').closest('.form-group').find('.custom-error').remove();
+                                        $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                                        
+                                        // Find the best place to show error - after the form-group div
+                                        var formGroup = $('#dpz-multiple-files').closest('.form-group');
+                                        if (formGroup.length) {
+                                            formGroup.after(error_message);
+                                        } else {
+                                            // Fallback: add after Dropzone container
+                                            $('#dpz-multiple-files').after(error_message);
+                                        }
+                                        
+                                        // Also add it at the end of card-body for extra visibility
+                                        var imagesCard = $('#dpz-multiple-files').closest('.card-body');
+                                        if (imagesCard.length) {
+                                            var existingError = imagesCard.find('.custom-error').last();
+                                            if (!existingError.length) {
+                                                imagesCard.append(error_message.clone());
+                                            }
+                                        }
+                                        
+                                        // Add visual styling to Dropzone
+                                        $('#dpz-multiple-files').addClass('is-invalid');
+                                        $('#dpz-multiple-files').css({
+                                            'border': '2px solid #dc3545 !important',
+                                            'border-radius': '4px',
+                                            'background-color': '#fff5f5'
+                                        });
+                                        
+                                        // Highlight the Images card title
+                                        var titleElement = $('#dpz-multiple-files').closest('.card').find('.title');
+                                        if (titleElement.length) {
+                                            titleElement.css({
+                                                'color': '#dc3545',
+                                                'font-weight': '600'
+                                            });
+                                        }
+                                    }
+                                    // Handle regular input fields
+                                    else if ($('[name="' + key + '"]').length) {
+                                        var field = $('[name="' + key + '"]');
+                                        var formGroup = field.closest('.form-group');
+                                        
+                                        if (formGroup.length) {
+                                            formGroup.append(error_message);
+                                        } else if (field.closest('.input-group').length) {
+                                            field.closest('.input-group').after(error_message);
+                                        } else {
+                                            field.after(error_message);
+                                        }
+                                        field.addClass('is-invalid');
+                                        
+                                        // Handle Select2 fields
+                                        if (field.hasClass('select2-hidden-accessible')) {
+                                            field.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                                        }
+                                    }
+                                    // Handle fields that might not exist (show general error)
+                                    else {
+                                        // Show error at top of form or in a general error area
+                                        if ($('#general-errors').length === 0) {
+                                            $('#mainAdd').prepend('<div id="general-errors" class="alert alert-danger" role="alert"><strong>{{ __('Please fix the following errors:') }}</strong></div>');
+                                        }
+                                        $('#general-errors').append('<p style="margin-bottom: 5px; margin-left: 10px;">' + errorText + '</p>');
+                                    }
+                                });
+                                
+                                // Scroll to first error (prioritize images error)
+                                var imagesError = $('#dpz-multiple-files').siblings('.custom-error').first();
+                                var firstError = imagesError.length ? imagesError : $('.custom-error').first();
+                                
+                                if (firstError.length) {
+                                    $('html, body').animate({
+                                        scrollTop: firstError.offset().top - 150
+                                    }, 500);
+                                } else if ($('#general-errors').length) {
+                                    $('html, body').animate({
+                                        scrollTop: $('#general-errors').offset().top - 100
+                                    }, 500);
+                                }
+                                
+                                // Show toast notification to alert user
+                                toastr.error('{{ __('Please check the form for errors') }}', '{{ __('Validation Error') }}', {
+                                    closeButton: true,
+                                    timeOut: 5000
+                                });
+                            } else {
+                                // No specific errors, show general message
+                                toastr.error('{{ __('Please fill in all required fields correctly.') }}', '{{ __('Validation Error') }}', {
+                                    closeButton: true,
+                                    timeOut: 5000
                                 });
                             }
                         } else {
-                            swal.fire({
+                            // Show general error message
+                            var errorMsg = '{{ __('An error occurred. Please try again.') }}';
+                            if (response && response.message) {
+                                errorMsg = response.message;
+                            }
+                            Swal.fire({
                                 icon: 'error',
-                                title: response.message
+                                title: '{{ __('Error') }}',
+                                text: errorMsg
                             });
                         }
                     }

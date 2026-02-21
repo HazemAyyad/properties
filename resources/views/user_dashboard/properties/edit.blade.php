@@ -27,6 +27,47 @@
     .is-invalid {
         border-color: red;
     }
+    .invalid-feedback {
+        display: block !important;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+    .select2-container .select2-selection.is-invalid {
+        border-color: #dc3545;
+    }
+    .form-group.has-error .form-control,
+    .form-group.has-error .select2-selection {
+        border-color: #dc3545;
+    }
+    #dpz-multiple-files.is-invalid {
+        border: 2px solid #dc3545 !important;
+        border-radius: 4px;
+        background-color: #fff5f5;
+    }
+    .custom-error {
+        display: block !important;
+        width: 100%;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background-color: #fff5f5;
+        border-left: 3px solid #dc3545;
+        border-radius: 4px;
+    }
+    .custom-error p {
+        margin: 0;
+        color: #dc3545;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    #general-errors {
+        margin-bottom: 1rem;
+    }
+    .card .title[style*="color: rgb(220, 53, 69)"] {
+        font-weight: 600;
+    }
 </style>
 <style>
     .hint-message {
@@ -758,12 +799,134 @@
                 theme: 'bootstrap-5',
             });
 
-            // تحقق الجافا: تجاهل عناصر Select2 المخفية حتى لا يُعتبر الحقل فارغاً (القيمة في الـ select الأصلي)
+            // Initialize jQuery Validation for the form
             $('#mainAdd').validate({
-                ignore: '',
+                rules: {
+                    name: {
+                        required: true
+                    },
+                    slug: {
+                        required: true
+                    },
+                    contact_name: {
+                        required: true
+                    },
+                    contact_phone: {
+                        required: true
+                    },
+                    registration_document: {
+                        required: false // Optional in edit
+                    },
+                    governorate_id: {
+                        required: true
+                    },
+                    department_id: {
+                        required: true
+                    },
+                    village_id: {
+                        required: true
+                    },
+                    hod_id: {
+                        required: true
+                    },
+                    hay_id: {
+                        required: true
+                    },
+                    plot_number: {
+                        required: true
+                    },
+                    featured_listing_receipt: {
+                        required: function() {
+                            return $('#featured_listing').is(':checked');
+                        }
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "{{ __('Name is required') }}"
+                    },
+                    slug: {
+                        required: "{{ __('Permalink is required') }}"
+                    },
+                    contact_name: {
+                        required: "{{ __('Person Name is required') }}"
+                    },
+                    contact_phone: {
+                        required: "{{ __('Phone Number is required') }}"
+                    },
+                    registration_document: {
+                        required: "{{ __('Registration document is required') }}"
+                    },
+                    governorate_id: {
+                        required: "{{ __('Please select Governorate') }}"
+                    },
+                    department_id: {
+                        required: "{{ __('Please select Department') }}"
+                    },
+                    village_id: {
+                        required: "{{ __('Please select Village') }}"
+                    },
+                    hod_id: {
+                        required: "{{ __('Please select Hod') }}"
+                    },
+                    hay_id: {
+                        required: "{{ __('Please select Hay') }}"
+                    },
+                    plot_number: {
+                        required: "{{ __('Plot Number is required') }}"
+                    },
+                    featured_listing_receipt: {
+                        required: "{{ __('Payment receipt is required when Featured Listing is enabled') }}"
+                    }
+                },
+                errorElement: 'div',
                 errorPlacement: function(error, element) {
-                    error.appendTo(element.closest('.form-group'));
+                    error.addClass('invalid-feedback');
+                    error.css('display', 'block');
+                    error.css('color', '#dc3545');
+                    error.css('font-size', '0.875rem');
+                    error.css('margin-top', '0.25rem');
+                    
+                    // Handle Select2 fields
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } 
+                    // Handle input-group fields
+                    else if (element.closest('.input-group').length) {
+                        error.insertAfter(element.closest('.input-group'));
+                    }
+                    // Handle regular form-group fields
+                    else if (element.closest('.form-group').length) {
+                        error.insertAfter(element);
+                    } 
+                    // Default fallback
+                    else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function(element) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                    $(element).closest('.form-group').addClass('has-error');
+                    
+                    // Handle Select2 styling
+                    if ($(element).hasClass('select2-hidden-accessible')) {
+                        $(element).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    }
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('is-invalid').addClass('is-valid');
+                    $(element).closest('.form-group').removeClass('has-error');
+                    
+                    // Handle Select2 styling
+                    if ($(element).hasClass('select2-hidden-accessible')) {
+                        $(element).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                    }
                 }
+            });
+
+            // Trigger validation on Select2 change
+            $('.select2').on('change', function() {
+                $(this).valid();
             });
 
             // Show/hide category-specific fields when category changes
@@ -790,7 +953,7 @@
             function hideAddressLoaderOnce() { clearTimeout(addressLoadTimeout); hideAddressLoader(); }
             function loadGovernorates(cb) {
                 $.get('{{ route('admin.jordan.governorates') }}').done(function(data) {
-                    $('#governorate').empty().append('<option value="">{{__('Select Governorate')}}</option>');
+                    $('#governorate').empty().append('<option value="">' + {!! json_encode(__('Select Governorate')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#governorate').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                     if (govId) $('#governorate').val(govId);
                     if (cb) cb();
@@ -799,17 +962,17 @@
             loadGovernorates(function() {
                 if (!govId) { hideAddressLoaderOnce(); return; }
                 $.get('{{ route('admin.jordan.departments', '') }}/' + govId).done(function(data) {
-                    $('#department').empty().append('<option value="">{{__('Select Department')}}</option>');
+                    $('#department').empty().append('<option value="">' + {!! json_encode(__('Select Department')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#department').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                     if (deptId) $('#department').val(deptId);
                     if (!deptId) { hideAddressLoaderOnce(); return; }
                     $.get('{{ route('admin.jordan.villages', '') }}/' + deptId).done(function(data2) {
-                        $('#village').empty().append('<option value="">{{__('Select Village')}}</option>');
+                        $('#village').empty().append('<option value="">' + {!! json_encode(__('Select Village')) !!} + '</option>');
                         $.each(data2, function(i, item) { $('#village').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                         if (villId) $('#village').val(villId);
                         if (!villId) { hideAddressLoaderOnce(); return; }
                         $.get('{{ url('/jordan/hods') }}/' + deptId + '/' + villId).done(function(data3) {
-                            $('#hod').empty().append('<option value="">{{__('Select Hod')}}</option>');
+                            $('#hod').empty().append('<option value="">' + {!! json_encode(__('Select Hod')) !!} + '</option>');
                             $.each(data3, function(i, item) { $('#hod').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                             if (hodId) $('#hod').val(hodId);
                             if (!hodId) { hideAddressLoaderOnce(); return; }
@@ -817,7 +980,7 @@
                                 .done(function(data4) {
                                     var $hay = $('#hay');
                                     try { if ($hay.hasClass('select2-hidden-accessible')) $hay.select2('destroy'); } catch(e) {}
-                                    $hay.empty().append('<option value="">{{__('Select Hay')}}</option>');
+                                    $hay.empty().append('<option value="">' + {!! json_encode(__('Select Hay')) !!} + '</option>');
                                     if (Array.isArray(data4)) { $.each(data4, function(i, item) { $hay.append('<option value="' + String(item.id) + '">' + item.name + '</option>'); }); }
                                     var valToSet = (hayId !== '' && hayId !== undefined && hayId !== null) ? ((hayId === 0 || hayId === '0') ? '0' : String(hayId)) : '';
                                     if (valToSet !== '') {
@@ -837,33 +1000,33 @@
 
             $('#governorate').change(function() {
                 var id = $(this).val();
-                $('#department, #village, #hod, #hay').empty().append('<option value="">{{__('Select')}}</option>');
+                $('#department, #village, #hod, #hay').empty().append('<option value="">' + {!! json_encode(__('Select')) !!} + '</option>');
                 if (id) $.get('{{ route('admin.jordan.departments', '') }}/' + id, function(data) {
-                    $('#department').empty().append('<option value="">{{__('Select Department')}}</option>');
+                    $('#department').empty().append('<option value="">' + {!! json_encode(__('Select Department')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#department').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                 });
             });
             $('#department').change(function() {
                 var id = $(this).val();
-                $('#village, #hod, #hay').empty().append('<option value="">{{__('Select')}}</option>');
+                $('#village, #hod, #hay').empty().append('<option value="">' + {!! json_encode(__('Select')) !!} + '</option>');
                 if (id) $.get('{{ route('admin.jordan.villages', '') }}/' + id, function(data) {
-                    $('#village').empty().append('<option value="">{{__('Select Village')}}</option>');
+                    $('#village').empty().append('<option value="">' + {!! json_encode(__('Select Village')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#village').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                 });
             });
             $('#village').change(function() {
                 var d = $('#department').val(), v = $(this).val();
-                $('#hod, #hay').empty().append('<option value="">{{__('Select')}}</option>');
+                $('#hod, #hay').empty().append('<option value="">' + {!! json_encode(__('Select')) !!} + '</option>');
                 if (d && v) $.get('{{ url('/jordan/hods') }}/' + d + '/' + v, function(data) {
-                    $('#hod').empty().append('<option value="">{{__('Select Hod')}}</option>');
+                    $('#hod').empty().append('<option value="">' + {!! json_encode(__('Select Hod')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#hod').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                 });
             });
             $('#hod').change(function() {
                 var d = $('#department').val(), v = $('#village').val(), h = $(this).val();
-                $('#hay').empty().append('<option value="">{{__('Select')}}</option>');
+                $('#hay').empty().append('<option value="">' + {!! json_encode(__('Select')) !!} + '</option>');
                 if (d && v && h) $.get('{{ url('/jordan/hays') }}/' + d + '/' + v + '/' + h, function(data) {
-                    $('#hay').empty().append('<option value="">{{__('Select Hay')}}</option>');
+                    $('#hay').empty().append('<option value="">' + {!! json_encode(__('Select Hay')) !!} + '</option>');
                     $.each(data, function(i, item) { $('#hay').append('<option value="' + item.id + '">' + item.name + '</option>'); });
                 });
             });
@@ -906,6 +1069,21 @@
             success: function(file, response) {
                 $('form').append('<input type="hidden" name="images[]" value="' + response.name + '">');
                 uploadedDocumentMap[file.name] = response.name;
+                
+                // Clear images validation error when at least one image is uploaded
+                if ($('input[name="images[]"]').length > 0) {
+                    $('#dpz-multiple-files').removeClass('is-invalid');
+                    $('#dpz-multiple-files').css({
+                        'border': '',
+                        'background-color': ''
+                    });
+                    $('#dpz-multiple-files').siblings('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card').find('.title').css({
+                        'color': '',
+                        'font-weight': ''
+                    });
+                }
             },
             removedfile: function(file) {
                 console.log(file.file_name)
@@ -929,13 +1107,25 @@
             init: function() {
                 var existingImages = {!! json_encode($property->images->map(function($img) {
                     $path = $img->img;
+                    // Fix path: remove /public if exists at the beginning
                     $path = preg_replace('#^/public#', '', $path ?? '');
                     $path = ltrim($path, '/');
-                    return ['img' => $img->img, 'img_url' => $path ? asset($path) : ''];
+                    // Create correct URL using asset() - it will add /public/ automatically
+                    $imagePath = asset($path);
+                    // Fix double /public/public/ if exists
+                    $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
+                    return ['img' => $img->img, 'img_url' => $correctedImagePath];
                 })->values()) !!};
                 for (var i in existingImages) {
                     var file = existingImages[i];
-                    var thumbUrl = file.img_url || (file.img ? '{{ url("/") }}/' + (file.img).replace(/^\/?public\/?/, '').replace(/^\/+/, '') : '');
+                    var thumbUrl = file.img_url || '';
+                    if (!thumbUrl && file.img) {
+                        // Fallback: fix path manually
+                        var imgPath = file.img.replace(/^\/?public\/?/, '').replace(/^\/+/, '');
+                        thumbUrl = '{{ url("/") }}/' + imgPath;
+                        // Fix double /public/ if exists
+                        thumbUrl = thumbUrl.replace('/public/public/', '/public/');
+                    }
                     var mockFile = { name: (file.img || '').split('/').pop(), size: 12345 };
                     this.options.addedfile.call(this, mockFile);
                     this.options.thumbnail.call(this, mockFile, thumbUrl);
@@ -1004,32 +1194,131 @@
                 theme: 'snow'
             });
 
+            // Load existing content into Quill editor
+            var existingContent = $('#full-editor').html().trim();
+            if (existingContent && existingContent !== '<p><br></p>') {
+                fullEditor.root.innerHTML = existingContent;
+            }
+
             $('#featured_listing').on('change', function() {
                 $('#featured_listing_receipt_box').toggle(this.checked);
-                if (!this.checked) $('#featured_listing_receipt').val('');
+                if (!this.checked) {
+                    $('#featured_listing_receipt').val('');
+                    $('#featured_listing_receipt').valid(); // Re-validate to clear error if unchecked
+                } else {
+                    $('#featured_listing_receipt').valid(); // Validate if checked
+                }
             });
 
-            $('#add_form').click(function(e) {
+            // Custom validation method for images
+            $.validator.addMethod("imagesRequired", function(value, element) {
+                var imageInputs = $('input[name="images[]"]');
+                return imageInputs.length > 0;
+            }, {!! json_encode(__('Images are required')) !!});
 
-                var form = $(this.form);
+            $('#mainAdd').submit(function(e) {
+                e.preventDefault();
 
-                if (!form.valid()) {
+                // Clear previous images errors
+                $('#dpz-multiple-files').removeClass('is-invalid');
+                $('#dpz-multiple-files').css({
+                    'border': '',
+                    'background-color': ''
+                });
+                $('#dpz-multiple-files').siblings('.custom-error').remove();
+                $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                $('#dpz-multiple-files').closest('.card').find('.title').css({
+                    'color': '',
+                    'font-weight': ''
+                });
+
+                // Validate images before form validation
+                var imageInputs = $('input[name="images[]"]');
+                var hasImages = imageInputs.length > 0;
+                
+                if (!hasImages) {
+                    // Show error on Dropzone
+                    var errorText = {!! json_encode(__('Images are required')) !!};
+                    var error_message = '<div class="custom-error"><p>' + errorText + '</p></div>';
+                    
+                    // Remove existing errors first
+                    $('#dpz-multiple-files').siblings('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.col-lg-12').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.form-group').find('.custom-error').remove();
+                    $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                    
+                    // Add error message after the col-lg-12 div (which contains Dropzone)
+                    var colDiv = $('#dpz-multiple-files').closest('.col-lg-12');
+                    if (colDiv.length) {
+                        colDiv.after(error_message);
+                    } else {
+                        // Fallback: add after form-group
+                        var formGroup = $('#dpz-multiple-files').closest('.form-group');
+                        if (formGroup.length) {
+                            formGroup.after(error_message);
+                        } else {
+                            $('#dpz-multiple-files').after(error_message);
+                        }
+                    }
+                    
+                    // Also add at end of card-body for extra visibility
+                    var imagesCard = $('#dpz-multiple-files').closest('.card-body');
+                    if (imagesCard.length) {
+                        // Check if error already exists in card-body
+                        if (!imagesCard.find('.custom-error').length) {
+                            imagesCard.append(error_message.clone());
+                        }
+                    }
+                    
+                    // Add visual styling
+                    $('#dpz-multiple-files').addClass('is-invalid');
+                    $('#dpz-multiple-files').css({
+                        'border': '2px solid #dc3545',
+                        'border-radius': '4px',
+                        'background-color': '#fff5f5'
+                    });
+                    
+                    // Highlight title
+                    var titleElement = $('#dpz-multiple-files').closest('.card').find('.title');
+                    if (titleElement.length) {
+                        titleElement.css({
+                            'color': '#dc3545',
+                            'font-weight': '600'
+                        });
+                    }
+                    
+                    // Scroll to images section
+                    $('html, body').animate({
+                        scrollTop: $('#dpz-multiple-files').offset().top - 150
+                    }, 500);
+                    
+                    // Show toast notification
+                    toastr.error({!! json_encode(__('Please upload at least one image')) !!}, {!! json_encode(__('Validation Error')) !!}, {
+                        closeButton: true,
+                        timeOut: 5000
+                    });
+                    
                     return false;
                 }
-                if (form.valid()) {
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
 
-                    var postData = new FormData(this.form);
+                // Validate other form fields
+                if (!$(this).valid()) {
+                    return false;
+                }
+
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                var postData = new FormData(this);
                     var quillContent = fullEditor.root.innerHTML;
                     postData.append('content', quillContent);
 
                     $('#add_form').html('');
                     $('#add_form').append('<span class="spinner-border spinner-border-sm align-middle ms-2"></span>' +
-                        '<span class="ml-25 align-middle">{{ __('Saving') }}...</span>');
+                        '<span class="ml-25 align-middle">' + {!! json_encode(__('Saving')) !!} + '...</span>');
 
                     $.ajax({
                         url: '{{ route('user.properties.update',$property->id) }}',
@@ -1038,32 +1327,143 @@
                         processData: false,
                         contentType: false,
                         success: function (response) {
-                            $('#add_form').html('{{ __('Save') }}');
-                            setTimeout(function () {
-                                toastr.success(response.success, {
-                                    closeButton: true,
-                                    tapToDismiss: false
-                                });
-                            }, 200);
-                            // $('#mainAdd')[0].reset();
-                            $('.custom-error').remove();
-                            // fullEditor.root.innerHTML = '';
+                            $('#add_form').html({!! json_encode(__('Save')) !!});
+                            
+                            // Show success message
+                            toastr.success(response.success || {!! json_encode(__('Property updated successfully')) !!}, {
+                                closeButton: true,
+                                tapToDismiss: false,
+                                timeOut: 2000
+                            });
+                            
+                            // Redirect to properties list after 1.5 seconds
+                            setTimeout(function() {
+                                window.location.href = '{{ route('user.properties.index') }}';
+                            }, 1500);
                         },
-                        error: function (data) {
+                        error: function(xhr, status, error) {
                             $('.custom-error').remove();
-                            $('#add_form').html('{{ __('Save') }}');
-                            var response = data.responseJSON;
-                            if (data.status == 422) {
+                            $('.invalid-feedback').remove();
+                            $('#general-errors').remove();
+                            $('#add_form').html({!! json_encode(__('Save')) !!});
+                            
+                            var response = xhr.responseJSON;
+                            
+                            if (xhr.status == 422) {
                                 if (response && response.errors) {
-                                    $.each(response.errors, function (key, value) {
-                                        var error_message = '<div class="custom-error"><p style="color: red">' + value[0] + '</p></div>';
-                                        $('[name="' + key + '"]').closest('.form-group').append(error_message);
+                                    $.each(response.errors, function(key, value) {
+                                        var errorText = Array.isArray(value) ? value[0] : value;
+                                        var error_message = '<div class="custom-error"><p>' + errorText + '</p></div>';
+                                        
+                                        // Handle special case for images field (Dropzone)
+                                        if (key === 'images') {
+                                            // Remove any existing error messages for images
+                                            $('#dpz-multiple-files').siblings('.custom-error').remove();
+                                            $('#dpz-multiple-files').closest('.col-lg-12').find('.custom-error').remove();
+                                            $('#dpz-multiple-files').closest('.form-group').find('.custom-error').remove();
+                                            $('#dpz-multiple-files').closest('.card-body').find('.custom-error').remove();
+                                            
+                                            // Add error message after the col-lg-12 div (which contains Dropzone)
+                                            var colDiv = $('#dpz-multiple-files').closest('.col-lg-12');
+                                            if (colDiv.length) {
+                                                colDiv.after(error_message);
+                                            } else {
+                                                var formGroup = $('#dpz-multiple-files').closest('.form-group');
+                                                if (formGroup.length) {
+                                                    formGroup.after(error_message);
+                                                } else {
+                                                    $('#dpz-multiple-files').after(error_message);
+                                                }
+                                            }
+                                            
+                                            // Also add at end of card-body
+                                            var imagesCard = $('#dpz-multiple-files').closest('.card-body');
+                                            if (imagesCard.length) {
+                                                if (!imagesCard.find('.custom-error').length) {
+                                                    imagesCard.append(error_message.clone());
+                                                }
+                                            }
+                                            
+                                            // Add visual styling
+                                            $('#dpz-multiple-files').addClass('is-invalid');
+                                            $('#dpz-multiple-files').css({
+                                                'border': '2px solid #dc3545',
+                                                'border-radius': '4px',
+                                                'background-color': '#fff5f5'
+                                            });
+                                            
+                                            // Highlight title
+                                            var titleElement = $('#dpz-multiple-files').closest('.card').find('.title');
+                                            if (titleElement.length) {
+                                                titleElement.css({
+                                                    'color': '#dc3545',
+                                                    'font-weight': '600'
+                                                });
+                                            }
+                                        }
+                                        // Handle regular input fields
+                                        else if ($('[name="' + key + '"]').length) {
+                                            var field = $('[name="' + key + '"]');
+                                            var formGroup = field.closest('.form-group');
+                                            
+                                            if (formGroup.length) {
+                                                formGroup.append(error_message);
+                                            } else if (field.closest('.input-group').length) {
+                                                field.closest('.input-group').after(error_message);
+                                            } else {
+                                                field.after(error_message);
+                                            }
+                                            field.addClass('is-invalid');
+                                            
+                                            // Handle Select2 fields
+                                            if (field.hasClass('select2-hidden-accessible')) {
+                                                field.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                                            }
+                                        }
+                                        // Handle fields that might not exist (show general error)
+                                        else {
+                                            if ($('#general-errors').length === 0) {
+                                                $('#mainAdd').prepend('<div id="general-errors" class="alert alert-danger" role="alert"><strong>' + {!! json_encode(__('Please fix the following errors:')) !!} + '</strong></div>');
+                                            }
+                                            $('#general-errors').append('<p style="margin-bottom: 5px; margin-left: 10px;">' + errorText + '</p>');
+                                        }
+                                    });
+                                    
+                                    // Scroll to first error
+                                    var imagesError = $('#dpz-multiple-files').siblings('.custom-error').first();
+                                    var firstError = imagesError.length ? imagesError : $('.custom-error').first();
+                                    
+                                    if (firstError.length) {
+                                        $('html, body').animate({
+                                            scrollTop: firstError.offset().top - 150
+                                        }, 500);
+                                    } else if ($('#general-errors').length) {
+                                        $('html, body').animate({
+                                            scrollTop: $('#general-errors').offset().top - 100
+                                        }, 500);
+                                    }
+                                    
+                                    // Show toast notification
+                                    toastr.error({!! json_encode(__('Please check the form for errors')) !!}, {!! json_encode(__('Validation Error')) !!}, {
+                                        closeButton: true,
+                                        timeOut: 5000
+                                    });
+                                } else {
+                                    toastr.error({!! json_encode(__('Please fill in all required fields correctly.')) !!}, {!! json_encode(__('Validation Error')) !!}, {
+                                        closeButton: true,
+                                        timeOut: 5000
                                     });
                                 }
                             } else {
-                                swal.fire({
+                                // Show general error message
+                                var errorMsg = {!! json_encode(__('An error occurred. Please try again.')) !!};
+                                if (response && response.message) {
+                                    errorMsg = response.message;
+                                }
+                                Swal.fire({
                                     icon: 'error',
-                                    title: response.message
+                                    title: {!! json_encode(__('Error')) !!},
+                                    text: errorMsg
                                 });
                             }
                         }

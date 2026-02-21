@@ -320,12 +320,16 @@ class PropertyController extends Controller
                         ]);
                     }
                 }
-                if (count($request->facilities) != 0) {
+                if (!empty($request->facilities) && is_array($request->facilities)) {
                     foreach ($request->facilities as $facility) {
+                        // Skip if facility_id is empty or null
+                        if (empty($facility['facility_id']) || $facility['facility_id'] == '') {
+                            continue;
+                        }
                         PropertyFacility::query()->create([
                             'property_id' => $property->id,
                             'facility_id' => $facility['facility_id'],
-                            'distance' => $facility['distance'],
+                            'distance' => $facility['distance'] ?? null,
                         ]);
                     }
                 }
@@ -496,12 +500,16 @@ class PropertyController extends Controller
                 }
 
                 // Property Facilities
-                if (count($request->facilities) != 0) {
+                if (!empty($request->facilities) && is_array($request->facilities)) {
                     foreach ($request->facilities as $facility) {
+                        // Skip if facility_id is empty or null
+                        if (empty($facility['facility_id']) || $facility['facility_id'] == '') {
+                            continue;
+                        }
                         PropertyFacility::create([
                             'property_id' => $property->id,
                             'facility_id' => $facility['facility_id'],
-                            'distance' => $facility['distance'],
+                            'distance' => $facility['distance'] ?? null,
                         ]);
                     }
                 }
@@ -676,13 +684,17 @@ class PropertyController extends Controller
             }
 
             // Property Facilities
-            if (count($request->facilities) != 0) {
+            if (!empty($request->facilities) && is_array($request->facilities)) {
                 PropertyFacility::where('property_id', $id)->delete();
                 foreach ($request->facilities as $facility) {
+                    // Skip if facility_id is empty or null
+                    if (empty($facility['facility_id']) || $facility['facility_id'] == '') {
+                        continue;
+                    }
                     PropertyFacility::create([
                         'property_id' => $property->id,
                         'facility_id' => $facility['facility_id'],
-                        'distance' => $facility['distance'],
+                        'distance' => $facility['distance'] ?? null,
                     ]);
                 }
             }

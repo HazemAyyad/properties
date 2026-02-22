@@ -233,6 +233,10 @@ class SettingController extends Controller
                     $setting->value = $request->input('featured_listing_price', 50);
                     break;
 
+                case 'featured_3d_tour_price':
+                    $setting->value = $request->input('featured_3d_tour_price', 30);
+                    break;
+
                 // Handle sections visibility checkboxes
                 case 'gallary_properties':
                 case 'cities':

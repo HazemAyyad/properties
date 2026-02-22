@@ -48,6 +48,7 @@ class MainData
                 'blogs',
                 'partners',
                 'featured_listing_price',
+                'featured_3d_tour_price',
 
             ])->get();
         $data_settings=[];

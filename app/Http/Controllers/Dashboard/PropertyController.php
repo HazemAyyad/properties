@@ -167,6 +167,56 @@ class PropertyController extends Controller
         return view('dashboard.properties.featured_listings', compact('properties'));
     }
 
+    public function featured3dTours()
+    {
+        \App::setLocale('en');
+        $properties = Property::query()
+            ->where('is_3d_tour_featured', 1)
+            ->with(['user', 'price'])
+            ->orderByRaw('CASE WHEN featured_3d_tour_until IS NULL THEN 0 WHEN featured_3d_tour_until >= CURDATE() THEN 1 ELSE 2 END')
+            ->orderBy('featured_3d_tour_until', 'asc')
+            ->get();
+        return view('dashboard.properties.featured_3d_tours', compact('properties'));
+    }
+
+    public function approveFeatured3dTour(Request $request, $id)
+    {
+        $request->validate(['iframe_url' => 'required|string']);
+        $property = Property::findOrFail($id);
+        $property->featured_3d_tour_until = now()->addMonth()->toDateString();
+        $iframeInput = trim($request->input('iframe_url'));
+        if (stripos($iframeInput, '<iframe') !== false) {
+            $property->featured_3d_tour_iframe = $iframeInput;
+        } else {
+            $property->featured_3d_tour_iframe = '<iframe src="' . e($iframeInput) . '" allowfullscreen allow="xr-spatial-tracking" style="width:100%;height:400px;border:0"></iframe>';
+        }
+        $property->save();
+        return redirect()->route('admin.properties.featured-3d-tours')->with('success', __('3D Tour approved for 1 month.'));
+    }
+
+    public function rejectFeatured3dTour($id)
+    {
+        $property = Property::findOrFail($id);
+        $property->is_3d_tour_featured = 0;
+        $property->save();
+        return redirect()->route('admin.properties.featured-3d-tours')->with('success', __('3D Tour request rejected.'));
+    }
+
+    public function updateFeatured3dIframe(Request $request, $id)
+    {
+        $property = Property::findOrFail($id);
+        $iframeInput = trim($request->input('iframe_url', ''));
+        if (stripos($iframeInput, '<iframe') !== false) {
+            $property->featured_3d_tour_iframe = $iframeInput;
+        } elseif (!empty($iframeInput)) {
+            $property->featured_3d_tour_iframe = '<iframe src="' . e($iframeInput) . '" allowfullscreen allow="xr-spatial-tracking" style="width:100%;height:400px;border:0"></iframe>';
+        } else {
+            $property->featured_3d_tour_iframe = null;
+        }
+        $property->save();
+        return redirect()->route('admin.properties.edit', $id)->with('success', __('3D Tour iframe updated.'));
+    }
+
     public function create(){
 
         $categories=Category::all();

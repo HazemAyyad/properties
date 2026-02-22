@@ -151,6 +151,14 @@
                                                 <small class="text-muted">{{ __('Price in JOD shown to users for featured listing subscription') }}</small>
                                             </div>
                                         </div>
+                                    @elseif($setting->key == 'featured_3d_tour_price')
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label class="form-label" for="featured_3d_tour_price">{{ __('Featured 3D Tour Monthly Price') }}</label>
+                                                <input type="number" step="0.01" class="form-control" id="featured_3d_tour_price" value="{{ $setting->value ?? 30 }}" name="featured_3d_tour_price" placeholder="30"/>
+                                                <small class="text-muted">{{ __('Price in JOD shown to users for 3D tour subscription') }}</small>
+                                            </div>
+                                        </div>
                                     @endif
                                 @endforeach
 

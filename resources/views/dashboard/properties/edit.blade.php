@@ -56,8 +56,8 @@
             width: 120px;
             height: 120px;
         }
-        /* Featured Listing card - لون النظام وتنسيق أوضح */
-        .card-featured-listing { border: 1px solid #1779A7; border-radius: 0.375rem; overflow: hidden; }
+        /* Featured Listing & 3D Tour cards */
+        .card-featured-listing, .card-3d-tour { border: 1px solid #1779A7; border-radius: 0.375rem; overflow: hidden; }
         .card-featured-listing .card-header { background-color: #1779A7 !important; border-color: #1779A7; color: #fff; padding: 0.75rem 1rem; font-weight: 600; }
         .card-featured-listing .card-body { padding: 1rem; }
         .card-featured-listing .btn-outline-primary { border-color: #1779A7; color: #1779A7; }
@@ -67,6 +67,8 @@
         .card-featured-listing .pending-msg { background: #fff8e6; border: 1px solid #f0c674; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #856404; font-size: 0.9375rem; line-height: 1.4; }
         .card-featured-listing .approve-form { margin-top: 0.5rem; }
         .card-featured-listing .btn-success { padding: 0.375rem 0.75rem; }
+        .card-3d-tour .card-header { background-color: #28a745 !important; border-color: #28a745; color: #fff; padding: 0.75rem 1rem; font-weight: 600; }
+        .card-3d-tour .card-body { padding: 1rem; }
     </style>
 @endsection
 @section('content')
@@ -602,6 +604,46 @@
                                             </div>
                                         </div>
                                         @endif
+                                        @if($property->is_3d_tour_featured || $property->featured_3d_tour_receipt)
+                                        <div class="col-12 mt-2">
+                                            <div class="card card-3d-tour">
+                                                <div class="card-header text-white">{{ __('3D Tour') }}</div>
+                                                <div class="card-body">
+                                                    @if($property->featured_3d_tour_receipt)
+                                                        <div class="receipt-line mt-1">
+                                                            <strong>{{ __('Payment receipt') }}:</strong>
+                                                            <a href="{{ asset(ltrim(str_replace('/public', '', $property->featured_3d_tour_receipt), '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('View') }}</a>
+                                                        </div>
+                                                    @endif
+                                                    @if($property->featured_3d_tour_until)
+                                                        @php
+                                                            $until3d = \Carbon\Carbon::parse($property->featured_3d_tour_until);
+                                                            $active3d = $until3d->isFuture();
+                                                        @endphp
+                                                        <p class="mb-1"><strong>{{ __('Valid until') }}:</strong> {{ $property->featured_3d_tour_until }}</p>
+                                                        <p class="mb-2 {{ $active3d ? 'text-success' : 'text-muted' }}">
+                                                            {{ $active3d ? __('Remaining') . ': ' . $until3d->diffForHumans(now(), true) : __('Expired') }}
+                                                        </p>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary btn-edit-3d-iframe" data-url="{{ route('admin.properties.update-featured-3d-iframe', $property->id) }}" data-iframe="{{ base64_encode($property->featured_3d_tour_iframe ?? '') }}" title="{{ __('Edit') }}">
+                                                            <i class="ti ti-edit ti-sm me-1"></i>{{ __('Edit iframe') }}
+                                                        </button>
+                                                    @else
+                                                        <div class="pending-msg">{{ __('Pending approval. Approve to activate 3D tour for 1 month.') }}</div>
+                                                        <div class="approve-form">
+                                                            <form method="post" action="{{ route('admin.properties.approve-featured-3d', $property->id) }}" class="d-inline">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-success">{{ __('Approve (1 month)') }}</button>
+                                                            </form>
+                                                            <form method="post" action="{{ route('admin.properties.reject-featured-3d', $property->id) }}" class="d-inline ms-1" onsubmit="return confirm('{{ __('Are you sure you want to reject?') }}');">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-danger">{{ __('Reject') }}</button>
+                                                            </form>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
 
                                         <div class="col-12 mt-2">
                                             <div class="card">
@@ -654,6 +696,32 @@
     </div>
     <!-- / Content -->
 
+    <!-- Modal: Edit 3D Tour iframe -->
+    <div class="modal fade" id="edit3dIframeModal" tabindex="-1" aria-labelledby="edit3dIframeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="edit3dIframeModalLabel">{{ __('Edit 3D Tour iframe') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="edit3dIframeForm" method="post" action="">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="edit_iframe_url" class="form-label">{{ __('3D Tour iframe URL / Embed Code') }}</label>
+                            <textarea class="form-control" id="edit_iframe_url" name="iframe_url" rows="4" placeholder="{{ __('Paste the iframe embed code or URL here...') }}"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy me-1"></i>{{ __('Save') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('scripts')
     <!-- BEGIN: Page Vendor JS-->
@@ -1231,6 +1299,17 @@
                     alert('{{ __("An error occurred. Try again.") }}');
                 }
             });
+        });
+
+        $(document).on('click', '.btn-edit-3d-iframe', function() {
+            var url = $(this).data('url');
+            var iframeB64 = $(this).data('iframe') || '';
+            var iframe = '';
+            try { iframe = atob(iframeB64) || ''; } catch(e) {}
+            $('#edit3dIframeForm').attr('action', url);
+            $('#edit_iframe_url').val(iframe);
+            var modal = new bootstrap.Modal(document.getElementById('edit3dIframeModal'));
+            modal.show();
         });
     </script>
 @endsection

@@ -926,5 +926,27 @@
   "You cannot submit another request until the current one is approved or rejected.": "لا يمكنك إرسال طلب جديد حتى يتم الموافقة على الطلب الحالي أو رفضه.",
 
   "Featured Listing Monthly Price": "سعر الإعلان المميز الشهري",
-  "Price in JOD shown to users for featured listing subscription": "السعر بالدينار الأردني المعروض للمستخدمين لاشتراك الإعلان المميز"
+  "Price in JOD shown to users for featured listing subscription": "السعر بالدينار الأردني المعروض للمستخدمين لاشتراك الإعلان المميز",
+
+  "3D Tour": "جولة ثلاثية الأبعاد",
+  "Featured 3D Tour": "جولة ثلاثية الأبعاد المميزة",
+  "Enable Featured 3D Tour": "تفعيل جولة ثلاثية الأبعاد المميزة",
+  "Add a 3D virtual tour to your property. Monthly fee until sold.": "أضف جولة افتراضية ثلاثية الأبعاد لعقارك. رسوم شهرية حتى البيع.",
+  "Upload proof of payment for the 3D tour fee.": "ارفع إثبات الدفع لرسوم الجولة ثلاثية الأبعاد.",
+  "Properties with 3D tour request. Approve to activate.": "عقارات لديها طلب جولة ثلاثية الأبعاد. وافق لتفعيلها.",
+  "No 3D tour requests.": "لا توجد طلبات جولة ثلاثية الأبعاد.",
+  "3D Tour approved for 1 month.": "تم تفعيل الجولة ثلاثية الأبعاد لمدة شهر.",
+  "3D Tour request rejected.": "تم رفض طلب الجولة ثلاثية الأبعاد.",
+  "Featured 3D Tour Monthly Price": "سعر الجولة ثلاثية الأبعاد المميزة الشهرية",
+  "Price in JOD shown to users for 3D tour subscription": "السعر بالدينار المعروض للمستخدمين لاشتراك الجولة ثلاثية الأبعاد",
+  "Payment receipt is required when 3D Tour is enabled": "إيصال الدفع مطلوب عند تفعيل جولة ثلاثية الأبعاد",
+  "Pending approval. Approve to activate 3D tour for 1 month.": "بانتظار الموافقة. وافق لتفعيل الجولة ثلاثية الأبعاد لمدة شهر.",
+  "Are you sure you want to reject?": "هل أنت متأكد من الرفض؟",
+  "Approve 3D Tour": "الموافقة على جولة 3D",
+  "3D Tour iframe URL / Embed Code": "رابط أو كود iframe للجولة ثلاثية الأبعاد",
+  "Paste the iframe embed code or URL here...": "الصق كود أو رابط iframe هنا...",
+  "Paste the full iframe HTML or the src URL of the 3D tour embed.": "الصق كود iframe الكامل أو رابط src للجولة ثلاثية الأبعاد.",
+  "Edit iframe": "تعديل iframe",
+  "Edit 3D Tour iframe": "تعديل iframe جولة 3D",
+  "3D Tour iframe updated.": "تم تحديث iframe جولة 3D."
 }

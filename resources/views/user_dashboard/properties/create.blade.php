@@ -573,6 +573,26 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-12 mt-2">
+                                        <div class="card widget-box-2 border-primary">
+                                            <h6 class="title text-primary">{{ __('3D Tour') }}</h6>
+                                            <div class="card-body">
+                                                <p class="small text-muted mb-2">{{ __('Add a 3D virtual tour to your property. Monthly fee until the property is sold.') }}</p>
+                                                <p class="mb-2"><strong>{{ __('Monthly subscription fee') }}:</strong> {{ $data_settings['currency'] ?? 'JOD' }} {{ $data_settings['featured_3d_tour_price'] ?? '30' }} / {{ __('month') }}</p>
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="featured_3d_tour" id="featured_3d_tour" value="1">
+                                                    <label class="form-check-label" for="featured_3d_tour">{{ __('Enable Featured 3D Tour') }}</label>
+                                                </div>
+                                                <div id="featured_3d_tour_receipt_box" style="display: none;">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="featured_3d_tour_receipt">{{ __('Payment receipt') }} <span class="text-danger">*</span></label>
+                                                        <input type="file" class="form-control style-1" name="featured_3d_tour_receipt" id="featured_3d_tour_receipt" accept="image/*,.pdf">
+                                                        <small class="form-hint">{{ __('Upload proof of payment for the 3D tour fee.') }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                  </div>
                             </div>
@@ -1052,9 +1072,18 @@
                 $('#featured_listing_receipt_box').toggle(this.checked);
                 if (!this.checked) {
                     $('#featured_listing_receipt').val('');
-                    $('#featured_listing_receipt').valid(); // Re-validate to clear error if unchecked
+                    $('#featured_listing_receipt').valid();
                 } else {
-                    $('#featured_listing_receipt').valid(); // Validate if checked
+                    $('#featured_listing_receipt').valid();
+                }
+            });
+            $('#featured_3d_tour').on('change', function() {
+                $('#featured_3d_tour_receipt_box').toggle(this.checked);
+                if (!this.checked) {
+                    $('#featured_3d_tour_receipt').val('');
+                    $('#featured_3d_tour_receipt').valid();
+                } else {
+                    $('#featured_3d_tour_receipt').valid();
                 }
             });
 
@@ -1098,6 +1127,11 @@
                         required: function() {
                             return $('#featured_listing').is(':checked');
                         }
+                    },
+                    featured_3d_tour_receipt: {
+                        required: function() {
+                            return $('#featured_3d_tour').is(':checked');
+                        }
                     }
                 },
                 messages: {
@@ -1136,6 +1170,9 @@
                     },
                     featured_listing_receipt: {
                         required: "{{ __('Payment receipt is required when Featured Listing is enabled') }}"
+                    },
+                    featured_3d_tour_receipt: {
+                        required: "{{ __('Payment receipt is required when 3D Tour is enabled') }}"
                     }
                 },
                 errorElement: 'div',

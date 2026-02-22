@@ -54,6 +54,15 @@
             max-width: none !important;
         }
 
+        /* 3D Tour iframe responsive */
+        .property-3d-tour-wrapper iframe {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            border: 0 !important;
+        }
         /* Ensure content inside the popup is displayed properly */
         .leaflet-popup-content {
             /*margin:0 !important;*/
@@ -234,6 +243,14 @@
                             <a href="{{$property->more_info->video_url}}" data-fancybox="gallery2" class="btn-video"> <span class="icon icon-play2"></span></a>
                         </div>
                     </div>
+                    @if(!empty($property->featured_3d_tour_iframe) && $property->is_3d_tour_featured && $property->featured_3d_tour_until && \Carbon\Carbon::parse($property->featured_3d_tour_until)->isFuture())
+                    <div class="single-property-element single-property-3dtour">
+                        <div class="h7 title fw-7">{{ __('3D Tour') }}</div>
+                        <div class="property-3d-tour-wrapper" style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #f5f5f5;">
+                            {!! $property->featured_3d_tour_iframe !!}
+                        </div>
+                    </div>
+                    @endif
                     <div class="single-property-element single-property-info">
                         <div class="h7 title fw-7">{{__('Property Details')}}</div>
                         <div class="row">

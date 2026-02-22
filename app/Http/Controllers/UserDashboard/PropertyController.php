@@ -206,6 +206,8 @@ class PropertyController extends Controller
             'extra_features' => 'nullable',
             'featured_listing' => 'nullable',
             'featured_listing_receipt' => 'required_if:featured_listing,1|nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+            'featured_3d_tour' => 'nullable',
+            'featured_3d_tour_receipt' => 'required_if:featured_3d_tour,1|nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
 
         ]);
         if ($validator->fails()) {
@@ -235,8 +237,23 @@ class PropertyController extends Controller
                     }
                     $receiptFile->move($uploadPath, $receiptName);
                     $featuredListingReceipt = '/public/uploads/featured_listing_receipts/' . $receiptName;
-                    $featuredListingUntil = null; // pending admin approval
+                    $featuredListingUntil = null;
                     $isFeatured = 1;
+                }
+                $featured3dTourReceipt = null;
+                $featured3dTourUntil = null;
+                $is3dTourFeatured = 0;
+                if ($request->filled('featured_3d_tour') && $request->hasFile('featured_3d_tour_receipt')) {
+                    $receiptFile = $request->file('featured_3d_tour_receipt');
+                    $receiptName = time() . '_3dtour.' . $receiptFile->getClientOriginalExtension();
+                    $uploadPath = public_path('uploads/featured_3d_tour_receipts');
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0755, true);
+                    }
+                    $receiptFile->move($uploadPath, $receiptName);
+                    $featured3dTourReceipt = '/public/uploads/featured_3d_tour_receipts/' . $receiptName;
+                    $featured3dTourUntil = null;
+                    $is3dTourFeatured = 1;
                 }
                 $property = Property::query()->create([
                     'title' => $request->name,
@@ -253,6 +270,9 @@ class PropertyController extends Controller
                     'is_featured' => $isFeatured,
                     'featured_listing_receipt' => $featuredListingReceipt,
                     'featured_listing_until' => $featuredListingUntil,
+                    'is_3d_tour_featured' => $is3dTourFeatured,
+                    'featured_3d_tour_receipt' => $featured3dTourReceipt,
+                    'featured_3d_tour_until' => $featured3dTourUntil,
                 ]);
                 $information = PropertyInformation::query()->create([
                     'property_id' => $property->id,
@@ -471,6 +491,8 @@ class PropertyController extends Controller
             'property_features' => 'nullable',
             'featured_listing' => 'nullable',
             'featured_listing_receipt' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+            'featured_3d_tour' => 'nullable',
+            'featured_3d_tour_receipt' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf|max:5120',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
@@ -525,6 +547,30 @@ class PropertyController extends Controller
                     $updateData['is_featured'] = 0;
                     $updateData['featured_listing_receipt'] = null;
                     $updateData['featured_listing_until'] = null;
+                }
+                $has3dReceipt = !empty($property->featured_3d_tour_receipt);
+                $has3dUntil = !empty($property->featured_3d_tour_until);
+                $isPending3dTour = $has3dReceipt && !$has3dUntil && $property->is_3d_tour_featured;
+                $isActive3dTour = $has3dReceipt && $has3dUntil && \Carbon\Carbon::parse($property->featured_3d_tour_until)->isFuture();
+                if ($isPending3dTour || $isActive3dTour) {
+                    $updateData['is_3d_tour_featured'] = 1;
+                } elseif ($request->filled('featured_3d_tour')) {
+                    $updateData['is_3d_tour_featured'] = 1;
+                    if ($request->hasFile('featured_3d_tour_receipt')) {
+                        $receiptFile = $request->file('featured_3d_tour_receipt');
+                        $receiptName = time() . '_3dtour.' . $receiptFile->getClientOriginalExtension();
+                        $uploadPath = public_path('uploads/featured_3d_tour_receipts');
+                        if (!is_dir($uploadPath)) {
+                            mkdir($uploadPath, 0755, true);
+                        }
+                        $receiptFile->move($uploadPath, $receiptName);
+                        $updateData['featured_3d_tour_receipt'] = '/public/uploads/featured_3d_tour_receipts/' . $receiptName;
+                        $updateData['featured_3d_tour_until'] = null;
+                    }
+                } else {
+                    $updateData['is_3d_tour_featured'] = 0;
+                    $updateData['featured_3d_tour_receipt'] = null;
+                    $updateData['featured_3d_tour_until'] = null;
                 }
                 $property->update($updateData);
                 $information = PropertyInformation::query()->where('property_id',$id)->first();

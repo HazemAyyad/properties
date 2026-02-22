@@ -116,6 +116,11 @@
                     </a>
                 </li>
                 <li class="menu-item">
+                    <a href="{{route('admin.properties.featured-3d-tours')}}" class="menu-link">
+                        <div data-i18n="{{__('Featured 3D Tour')}}">{{__('Featured 3D Tour')}}</div>
+                    </a>
+                </li>
+                <li class="menu-item">
                     <a href="{{route('admin.categories.index')}}" class="menu-link">
                         <div data-i18n="{{__('Categories')}}">{{__('Categories')}}</div>
                     </a>

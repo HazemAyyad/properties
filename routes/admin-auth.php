@@ -339,6 +339,10 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
         Route::get('/property/edit/{id}', [PropertyController::class, 'edit'])->name('edit');
         Route::post('/property/approve-featured/{id}', [PropertyController::class, 'approveFeatured'])->name('approve-featured');
         Route::get('/featured-listings', [PropertyController::class, 'featuredListings'])->name('featured-listings');
+        Route::get('/featured-3d-tours', [PropertyController::class, 'featured3dTours'])->name('featured-3d-tours');
+        Route::post('/property/approve-featured-3d/{id}', [PropertyController::class, 'approveFeatured3dTour'])->name('approve-featured-3d');
+        Route::post('/property/reject-featured-3d/{id}', [PropertyController::class, 'rejectFeatured3dTour'])->name('reject-featured-3d');
+        Route::post('/property/update-featured-3d-iframe/{id}', [PropertyController::class, 'updateFeatured3dIframe'])->name('update-featured-3d-iframe');
         Route::post('/property/updateModerationStatus', [PropertyController::class, 'updateModerationStatus'])->name('updateModerationStatus');
         Route::post('/property/update/{id}', [PropertyController::class, 'update'])->name('update');
         Route::get('/property/create', [PropertyController::class, 'create'])->name('create');

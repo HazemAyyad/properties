@@ -676,6 +676,49 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @php
+                                                $has3dReceipt = !empty($property->featured_3d_tour_receipt);
+                                                $has3dUntil = !empty($property->featured_3d_tour_until);
+                                                $until3dFuture = $has3dUntil && \Carbon\Carbon::parse($property->featured_3d_tour_until)->isFuture();
+                                                $is3dPending = $has3dReceipt && !$has3dUntil && $property->is_3d_tour_featured;
+                                                $is3dRejected = $has3dReceipt && !$has3dUntil && !$property->is_3d_tour_featured;
+                                                $is3dActive = $has3dReceipt && $until3dFuture;
+                                                $is3dExpired = $has3dReceipt && $has3dUntil && !$until3dFuture;
+                                            @endphp
+                                    <div class="col-12 mt-2">
+                                        <div class="card widget-box-2 border-primary">
+                                            <h6 class="title text-primary">{{ __('3D Tour') }}</h6>
+                                            <div class="card-body">
+                                                <p class="small text-muted mb-2">{{ __('Add a 3D virtual tour to your property. Monthly fee until sold.') }}</p>
+                                                <p class="mb-2"><strong>{{ __('Monthly subscription fee') }}:</strong> {{ $data_settings['currency'] ?? 'JOD' }} {{ $data_settings['featured_3d_tour_price'] ?? '30' }} / {{ __('month') }}</p>
+                                                @if($is3dPending)
+                                                    <p class="text-warning mb-2"><strong>{{ __('Request under review') }}</strong> - {{ __('Pending admin approval.') }}</p>
+                                                    <p class="small text-muted">{{ __('You cannot submit another request until the current one is approved or rejected.') }}</p>
+                                                @elseif($is3dRejected)
+                                                    <p class="text-danger mb-2"><strong>{{ __('Rejected') }}</strong></p>
+                                                @elseif($is3dActive)
+                                                    <p class="text-success mb-2"><strong>{{ __('Active until') }}: {{ $property->featured_3d_tour_until }}</strong></p>
+                                                @elseif($is3dExpired)
+                                                    <p class="text-muted mb-2">{{ __('Expired. Renew below.') }}</p>
+                                                @endif
+                                                @if(!$is3dPending && !$is3dActive)
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="featured_3d_tour" id="featured_3d_tour" value="1" {{ $is3dExpired ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="featured_3d_tour">{{ __('Enable Featured 3D Tour') }}</label>
+                                                </div>
+                                                <div id="featured_3d_tour_receipt_box" style="display: {{ $is3dExpired ? 'block' : 'none' }};">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="featured_3d_tour_receipt">{{ __('Payment receipt') }} <span class="text-muted">({{ __('renewal or new') }})</span></label>
+                                                        <input type="file" class="form-control style-1" name="featured_3d_tour_receipt" id="featured_3d_tour_receipt" accept="image/*,.pdf">
+                                                        <small class="form-hint">{{ __('Upload proof of payment. Leave empty to keep current.') }}</small>
+                                                    </div>
+                                                </div>
+                                                @else
+                                                    <input type="hidden" name="featured_3d_tour" value="1">
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
 
                                  </div>
                             </div>
@@ -1204,9 +1247,15 @@
                 $('#featured_listing_receipt_box').toggle(this.checked);
                 if (!this.checked) {
                     $('#featured_listing_receipt').val('');
-                    $('#featured_listing_receipt').valid(); // Re-validate to clear error if unchecked
+                    $('#featured_listing_receipt').valid();
                 } else {
-                    $('#featured_listing_receipt').valid(); // Validate if checked
+                    $('#featured_listing_receipt').valid();
+                }
+            });
+            $('#featured_3d_tour').on('change', function() {
+                $('#featured_3d_tour_receipt_box').toggle(this.checked);
+                if (!this.checked) {
+                    $('#featured_3d_tour_receipt').val('');
                 }
             });
 

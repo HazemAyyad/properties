@@ -81,7 +81,7 @@ class PropertyController extends Controller
                 'user'
             ])->paginate(10);
 
-        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        $planLimit = app(PlanLimitService::class)->checkPropertyLimit();
 
         return view('user_dashboard.properties.index', compact('properties', 'planLimit'));
     }
@@ -125,7 +125,7 @@ class PropertyController extends Controller
 
     public function create()
     {
-        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        $planLimit = app(PlanLimitService::class)->checkPropertyLimit();
 
         $categories = Category::all();
         $facilities=Facility::all();
@@ -165,7 +165,7 @@ class PropertyController extends Controller
     }
     public function store(Request $request)
     {
-        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        $planLimit = app(PlanLimitService::class)->checkPropertyLimit();
         if (!$planLimit['allowed']) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([

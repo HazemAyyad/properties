@@ -16,6 +16,38 @@ use Illuminate\Support\Facades\Schema;
 class SubscriptionService
 {
     /**
+     * Ensure the user's plan is active. If subscription has expired, downgrade to default plan.
+     * Call this before any plan-based checks (e.g. property limits).
+     *
+     * @param  User  $user
+     * @return User The updated user (refreshed if downgraded)
+     */
+    public function ensureActivePlan(User $user): User
+    {
+        $endsAt = $user->subscription_ends_at ? Carbon::parse($user->subscription_ends_at) : null;
+
+        if (!$endsAt || !$endsAt->isPast()) {
+            return $user;
+        }
+
+        $defaultPlan = $this->getBasicPlan();
+        if (!$defaultPlan) {
+            return $user;
+        }
+
+        DB::transaction(function () use ($user, $defaultPlan) {
+            $user->update([
+                'plan_id' => $defaultPlan->id,
+                'last_plan_id' => $user->plan_id,
+                'subscription_started_at' => null,
+                'subscription_ends_at' => null,
+            ]);
+        });
+
+        return $user->refresh();
+    }
+
+    /**
      * Ensure user's subscription state is up to date.
      * If expired, downgrade to basic plan. Returns the user (possibly updated).
      *
@@ -71,11 +103,11 @@ class SubscriptionService
             ];
         }
 
-        // Paid plan - check expiry
+        // Paid plan - check expiry via ensureActivePlan
         $endsAt = $user->subscription_ends_at ? Carbon::parse($user->subscription_ends_at) : null;
+        $previousPlanId = $user->plan_id;
 
         // No subscription_ends_at: legacy user on paid plan - treat as expired to be safe
-        // (we don't know when they started, so we downgrade)
         if (!$endsAt) {
             $wasExpired = true;
             $wasDowngraded = $this->downgradeToBasic($user);
@@ -91,11 +123,9 @@ class SubscriptionService
         }
 
         if ($endsAt->isPast()) {
+            $user = $this->ensureActivePlan($user);
             $wasExpired = true;
-            $wasDowngraded = $this->downgradeToBasic($user);
-            if ($wasDowngraded) {
-                $user->refresh();
-            }
+            $wasDowngraded = ($user->plan_id !== $previousPlanId);
         }
 
         return [

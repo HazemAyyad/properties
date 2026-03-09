@@ -11,15 +11,31 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Service for checking and enforcing plan-based property limits.
  * Counts non-soft-deleted properties. -1 = unlimited.
- * Structure allows future subscription expiry integration.
  */
 class PlanLimitService
 {
     /**
-     * Check if the given user can create a new property.
+     * Check property limit. Ensures subscription is valid (downgrades if expired) before calculating limits.
+     * Call this before any plan-based checks.
      *
      * @param  User|null  $user  Defaults to authenticated user
-     * @return array{allowed: bool, limit: int|null, used: int, remaining: int|null, message: string, plan: Plan|null}
+     * @return array{allowed: bool, limit: int|null, used: int, remaining: int|null, message: string, plan: Plan|null, subscription_expired: bool}
+     */
+    public function checkPropertyLimit(?User $user = null): array
+    {
+        $user = $user ?? Auth::user();
+        if ($user) {
+            $user = app(SubscriptionService::class)->ensureActivePlan($user);
+        }
+        return $this->canCreateProperty($user);
+    }
+
+    /**
+     * Check if the given user can create a new property.
+     * Uses ensureSubscriptionValid for full expiry handling (including legacy users).
+     *
+     * @param  User|null  $user  Defaults to authenticated user
+     * @return array{allowed: bool, limit: int|null, used: int, remaining: int|null, message: string, plan: Plan|null, subscription_expired: bool}
      */
     public function canCreateProperty(?User $user = null): array
     {

@@ -59,7 +59,7 @@ class MainController extends Controller
             ->get()
             ->groupBy('property_id');
 
-        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        $planLimit = app(PlanLimitService::class)->checkPropertyLimit();
 
         return view('user_dashboard.index', compact('properties', 'reviews', 'planLimit'));
     }

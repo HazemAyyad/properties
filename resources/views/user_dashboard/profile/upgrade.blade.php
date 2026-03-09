@@ -21,10 +21,24 @@
         {{ session('error') }}
     </div>
     @endif
+    @if((isset($subscriptionResult) && ($subscriptionResult['was_downgraded'] ?? false)) || (isset($subscriptionInfo) && $subscriptionInfo['is_basic'] && $user->last_plan_id))
+    <div class="plan-limit-box limit-reached mb-4" style="background: linear-gradient(135deg, #fff9e8 0%, #fff5d6 100%); border: 1px solid #e5d4a1; border-radius: 14px; padding: 1.25rem 1.5rem; color: #5a4a1a;">
+        <div class="plan-info">
+            {{ __('Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots. Select a plan below to upgrade.') }}
+        </div>
+    </div>
+    @endif
     <div class="widget-box-2">
         <div class="upgrade-hero">
             <h5 class="mb-1">{{ __('Upgrade Plan') }}</h5>
             <p class="mb-0 opacity-90">{{ __('Your current plan') }}: <strong>{{ $user->plan ? $user->plan->title : __('None') }}</strong></p>
+            @if(isset($subscriptionInfo) && !$subscriptionInfo['is_basic'] && $subscriptionInfo['expires_at'])
+            <p class="mb-0 opacity-90 mt-2">{{ __('Subscription ends') }}: {{ $subscriptionInfo['expires_at']->format('Y-m-d') }}
+                @if($subscriptionInfo['days_remaining'] !== null)
+                    ({{ $subscriptionInfo['days_remaining'] }} {{ __('days left') }})
+                @endif
+            </p>
+            @endif
         </div>
 
         @if($pendingRequest ?? null)

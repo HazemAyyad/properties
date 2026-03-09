@@ -7,6 +7,7 @@ use App\Models\Dashboard\PlanFeature;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PlanSeeder extends Seeder
 {
@@ -36,9 +37,11 @@ class PlanSeeder extends Seeder
                 'price_yearly' => 0,
                 'extra_support' => ['en' => 'none', 'ar' => 'لا يوجد'],
                 'status' => 1,
+                'is_default' => true,
             ],
             [
                 'slug' => 'standard-subscription',
+                'is_default' => false,
                 'title' => ['en' => 'Standard subscription', 'ar' => 'باقة أساسية'],
                 'description' => ['en' => 'Three months period, one property', 'ar' => 'فترة ثلاثة أشهر، عقار واحد'],
                 'duration_months' => 3,
@@ -50,6 +53,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'slug' => 'extra',
+                'is_default' => false,
                 'title' => ['en' => 'Extra', 'ar' => 'باقة متميزة'],
                 'description' => ['en' => 'Six months period, three properties', 'ar' => 'فترة ستة أشهر، ثلاثة عقارات'],
                 'duration_months' => 6,
@@ -61,6 +65,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'slug' => 'light',
+                'is_default' => false,
                 'title' => ['en' => 'Light', 'ar' => 'باقة فضية'],
                 'description' => ['en' => '12 months period, 6 properties', 'ar' => 'فترة 12 شهراً، 6 عقارات'],
                 'duration_months' => 12,
@@ -72,6 +77,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'slug' => 'unique-client',
+                'is_default' => false,
                 'title' => ['en' => 'Unique client', 'ar' => 'باقة ذهبية'],
                 'description' => ['en' => '12 months period, unlimited properties', 'ar' => 'فترة 12 شهراً، عقارات غير محدودة'],
                 'duration_months' => 12,
@@ -86,6 +92,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'slug' => 'featured-listing',
+                'is_default' => false,
                 'title' => ['en' => 'Featured listing', 'ar' => 'عقار مميز'],
                 'description' => ['en' => 'Unique property', 'ar' => 'عقار مميز'],
                 'duration_months' => null,
@@ -100,6 +107,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'slug' => 'featuring-client',
+                'is_default' => false,
                 'title' => ['en' => 'Featuring client (VIP)', 'ar' => 'عميل مميز (للمكاتب العقارية أو شركات المقاولة)'],
                 'description' => ['en' => 'For companies – unlimited', 'ar' => 'للشركات – غير محدود'],
                 'duration_months' => 12,
@@ -115,9 +123,11 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($plans as $data) {
+            $isDefault = $data['is_default'] ?? false;
+            unset($data['is_default']);
             Plan::updateOrCreate(
                 ['slug' => $data['slug']],
-                $data
+                array_merge($data, Schema::hasColumn('plans', 'is_default') ? ['is_default' => $isDefault] : [])
             );
         }
 

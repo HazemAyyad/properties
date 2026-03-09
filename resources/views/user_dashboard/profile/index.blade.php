@@ -38,6 +38,15 @@
 @endsection
 @section('content')
 
+    @if((isset($subscriptionResult) && ($subscriptionResult['was_downgraded'] ?? false)) || (isset($subscriptionInfo) && ($subscriptionInfo['is_basic'] ?? false) && $user->last_plan_id))
+    <div class="plan-limit-box limit-reached mb-4" style="background: linear-gradient(135deg, #fff9e8 0%, #fff5d6 100%); border: 1px solid #e5d4a1; border-radius: 14px; padding: 1.25rem 1.5rem; color: #5a4a1a;">
+        <div class="plan-info">
+            {{ __('Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots.') }}
+        </div>
+        <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade Plan') }}</a>
+    </div>
+    @endif
+
     <div class="widget-box-2">
         {{-- الخطة الحالية وترقية الحساب --}}
         <div class="box">
@@ -57,6 +66,16 @@
                             <span class="check-icon icon-tick"></span>
                             <span>{{ __('Properties') }}: {{ $user->plan->number_of_properties_display }}</span>
                         </li>
+                        @if(isset($subscriptionInfo) && !$subscriptionInfo['is_basic'] && $subscriptionInfo['expires_at'])
+                        <li class="item">
+                            <span class="check-icon icon-tick"></span>
+                            <span>{{ __('Subscription ends') }}: {{ $subscriptionInfo['expires_at']->format('Y-m-d') }}
+                                @if($subscriptionInfo['days_remaining'] !== null)
+                                    ({{ $subscriptionInfo['days_remaining'] }} {{ __('days left') }})
+                                @endif
+                            </span>
+                        </li>
+                        @endif
                         @if($user->plan->extra_support && trim((string)$user->plan->extra_support) !== '' && trim((string)$user->plan->extra_support) !== 'none')
                             <li class="item">
                                 <span class="check-icon icon-tick"></span>

@@ -10,6 +10,7 @@ use App\Models\Dashboard\Plan;
 use App\Models\Dashboard\Setting;
 use App\Models\PlanUpgradeRequest;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,25 +23,33 @@ class UserController extends Controller
 {
     public function profile()
     {
-        $user = Auth::user()->load(['plan.features']);
+        $user = Auth::user();
+        $subscriptionResult = app(SubscriptionService::class)->ensureSubscriptionValid($user);
+        $user = $subscriptionResult['user']->load(['plan.features']);
+        $subscriptionInfo = app(SubscriptionService::class)->getSubscriptionInfo($user);
+
         $pendingRequest = PlanUpgradeRequest::where('user_id', $user->id)
             ->where('status', PlanUpgradeRequest::STATUS_PENDING)
             ->with('plan')
             ->latest()
             ->first();
-        return view('user_dashboard.profile.index', compact('user', 'pendingRequest'));
+
+        return view('user_dashboard.profile.index', compact('user', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult'));
     }
 
     public function upgradeForm()
     {
-        $user = Auth::user()->load('plan');
+        $user = Auth::user();
+        $subscriptionResult = app(SubscriptionService::class)->ensureSubscriptionValid($user);
+        $user = $subscriptionResult['user']->load('plan');
+        $subscriptionInfo = app(SubscriptionService::class)->getSubscriptionInfo($user);
         $pendingRequest = PlanUpgradeRequest::where('user_id', $user->id)
             ->where('status', PlanUpgradeRequest::STATUS_PENDING)
             ->with('plan')
             ->latest()
             ->first();
         $plans = Plan::where('status', 1)->with('features')->orderBy('price_monthly')->get();
-        return view('user_dashboard.profile.upgrade', compact('user', 'plans', 'pendingRequest'));
+        return view('user_dashboard.profile.upgrade', compact('user', 'plans', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult'));
     }
 
     public function storeUpgradeRequest(Request $request)

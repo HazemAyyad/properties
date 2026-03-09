@@ -18,6 +18,13 @@ class Plan extends Model
     ];
 
     public const UNLIMITED_PROPERTIES = -1;
+
+    public const SLUG_TRIAL = 'trial';
+
+    public function isDefault(): bool
+    {
+        return $this->slug === self::SLUG_TRIAL || (!empty($this->is_default));
+    }
     public function features()
     {
         return $this->hasMany(PlanFeature::class,'plan_id','id');

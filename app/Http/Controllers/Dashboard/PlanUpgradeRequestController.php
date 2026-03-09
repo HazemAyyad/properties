@@ -54,15 +54,31 @@ class PlanUpgradeRequestController extends Controller
 
     public function accept(Request $request, $id)
     {
-        $upgradeRequest = PlanUpgradeRequest::with('user')->findOrFail($id);
+        $upgradeRequest = PlanUpgradeRequest::with(['user', 'plan'])->findOrFail($id);
         if (!$upgradeRequest->isPending()) {
             return response()->json(['message' => __('Request already processed')], 400);
         }
+
+        $plan = $upgradeRequest->plan;
+        $startedAt = now();
+        $endsAt = null;
+
+        if ($plan && $plan->duration_months && $plan->duration_months > 0) {
+            $endsAt = $startedAt->copy()->addMonths((int) $plan->duration_months);
+        }
+
         $upgradeRequest->update([
             'status' => PlanUpgradeRequest::STATUS_ACCEPTED,
             'admin_notes' => $request->input('admin_notes'),
         ]);
-        $upgradeRequest->user->update(['plan_id' => $upgradeRequest->plan_id]);
+
+        $upgradeRequest->user->update([
+            'plan_id' => $upgradeRequest->plan_id,
+            'last_plan_id' => $upgradeRequest->user->plan_id,
+            'subscription_started_at' => $startedAt,
+            'subscription_ends_at' => $endsAt,
+        ]);
+
         return response()->json(['success' => __('Request accepted. User plan updated.')]);
     }
 

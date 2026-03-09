@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Dashboard\Plan;
+use App\Services\SubscriptionService;
 use App\Models\Dashboard\Property;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -31,10 +32,24 @@ class PlanLimitService
                 'remaining' => null,
                 'message' => __('You need an active subscription plan before adding properties.'),
                 'plan' => null,
+                'subscription_expired' => false,
             ];
         }
 
+        $subscriptionService = app(SubscriptionService::class);
+        $result = $subscriptionService->ensureSubscriptionValid($user);
+        $user = $result['user'];
+        $subscriptionExpired = $result['was_expired'];
+
         $plan = $user->plan;
+
+        // When subscription expired, enforce basic plan limits (even if downgrade failed)
+        $basicPlan = null;
+        if ($subscriptionExpired) {
+            $basicPlan = $subscriptionService->getBasicPlan();
+            $plan = $basicPlan ?? $plan;
+        }
+
         if (!$plan) {
             return [
                 'allowed' => false,
@@ -43,11 +58,23 @@ class PlanLimitService
                 'remaining' => null,
                 'message' => __('You need an active plan. Upgrade your account to add properties.'),
                 'plan' => null,
+                'subscription_expired' => $subscriptionExpired,
             ];
         }
 
-        // Future: integrate subscription expiry check here
-        // if ($this->isPlanExpired($user)) { return [...]; }
+        // Subscription expired but no basic plan in DB - enforce safe limit of 1
+        if ($subscriptionExpired && !$basicPlan) {
+            $used = $this->countUserProperties($user);
+            return [
+                'allowed' => $used < 1,
+                'limit' => 1,
+                'used' => $used,
+                'remaining' => max(0, 1 - $used),
+                'message' => __('Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots.'),
+                'plan' => $user->plan,
+                'subscription_expired' => true,
+            ];
+        }
 
         $limit = $plan->number_of_properties;
         $used = $this->countUserProperties($user);
@@ -58,9 +85,10 @@ class PlanLimitService
                 'allowed' => true,
                 'limit' => -1,
                 'used' => $used,
-                'remaining' => null, // unlimited
+                'remaining' => null,
                 'message' => '',
                 'plan' => $plan,
+                'subscription_expired' => $subscriptionExpired,
             ];
         }
 
@@ -68,29 +96,37 @@ class PlanLimitService
         $limit = (int) $limit;
         if ($limit < 1) {
             $planName = $plan->title ?? __('Plan');
+            $message = $subscriptionExpired
+                ? __('Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots.')
+                : __('Your plan :plan has reached its limit. Upgrade your account to add more properties.', ['plan' => $planName]);
             return [
                 'allowed' => false,
                 'limit' => $limit,
                 'used' => $used,
                 'remaining' => 0,
-                'message' => __('Your plan :plan has reached its limit. Upgrade your account to add more properties.', ['plan' => $planName]),
+                'message' => $message,
                 'plan' => $plan,
+                'subscription_expired' => $subscriptionExpired,
             ];
         }
 
         $remaining = max(0, $limit - $used);
         $allowed = $remaining > 0;
         $planName = $plan->title ?? __('Plan');
+        $message = $allowed
+            ? ''
+            : ($subscriptionExpired
+                ? __('Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots.')
+                : __('Your plan :plan has reached its limit. Upgrade your account to add more properties.', ['plan' => $planName]));
 
         return [
             'allowed' => $allowed,
             'limit' => $limit,
             'used' => $used,
             'remaining' => $remaining,
-            'message' => $allowed
-                ? ''
-                : __('Your plan :plan has reached its limit. Upgrade your account to add more properties.', ['plan' => $planName]),
+            'message' => $message,
             'plan' => $plan,
+            'subscription_expired' => $subscriptionExpired,
         ];
     }
 

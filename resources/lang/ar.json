@@ -966,5 +966,9 @@
   "has reached its limit": "وصلت لحدها",
   "You have reached your plan limit": "وصلت لحد خطة الاشتراك",
   "Plan": "الخطة",
-  "None": "لا يوجد"
+  "None": "لا يوجد",
+  "Subscription ends": "ينتهي الاشتراك في",
+  "days left": "أيام متبقية",
+  "Your paid subscription has expired and your account has been moved to the Basic plan. You cannot add new properties until you upgrade or free up slots.": "انتهى اشتراكك المدفوع وتم نقل حسابك إلى الخطة الأساسية. لا يمكنك إضافة عقارات جديدة حتى ترقي أو تفرغ مساحات.",
+  "Select a plan below to upgrade.": "اختر خطة أدناه للترقية."
 }

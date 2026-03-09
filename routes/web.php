@@ -88,6 +88,7 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function()
 
         });
         Route::get('/reviews', [PropertyController::class, 'reviews'])->name('reviews.index');
+        Route::get('/invoices', [\App\Http\Controllers\UserDashboard\InvoicesController::class, 'index'])->name('invoices.index');
         Route::put('reviews/update-status/{review}', [PropertyController::class, 'update_status_review'])->name('reviews.update_status');
              Route::delete('/reviews/delete/{id}', [PropertyController::class, 'delete_review'])->name('reviews.delete');
     });

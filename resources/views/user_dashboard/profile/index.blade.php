@@ -126,7 +126,7 @@
             <h6 class="title">{{__('Avatar')}}</h6>
             <div class="box-agent-avt">
                 <div class="avatar">
-                    <img src="{{ $user->photo ? asset(ltrim(str_replace('/public', '', $user->photo), '/')) : 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-size="48" font-family="sans-serif">?</text></svg>') }}" alt="avatar" loading="lazy" width="128" height="128">
+                    <img src="{{ $user->avatar_url }}" alt="avatar" loading="lazy" width="128" height="128">
                 </div>
                 <div class="content uploadfile">
                     <p>{{__('Upload a new avatar')}}</p>

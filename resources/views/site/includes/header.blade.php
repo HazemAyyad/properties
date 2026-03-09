@@ -276,16 +276,12 @@
                                 @else
                                     <a href="#" class="box-avatar dropdown-toggle" data-bs-toggle="dropdown">
                                         <div class="avatar avt-40 round">
-                                            @php
-                                                $imagePath = asset(Auth::guard('web')->user()->photo);
-                                                $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
-                                            @endphp
-                                            <img src="{{ $correctedImagePath }}" alt="avt">
+                                            <img src="{{ Auth::guard('web')->user()->avatar_url }}" alt="avt" loading="lazy">
                                         </div>
                                         <p class="name">{{ Auth::guard('web')->user()->name }}<span class="icon icon-arr-down"></span></p>
                                         <div class="dropdown-menu">
                                             <a class="dropdown-item" href="{{ route('user.properties.index') }}"><span class="icon icon-list-dashes me-2"></span>{{ __('My Properties') }}</a>
-                                            <a class="dropdown-item" href="my-invoices.html"><span class="icon icon-file-text me-2"></span>{{ __('My Invoices') }}</a>
+                                            <a class="dropdown-item" href="{{ route('user.invoices.index') }}"><span class="icon icon-file-text me-2"></span>{{ __('My Invoices') }}</a>
                                             <a class="dropdown-item" href="{{ route('user.favorites.index') }}"><span class="icon icon-heart me-2"></span>{{ __('My Favorites') }}</a>
                                             <a class="dropdown-item" href="{{ route('user.reviews.index') }}"><span class="icon icon-review me-2"></span>{{ __('Reviews') }}</a>
                                             <a class="dropdown-item" href="{{ route('user.profile.index') }}"><span class="icon icon-profile me-2"></span>{{ __('My Profile') }}</a>

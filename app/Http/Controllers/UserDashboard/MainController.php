@@ -50,18 +50,31 @@ class MainController extends Controller
         // Paginate the results
         $properties = $query->paginate(10);
 
-
-// Fetch reviews for each property
-        $propertyIds = $properties->pluck('id');
+        // Fetch recent reviews for user's properties, newest first (flat list, not grouped)
+        $userPropertyIds = Property::where('user_id', Auth::id())->pluck('id');
         $reviews = PropertyReviews::query()
-            ->whereIn('property_id', $propertyIds)
+            ->whereIn('property_id', $userPropertyIds)
             ->with('user')
-            ->get()
-            ->groupBy('property_id');
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
 
         $planLimit = app(PlanLimitService::class)->checkPropertyLimit();
 
-        return view('user_dashboard.index', compact('properties', 'reviews', 'planLimit'));
+        // Dashboard stats: real user-specific counts
+        $listingsCount = Property::where('user_id', Auth::id())->count();
+        $pendingCount = Property::where('user_id', Auth::id())
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNotNull('featured_listing_receipt')->whereNull('featured_listing_until');
+                })->orWhere(function ($q2) {
+                    $q2->whereNotNull('featured_3d_tour_receipt')->whereNull('featured_3d_tour_until');
+                });
+            })->count();
+        $favoritesCount = \App\Models\Favorite::where('user_id', Auth::id())->count();
+        $reviewsCount = PropertyReviews::whereIn('property_id', $userPropertyIds)->count();
+
+        return view('user_dashboard.index', compact('properties', 'reviews', 'planLimit', 'listingsCount', 'pendingCount', 'favoritesCount', 'reviewsCount'));
     }
     public function get_users(Request $request)
     {

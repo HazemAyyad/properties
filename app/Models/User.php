@@ -69,4 +69,18 @@ class User extends Authenticatable
             'subscription_ends_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the user's avatar URL. Falls back to a default placeholder when photo is null/empty/invalid.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        $photo = $this->attributes['photo'] ?? null;
+        if (empty($photo) || !is_string($photo)) {
+            return 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><circle cx="64" cy="48" r="24" fill="#999"/><ellipse cx="64" cy="110" rx="40" ry="30" fill="#999"/></svg>');
+        }
+        $path = ltrim(str_replace('/public', '', $photo), '/');
+        $url = asset($path);
+        return str_replace('/public/public/', '/public/', $url);
+    }
 }

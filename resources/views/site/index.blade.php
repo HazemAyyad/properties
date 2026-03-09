@@ -157,7 +157,7 @@
                                                     <div class="d-flex gap-8 align-items-center">
                                                         <div class="avatar avt-40 round">
                                                             @if($property->user_id!=null)
-                                                                <img src="{{asset($property->user->photo)}}" alt="avt">
+                                                                <img src="{{ $property->user->avatar_url }}" alt="avt" loading="lazy">
 
                                                             @else
                                                                 <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
@@ -278,7 +278,7 @@
                                                     <div class="d-flex gap-8 align-items-center">
                                                         <div class="avatar avt-40 round">
                                                             @if($property->user_id!=null)
-                                                                <img src="{{asset($property->user->photo)}}" alt="avt">
+                                                                <img src="{{ $property->user->avatar_url }}" alt="avt" loading="lazy">
 
                                                             @else
                                                                 <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
@@ -627,7 +627,7 @@
                                             <div class="avatar avt-40 round">
 
                                                 @if($property->user_id!=null)
-                                                    <img src="{{asset($property->user->photo)}}" alt="avt">
+                                                    <img src="{{ $property->user->avatar_url }}" alt="avt" loading="lazy">
 
                                                 @else
                                                     <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
@@ -742,7 +742,7 @@
                                             <div class="d-flex gap-8 align-items-center">
                                                 <div class="avatar avt-40 round">
                                                     @if($property->user_id!=null)
-                                                        <img src="{{asset($property->user->photo)}}" alt="avt">
+                                                        <img src="{{ $property->user->avatar_url }}" alt="avt" loading="lazy">
 
                                                     @else
                                                         <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">

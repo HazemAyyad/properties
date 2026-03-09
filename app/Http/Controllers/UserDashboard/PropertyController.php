@@ -91,9 +91,10 @@ class PropertyController extends Controller
         // Fetch all properties owned by the authenticated user
         $properties = $user->properties()->pluck('id'); // Get all property IDs owned by the user
 
-        // Fetch all reviews for the user's properties
+        // Fetch all reviews for the user's properties, newest first
         $reviews = PropertyReviews::whereIn('property_id', $properties)
             ->with(['property.images', 'property.price', 'user'])
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return view('user_dashboard.reviews.index',compact('reviews'));

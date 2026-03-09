@@ -685,10 +685,10 @@
                                     <div class="d-flex gap-8 align-items-center">
                                         <div class="avatar avt-40 round">
                                             @if($item->user_id!=null)
-                                                <img src="{{asset($item->user->photo)}}" alt="{{$item->user->name}}">
-
+                                                <img src="{{ $item->user->avatar_url }}" alt="{{ $item->user->name }}" loading="lazy">
                                             @else
-                                                <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
+                                                @php $noUserAvatar = 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect fill="#e0e0e0" width="128" height="128"/><circle fill="#999" cx="64" cy="48" r="24"/><ellipse fill="#999" cx="64" cy="110" rx="40" ry="30"/></svg>'); @endphp
+                                                <img src="{{ $noUserAvatar }}" alt="{{ config('app.name') }}" loading="lazy">
                                             @endif
                                         </div>
                                         <span>

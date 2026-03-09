@@ -42,7 +42,7 @@
             <div class="content-box">
                 <div class="title-count">{{__('Pending')}}</div>
                 <div class="d-flex align-items-end">
-                    <h6 class="number" data-speed="2000" data-to="0" data-inviewport="yes">0</h6>
+                    <h6 class="number" data-speed="2000" data-to="{{ $pendingCount ?? 0 }}" data-inviewport="yes">{{ $pendingCount ?? 0 }}</h6>
                 </div>
 
             </div>
@@ -54,7 +54,7 @@
             <div class="content-box">
                 <div class="title-count">{{__('Favorite')}}</div>
                 <div class="d-flex align-items-end">
-                    <h6 class="number" data-speed="2000" data-to="1" data-inviewport="yes">0</h6>
+                    <h6 class="number" data-speed="2000" data-to="{{ $favoritesCount ?? 0 }}" data-inviewport="yes">{{ $favoritesCount ?? 0 }}</h6>
                 </div>
 
             </div>
@@ -66,7 +66,7 @@
             <div class="content-box">
                 <div class="title-count">{{__('Reviews')}}</div>
                 <div class="d-flex align-items-end">
-                    <h6 class="number" data-speed="2000" data-to="17" data-inviewport="yes">0</h6>
+                    <h6 class="number" data-speed="2000" data-to="{{ $reviewsCount ?? 0 }}" data-inviewport="yes">{{ $reviewsCount ?? 0 }}</h6>
                 </div>
 
             </div>
@@ -163,16 +163,11 @@
                         <span class="text-variant-1">{{__('No Reviews')}}</span>
                     </div>
                 @else
-                    @foreach($reviews as $propertyId => $propertyReviews)
-                        @foreach($propertyReviews as $review)
+                    @foreach($reviews as $review)
                             <div class="box-tes-item">
                                 <div class="box-avt d-flex align-items-center gap-12">
                                     <div class="avatar avt-40 round">
-                                        @php
-                                            $imagePath = asset($review->user->photo);
-                                            $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
-                                        @endphp
-                                        <img src="{{$correctedImagePath}}" alt="{{ $review->user->name }}">
+                                        <img src="{{ $review->user->avatar_url }}" alt="{{ $review->user->name }}" loading="lazy">
                                     </div>
                                     <p>{{ \Carbon\Carbon::parse($review->created_at)->format('F d, Y') }}</p>
                                 </div>
@@ -185,7 +180,6 @@
                                     @endfor
                                 </ul>
                             </div>
-                        @endforeach
                     @endforeach
                 @endif
             </div>

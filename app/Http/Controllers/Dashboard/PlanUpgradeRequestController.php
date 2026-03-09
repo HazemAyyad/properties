@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\PlanUpgradeRequest;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
@@ -60,11 +61,16 @@ class PlanUpgradeRequestController extends Controller
         }
 
         $plan = $upgradeRequest->plan;
-        $startedAt = now();
+        $subscriptionService = app(SubscriptionService::class);
+
+        $startedAt = null;
         $endsAt = null;
 
-        if ($plan && $plan->duration_months && $plan->duration_months > 0) {
-            $endsAt = $startedAt->copy()->addMonths((int) $plan->duration_months);
+        if ($plan && $plan->exists && !$subscriptionService->isBasicPlan($plan)) {
+            $startedAt = now();
+            if ($plan->duration_months && $plan->duration_months > 0) {
+                $endsAt = $startedAt->copy()->addMonths((int) $plan->duration_months);
+            }
         }
 
         $upgradeRequest->update([

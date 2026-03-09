@@ -230,6 +230,11 @@
                             <div data-i18n="{{ __('Plan Upgrade Requests') }}">{{ __('Plan Upgrade Requests') }}</div>
                         </a>
                     </li>
+                    <li class="menu-item {{ Route::is('admin.subscriptions.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.subscriptions.index') }}" class="menu-link">
+                            <div data-i18n="{{ __('Subscriptions') }}">{{ __('Subscriptions') }}</div>
+                        </a>
+                    </li>
                     <li class="menu-item">
                         <a href="{{route('admin.settings.page','sections')}}" class="menu-link">
                             <div data-i18n="{{__('Sections')}}">{{__('Sections')}}</div>

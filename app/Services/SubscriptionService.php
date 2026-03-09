@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Dashboard\Plan;
+use App\Models\Dashboard\Property;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -205,7 +206,61 @@ class SubscriptionService
     }
 
     /**
-     * Get subscription info for display.
+     * Status constants for admin dashboard.
+     */
+    public const STATUS_ACTIVE_PAID = 'active_paid';
+    public const STATUS_EXPIRED = 'expired';
+    public const STATUS_ON_BASIC = 'on_basic';
+    public const STATUS_EXPIRING_SOON = 'expiring_soon';
+
+    public const EXPIRING_SOON_DAYS = 7;
+
+    /**
+     * Get subscription status for a user (for admin dashboard).
+     *
+     * @return array{status: string, days_remaining: int|null, subscription_started_at: Carbon|null, subscription_ends_at: Carbon|null, plan: Plan|null, last_plan: Plan|null, property_count: int}
+     */
+    public function getSubscriptionStatus(User $user): array
+    {
+        $plan = $user->plan;
+        $lastPlan = $user->last_plan_id ? Plan::find($user->last_plan_id) : null;
+        $propertyCount = Property::where('user_id', $user->id)->count();
+
+        $startedAt = $user->subscription_started_at ? Carbon::parse($user->subscription_started_at) : null;
+        $endsAt = $user->subscription_ends_at ? Carbon::parse($user->subscription_ends_at) : null;
+
+        $isBasic = $plan && $this->isBasicPlan($plan);
+        $daysRemaining = null;
+        $status = self::STATUS_ON_BASIC;
+
+        if ($isBasic) {
+            $status = self::STATUS_ON_BASIC;
+        } elseif (!$endsAt) {
+            $status = self::STATUS_EXPIRED;
+        } elseif ($endsAt->isPast()) {
+            $status = self::STATUS_EXPIRED;
+        } else {
+            $daysRemaining = (int) max(0, now()->diffInDays($endsAt, false));
+            if ($daysRemaining <= self::EXPIRING_SOON_DAYS) {
+                $status = self::STATUS_EXPIRING_SOON;
+            } else {
+                $status = self::STATUS_ACTIVE_PAID;
+            }
+        }
+
+        return [
+            'status' => $status,
+            'days_remaining' => $daysRemaining,
+            'subscription_started_at' => $startedAt,
+            'subscription_ends_at' => $endsAt,
+            'plan' => $plan,
+            'last_plan' => $lastPlan,
+            'property_count' => $propertyCount,
+        ];
+    }
+
+    /**
+     * Get subscription info for display (user-facing).
      *
      * @return array{expires_at: Carbon|null, is_expired: bool, is_basic: bool, days_remaining: int|null}
      */

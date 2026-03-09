@@ -8,6 +8,7 @@ use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\PlanController;
 use App\Http\Controllers\Dashboard\PlanFeatureController;
 use App\Http\Controllers\Dashboard\PlanUpgradeRequestController;
+use App\Http\Controllers\Dashboard\SubscriptionController;
 use App\Http\Controllers\Dashboard\MainController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -144,6 +145,9 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
         Route::delete('/plan_feature/delete/{id}', [PlanFeatureController::class, 'delete'])->name('delete');
 
     });
+    // subscriptions monitoring
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+
     // plan upgrade requests (طلبات الترقية)
     Route::as('plan-upgrade-requests.')->prefix('plan-upgrade-requests')->group(function () {
         Route::get('/', [PlanUpgradeRequestController::class, 'index'])->name('index');

@@ -103,11 +103,27 @@
         color: #0a58ca;
         text-decoration: underline;
     }
-
+    .plan-limit-box { border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; }
+    .plan-limit-box.limit-reached { background: linear-gradient(135deg, #fff9e8 0%, #fff5d6 100%); border: 1px solid #e5d4a1; color: #5a4a1a; box-shadow: 0 2px 8px rgba(184, 134, 11, 0.08); }
+    .plan-limit-box .plan-info { font-size: 1rem; line-height: 1.6; max-width: 600px; }
+    .plan-limit-box.limit-reached .plan-info strong { color: #b8860b; font-weight: 600; }
+    .plan-limit-box.limit-reached .plan-meta { font-size: 0.9rem; color: #7a6a2a; margin-top: 0.35rem; }
 </style>
 @endsection
 @section('content')
 
+    @if(isset($planLimit) && !$planLimit['allowed'])
+    <div class="widget-box-2 mb-4">
+        <div class="plan-limit-box limit-reached">
+            <div class="plan-info">
+                <strong>{{ __('Your plan') }} {{ $planLimit['plan'] ? $planLimit['plan']->title : __('None') }}</strong> {{ __('has reached its limit') }}. {{ __('Upgrade your account') }} {{ __('to add more properties') }}.
+                <div class="plan-meta">{{ __('Properties') }}: {{ $planLimit['used'] }} / {{ $planLimit['limit'] ?? '-' }}</div>
+            </div>
+            <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade your account') }}</a>
+        </div>
+    </div>
+    @else
+    {{-- Plan usage indicator (when allowed) --}}
     @if(isset($planLimit) && $planLimit['allowed'])
     <div class="widget-box-2 mb-4">
         <div class="plan-limit-box allowed" style="background: linear-gradient(135deg, #e8f4f8 0%, #d4ebf2 100%); border: 1px solid #b8dde8; border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; color: #0c5460;">
@@ -633,6 +649,7 @@
         </div>
 
     </div>
+    @endif
 @endsection
 @section('scripts')
     <!-- BEGIN: Page Vendor JS-->

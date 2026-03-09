@@ -126,13 +126,8 @@ class PropertyController extends Controller
     public function create()
     {
         $planLimit = app(PlanLimitService::class)->canCreateProperty();
-        if (!$planLimit['allowed']) {
-            return redirect()
-                ->route('user.profile.upgrade')
-                ->with('error', $planLimit['message']);
-        }
 
-        $categories=Category::all();
+        $categories = Category::all();
         $facilities=Facility::all();
         $feature_categories=FeatureCategory::query()->with('features')->get();
         $icons=Icon::all();
@@ -172,10 +167,15 @@ class PropertyController extends Controller
     {
         $planLimit = app(PlanLimitService::class)->canCreateProperty();
         if (!$planLimit['allowed']) {
-            return response()->json([
-                'message' => $planLimit['message'],
-                'redirect' => route('user.profile.upgrade'),
-            ], 403);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => $planLimit['message'],
+                    'redirect' => route('user.profile.upgrade'),
+                ], 403);
+            }
+            return redirect()
+                ->route('user.properties.index')
+                ->with('error', $planLimit['message']);
         }
 
         $validator = Validator::make($request->all(), [

@@ -17,6 +17,13 @@
 @endsection
 @section('content')
 
+    @if(session('error'))
+    <div class="plan-limit-box limit-reached mb-4" role="alert">
+        <div class="plan-info">{{ session('error') }}</div>
+        <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade your account') }}</a>
+    </div>
+    @endif
+
     @if(isset($planLimit))
     <div class="widget-box-2 mb-4">
         <div class="plan-limit-box {{ $planLimit['allowed'] ? 'allowed' : 'limit-reached' }}">

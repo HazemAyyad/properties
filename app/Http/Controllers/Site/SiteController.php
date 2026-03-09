@@ -436,7 +436,7 @@ class SiteController extends Controller
             })
             ->with([
             'images' => fn($q) => $q->take(5),
-            'price', 'more_info', 'reviews.user', 'facilities.facility',
+            'price', 'more_info', 'category', 'reviews.user', 'facilities.facility',
             'features.feature.featureCategory', 'user',
             'address' => fn($q) => $q->with(['governorate', 'department', 'village', 'city', 'state', 'country']),
         ])->first();
@@ -456,22 +456,24 @@ class SiteController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        $categoriesWithFeatures = $property->features->groupBy(function ($feature) {
-            return $feature->feature->featureCategory->name;
-        })->map(function ($features) {
-            return $features->map(function ($feature) {
-                return [
-                    'id' => $feature->feature->id,
-                    'name' => $feature->feature->name,
-                    'category_id' => $feature->feature->feature_category_id,
-                    'icon' => $feature->feature->icon,
-                    'created_at' => $feature->feature->created_at,
-                    'updated_at' => $feature->feature->updated_at,
-                    'deleted_at' => $feature->feature->deleted_at,
-
-                ];
+        $categoriesWithFeatures = $property->features
+            ->filter(fn ($f) => $f->feature && $f->feature->featureCategory)
+            ->groupBy(function ($feature) {
+                return $feature->feature->featureCategory->name;
+            })
+            ->map(function ($features) {
+                return $features->map(function ($feature) {
+                    return [
+                        'id' => $feature->feature->id,
+                        'name' => $feature->feature->name,
+                        'category_id' => $feature->feature->feature_category_id,
+                        'icon' => $feature->feature->icon ?? 'fa-circle',
+                        'created_at' => $feature->feature->created_at,
+                        'updated_at' => $feature->feature->updated_at,
+                        'deleted_at' => $feature->feature->deleted_at,
+                    ];
+                });
             });
-        });
 
 //        return $categoriesWithFeatures;
         $all_features = Feature::all();

@@ -630,14 +630,8 @@
                                                     @else
                                                         <div class="pending-msg">{{ __('Pending approval. Approve to activate 3D tour for 1 month.') }}</div>
                                                         <div class="approve-form">
-                                                            <form method="post" action="{{ route('admin.properties.approve-featured-3d', $property->id) }}" class="d-inline">
-                                                                @csrf
-                                                                <button type="submit" class="btn btn-success">{{ __('Approve (1 month)') }}</button>
-                                                            </form>
-                                                            <form method="post" action="{{ route('admin.properties.reject-featured-3d', $property->id) }}" class="d-inline ms-1" onsubmit="return confirm('{{ __('Are you sure you want to reject?') }}');">
-                                                                @csrf
-                                                                <button type="submit" class="btn btn-danger">{{ __('Reject') }}</button>
-                                                            </form>
+                                                            <button type="button" class="btn btn-success btn-open-approve-3d-modal" data-url="{{ route('admin.properties.approve-featured-3d', $property->id) }}">{{ __('Approve (1 month)') }}</button>
+                                                            <button type="button" class="btn btn-danger btn-reject-featured-3d ms-1" data-url="{{ route('admin.properties.reject-featured-3d', $property->id) }}">{{ __('Reject') }}</button>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -695,6 +689,34 @@
         </div>
     </div>
     <!-- / Content -->
+
+    <!-- Modal: Approve 3D Tour (إدخال iframe قبل الموافقة) -->
+    <div class="modal fade" id="approve3dModal" tabindex="-1" aria-labelledby="approve3dModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approve3dModalLabel">{{ __('Approve 3D Tour') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="approve3dForm">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="approve_iframe_url" class="form-label">{{ __('3D Tour iframe URL / Embed Code') }} <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="approve_iframe_url" name="iframe_url" rows="4" placeholder="{{ __('Paste the iframe embed code or URL here...') }}" required></textarea>
+                            <small class="text-muted">{{ __('Paste the full iframe HTML or the src URL of the 3D tour embed.') }}</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success" id="approve3dSubmitBtn">
+                            <i class="ti ti-check me-1"></i>{{ __('Approve (1 month)') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Edit 3D Tour iframe -->
     <div class="modal fade" id="edit3dIframeModal" tabindex="-1" aria-labelledby="edit3dIframeModalLabel" aria-hidden="true">
@@ -851,10 +873,12 @@
             function showCategoryFields() {
                 var slug = $('#category_id option:selected').data('slug') || '';
                 $('#category-fields-hint').toggle(!slug);
-                $('.category-fields-section').hide();
-                if (slug && $('#category-fields-' + slug).length) {
-                    $('#category-fields-' + slug).show();
-                }
+                $('.category-fields-section').each(function() {
+                    var $sec = $(this);
+                    var isVisible = slug && $sec.attr('id') === 'category-fields-' + slug;
+                    $sec.toggle(isVisible);
+                    $sec.find('input, select, textarea').prop('disabled', !isVisible);
+                });
             }
             $('#category_id').on('change', showCategoryFields);
             showCategoryFields();
@@ -1296,6 +1320,71 @@
                 },
                 error: function() {
                     btn.prop('disabled', false).html('{{ __("Approve (1 month)") }}');
+                    alert('{{ __("An error occurred. Try again.") }}');
+                }
+            });
+        });
+
+        // زر الموافقة على 3D Tour - يفتح modal لإدخال iframe
+        $(document).on('click', '.btn-open-approve-3d-modal', function() {
+            var url = $(this).data('url');
+            $('#approve3dForm').attr('action', url).data('url', url);
+            $('#approve_iframe_url').val('');
+            var modal = new bootstrap.Modal(document.getElementById('approve3dModal'));
+            modal.show();
+        });
+
+        // إرسال نموذج الموافقة على 3D Tour عبر AJAX مع loader
+        $('#approve3dForm').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var url = form.data('url') || form.attr('action');
+            if (!url) return;
+            var submitBtn = $('#approve3dSubmitBtn');
+            var originalHtml = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json'
+                },
+                data: form.serialize(),
+                success: function() {
+                    bootstrap.Modal.getInstance(document.getElementById('approve3dModal')).hide();
+                    window.location.reload();
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+                    var msg = xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.iframe_url ? xhr.responseJSON.errors.iframe_url[0] : '{{ __("An error occurred. Try again.") }}';
+                    alert(msg);
+                }
+            });
+        });
+
+        // زر الرفض لـ 3D Tour
+        $(document).on('click', '.btn-reject-featured-3d', function() {
+            if (!confirm('{{ __("Are you sure you want to reject?") }}')) return;
+            var btn = $(this);
+            var url = btn.data('url');
+            var token = $('meta[name="csrf-token"]').attr('content');
+            if (!url) return;
+            var originalHtml = btn.html();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                data: { _token: token },
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    btn.prop('disabled', false).html(originalHtml);
                     alert('{{ __("An error occurred. Try again.") }}');
                 }
             });

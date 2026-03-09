@@ -976,10 +976,12 @@
             function showCategoryFields() {
                 var slug = $('#category_id option:selected').data('slug') || '';
                 $('#category-fields-hint').toggle(!slug);
-                $('.category-fields-section').hide();
-                if (slug && $('#category-fields-' + slug).length) {
-                    $('#category-fields-' + slug).show();
-                }
+                $('.category-fields-section').each(function() {
+                    var $sec = $(this);
+                    var isVisible = slug && $sec.attr('id') === 'category-fields-' + slug;
+                    $sec.toggle(isVisible);
+                    $sec.find('input, select, textarea').prop('disabled', !isVisible);
+                });
             }
             $('#category_id').on('change', showCategoryFields);
             showCategoryFields();

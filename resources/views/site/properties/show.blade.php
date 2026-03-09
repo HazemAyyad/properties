@@ -93,9 +93,11 @@
 
             <img src="{{$correctedImagePath}}" alt="img-gallery">
             <div class="box-btn">
+                @if(!empty($property->more_info->video_url))
                 <a href="{{$property->more_info->video_url}}" data-fancybox="gallery2" class="box-icon">
                     <span class="icon icon-play2"></span>
                 </a>
+                @endif
                 <a href="{{$correctedImagePath}}"  data-fancybox="gallery" class="tf-btn primary">{{__('View All Photos')}}</a>
             </div>
         </div>
@@ -136,19 +138,27 @@
                                 <h4 class="title link">{{$property->title}}</h4>
                             </div>
                             <div class="box-price d-flex align-items-center">
-                                <h4>${{$property->price->price}}</h4>
-                                <span class="body-1 text-variant-1">/{{__('month')}}</span>
+                                @php
+                                    $currency = $data_settings['currency'] ?? $property->price->currency ?? 'JOD';
+                                    $periodLabels = [0 => __('day'), 1 => __('week'), 2 => __('month'), 3 => __('year')];
+                                    $periodLabel = ($property->type == 0 && isset($periodLabels[$property->price->period ?? 2])) ? $periodLabels[$property->price->period ?? 2] : ($property->type == 1 ? __('Total') : __('month'));
+                                @endphp
+                                <h4>{{ $currency }} {{ number_format($property->price->price) }}</h4>
+                                <span class="body-1 text-variant-1">/{{ $periodLabel }}</span>
                             </div>
                         </div>
                         <div class="content-bottom">
+                            @php $info = $property->more_info ?? null; @endphp
+                            @if($info && ($info->bedrooms || $info->bathrooms || $info->size))
                             <div class="info-box">
                                 <div class="label">{{__('FEATUREs')}}:</div>
                                 <ul class="meta">
-                                    <li class="meta-item"><span class="icon icon-bed"></span> {{$property->more_info->bedrooms}} Bedroom</li>
-                                    <li class="meta-item"><span class="icon icon-bathtub"></span> {{$property->more_info->bathrooms}} Bathroom</li>
-                                    <li class="meta-item"><span class="icon icon-ruler"></span> {{$property->more_info->size}} m²</li>
+                                    @if($info->bedrooms !== null && $info->bedrooms !== '')<li class="meta-item"><span class="icon icon-bed"></span> {{ $info->bedrooms }} {{ __('Bedrooms') }}</li>@endif
+                                    @if($info->bathrooms !== null && $info->bathrooms !== '')<li class="meta-item"><span class="icon icon-bathtub"></span> {{ $info->bathrooms }} {{ __('Bathrooms') }}</li>@endif
+                                    @if($info->size)<li class="meta-item"><span class="icon icon-ruler"></span> {{ $info->size }} m²</li>@endif
                                 </ul>
                             </div>
+                            @endif
 
                             <ul class="icon-box">
 
@@ -177,65 +187,102 @@
                     </div>
                     <div class="single-property-element single-property-overview">
                         <div class="h7 title fw-7">{{__('Overview')}}</div>
+                        @php $info = $property->more_info ?? null; @endphp
                         <ul class="info-box">
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-house-line"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('ID')}}:</span>
-                                    <span>{{$property->id+1000}}</span>
+                                    <span>{{ $property->id + 1000 }}</span>
                                 </div>
                             </li>
+                            @if($property->category)
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-arrLeftRight"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Type')}}:</span>
-                                    <span>{{$property->category->name}}</span>
+                                    <span>{{ $property->category->name }}</span>
                                 </div>
                             </li>
+                            @endif
+                            @if($info && ($info->bedrooms !== null && $info->bedrooms !== ''))
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-bed"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Bedrooms')}}:</span>
-                                    <span>{{$property->more_info->bedrooms}} {{__('Rooms')}}</span>
+                                    <span>{{ $info->bedrooms }}</span>
                                 </div>
                             </li>
+                            @endif
+                            @if($info && ($info->bathrooms !== null && $info->bathrooms !== ''))
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-bathtub"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Bathrooms')}}:</span>
-                                    <span>{{$property->more_info->bathrooms}} {{__('Rooms')}}</span>
+                                    <span>{{ $info->bathrooms }}</span>
                                 </div>
                             </li>
-                            <li class="item">
-                                <a href="#" class="box-icon w-52"><i class="icon icon-garage"></i></a>
-                                <div class="content">
-                                    <span class="label">{{__('Garages')}}:</span>
-                                    <span>{{$property->more_info->garagess}} {{__('Rooms')}}</span>
-                                </div>
-                            </li>
+                            @endif
+                            @if($info && ($info->size || $info->size_max))
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-ruler"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Size')}}:</span>
-                                    <span>{{$property->more_info->size}} m²</span>
+                                    <span>{{ $info->size ?? 0 }}{{ ($info->size_max && $info->size_max != $info->size) ? ' - ' . $info->size_max : '' }} m²</span>
                                 </div>
                             </li>
+                            @endif
+                            @if($info && ($info->land_area || $info->land_area_min || $info->land_area_max))
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-crop"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Land Size')}}:</span>
-                                    <span>{{$property->more_info->land_size}} m²</span>
+                                    <span>{{ $info->land_area ?? $info->land_area_min ?? 0 }}{{ (($info->land_area_max ?? 0) && ($info->land_area_max != ($info->land_area_min ?? $info->land_area ?? 0))) ? ' - ' . $info->land_area_max : '' }} m²</span>
                                 </div>
                             </li>
+                            @endif
+                            @if($info && !empty($info->year_built))
                             <li class="item">
                                 <a href="#" class="box-icon w-52"><i class="icon icon-hammer"></i></a>
                                 <div class="content">
                                     <span class="label">{{__('Year Built')}}:</span>
-                                    <span>{{$property->more_info->year_built}} </span>
+                                    <span>{{ $info->year_built }}</span>
                                 </div>
                             </li>
+                            @endif
+                            @if($info && !empty($info->building_age))
+                            <li class="item">
+                                <a href="#" class="box-icon w-52"><i class="icon icon-house-line"></i></a>
+                                <div class="content">
+                                    <span class="label">{{__('Building Age')}}:</span>
+                                    <span>{{ $info->building_age == 'new' ? __('New') : $info->building_age }}</span>
+                                </div>
+                            </li>
+                            @endif
+                            @if($info && isset($info->furnished) && $info->furnished !== null && $info->furnished !== '')
+                            <li class="item">
+                                <a href="#" class="box-icon w-52"><i class="icon icon-arrLeftRight"></i></a>
+                                <div class="content">
+                                    <span class="label">{{__('Furnished')}}:</span>
+                                    <span>{{ $info->furnished ? __('Furnished') : __('Unfurnished') }}</span>
+                                </div>
+                            </li>
+                            @endif
+                            @if($info && !empty($info->floor))
+                            @php
+                                $floorLabelsOv = ['mezzanine_2'=>'Mezzanine 2','mezzanine_1'=>'Mezzanine 1','ground'=>'Ground','first'=>'First','second'=>'Second','third'=>'Third','fourth'=>'Fourth','roof'=>'Roof'];
+                            @endphp
+                            <li class="item">
+                                <a href="#" class="box-icon w-52"><i class="icon icon-ruler"></i></a>
+                                <div class="content">
+                                    <span class="label">{{__('Floor')}}:</span>
+                                    <span>{{ isset($floorLabelsOv[$info->floor]) ? __($floorLabelsOv[$info->floor]) : $info->floor }}</span>
+                                </div>
+                            </li>
+                            @endif
                         </ul>
                     </div>
+                    @if(!empty($property->more_info->video_url))
                     <div class="single-property-element single-property-video">
                         <div class="h7 title fw-7">{{__('Video')}}</div>
                         <div class="img-video">
@@ -243,6 +290,7 @@
                             <a href="{{$property->more_info->video_url}}" data-fancybox="gallery2" class="btn-video"> <span class="icon icon-play2"></span></a>
                         </div>
                     </div>
+                    @endif
                     @if(!empty($property->featured_3d_tour_iframe) && $property->is_3d_tour_featured && $property->featured_3d_tour_until && \Carbon\Carbon::parse($property->featured_3d_tour_until)->isFuture())
                     <div class="single-property-element single-property-3dtour">
                         <div class="h7 title fw-7">{{ __('3D Tour') }}</div>
@@ -253,116 +301,200 @@
                     @endif
                     <div class="single-property-element single-property-info">
                         <div class="h7 title fw-7">{{__('Property Details')}}</div>
+                        @php
+                            $info = $property->more_info ?? null;
+                            $currency = $data_settings['currency'] ?? $property->price->currency ?? 'JOD';
+                            $periodLabels = [0 => __('day'), 1 => __('week'), 2 => __('month'), 3 => __('year')];
+                            $pricePeriod = ($property->type == 0 && isset($periodLabels[$property->price->period ?? 2])) ? '/' . $periodLabels[$property->price->period ?? 2] : ($property->type == 1 ? ' (' . __('Total') . ')' : '/month');
+                        @endphp
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="inner-box">
                                     <span class="label">{{__('Property ID')}}:</span>
-                                    <div class="content fw-7">{{$property->id+1000}}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Bedrooms')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->bedrooms}}</div>
+                                    <div class="content fw-7">{{ $property->id + 1000 }}</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="inner-box">
                                     <span class="label">{{__('Price')}}:</span>
-                                    <div class="content fw-7">${{$property->price->price}}<span class="caption-1 fw-4 text-variant-1">/month</span></div>
+                                    <div class="content fw-7">{{ $currency }} {{ number_format($property->price->price) }}<span class="caption-1 fw-4 text-variant-1">{{ $pricePeriod }}</span></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Bedrooms')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->bedrooms}}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Property Size')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->size}} m²</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Bathrooms')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->bathrooms}}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Year built')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->year_built}}</div>
-                                </div>
-                            </div>
-
+                            @if($property->category)
                             <div class="col-md-6">
                                 <div class="inner-box">
                                     <span class="label">{{__('Property Type')}}:</span>
-                                    <div class="content fw-7">{{$property->category->name}}</div>
+                                    <div class="content fw-7">{{ $property->category->name }}</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="inner-box">
-                                    <span class="label">{{__('Garage')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->garages}}</div>
-                                </div>
-                            </div>
+                            @endif
                             <div class="col-md-6">
                                 <div class="inner-box">
                                     <span class="label">{{__('Property Status')}}:</span>
-                                    <div class="content fw-7">For
-                                        @if($property->status==0)
-                                            {{__('Not available')}}
-                                        @elseif($property->status==1)
-                                            {{__('Preparing selling')}}
-                                        @elseif($property->status==2)
-                                            {{__('Selling')}}
-                                        @elseif($property->status==3)
-                                            {{__('sold')}}
-                                        @elseif($property->status==4)
-                                            {{__('Renting')}}
-                                        @elseif($property->status==5)
-                                            {{__('Rented')}}
-                                        @elseif($property->status==6)
-                                            {{__('Building')}}
-                                        @else
-                                            {{__('Unknown')}}
+                                    <div class="content fw-7">
+                                        @if($property->status==0){{__('Not available')}}
+                                        @elseif($property->status==1){{__('Preparing selling')}}
+                                        @elseif($property->status==2){{__('Selling')}}
+                                        @elseif($property->status==3){{__('sold')}}
+                                        @elseif($property->status==4){{__('Renting')}}
+                                        @elseif($property->status==5){{__('Rented')}}
+                                        @elseif($property->status==6){{__('Building')}}
+                                        @else{{__('Unknown')}}
                                         @endif
                                     </div>
                                 </div>
                             </div>
+                            @if($info && ($info->bedrooms !== null && $info->bedrooms !== ''))
                             <div class="col-md-6">
                                 <div class="inner-box">
-                                    <span class="label">{{__('Garage Size')}}:</span>
-                                    <div class="content fw-7">{{$property->more_info->garages_size}} m²</div>
+                                    <span class="label">{{__('Bedrooms')}}:</span>
+                                    <div class="content fw-7">{{ $info->bedrooms }}</div>
                                 </div>
                             </div>
+                            @endif
+                            @if($info && ($info->bathrooms !== null && $info->bathrooms !== ''))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Bathrooms')}}:</span>
+                                    <div class="content fw-7">{{ $info->bathrooms }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && ($info->size || $info->size_max))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Property Size')}}:</span>
+                                    <div class="content fw-7">{{ $info->size ?? 0 }}{{ ($info->size_max && $info->size_max != ($info->size ?? 0)) ? ' - ' . $info->size_max : '' }} m²</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->year_built))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Year built')}}:</span>
+                                    <div class="content fw-7">{{ $info->year_built }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && ($info->land_area || $info->land_area_min || $info->land_area_max))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Land Size')}}:</span>
+                                    <div class="content fw-7">{{ $info->land_area ?? $info->land_area_min ?? 0 }}{{ (($info->land_area_max ?? 0) && ($info->land_area_max != ($info->land_area_min ?? $info->land_area ?? 0))) ? ' - ' . $info->land_area_max : '' }} m²</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->building_age))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Building Age')}}:</span>
+                                    <div class="content fw-7">{{ $info->building_age == 'new' ? __('New') : $info->building_age }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && isset($info->furnished) && $info->furnished !== null && $info->furnished !== '')
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Furnished')}}:</span>
+                                    <div class="content fw-7">{{ $info->furnished ? __('Furnished') : __('Unfurnished') }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->floor))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Floor')}}:</span>
+                                    <div class="content fw-7">
+                                        @php
+                                            $floorLabels = ['mezzanine_2' => 'Mezzanine 2', 'mezzanine_1' => 'Mezzanine 1', 'ground' => 'Ground', 'first' => 'First', 'second' => 'Second', 'third' => 'Third', 'fourth' => 'Fourth', 'roof' => 'Roof'];
+                                            echo isset($floorLabels[$info->floor]) ? __($floorLabels[$info->floor]) : $info->floor;
+                                        @endphp
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && ($info->rooms !== null && $info->rooms !== ''))
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Number of Rooms')}}:</span>
+                                    <div class="content fw-7">{{ $info->rooms }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->zoning))
+                            @php
+                                $zoningLabels = ['residential_a'=>'Residential A','residential_b'=>'Residential B','residential_c'=>'Residential C','residential_d'=>'Residential D','offices'=>'Offices','commercial'=>'Commercial','light_industry'=>'Light Industry','industrial'=>'Industrial','agricultural'=>'Agricultural','outside_planning'=>'Outside Planning','tourism'=>'Tourism','rural'=>'Rural','private_residential'=>'Private Residential'];
+                            @endphp
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Zoning')}}:</span>
+                                    <div class="content fw-7">{{ __($zoningLabels[$info->zoning] ?? ucfirst(str_replace('_', ' ', $info->zoning))) }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->land_type))
+                            @php
+                                $landTypeLabels = ['rocky'=>'Rocky','red_soil'=>'Red Soil','sloping'=>'Sloping','flat'=>'Flat','mountainous'=>'Mountainous'];
+                            @endphp
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Land Type')}}:</span>
+                                    <div class="content fw-7">{{ __($landTypeLabels[$info->land_type] ?? ucfirst($info->land_type)) }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($info && !empty($info->services))
+                            @php
+                                $servicesLabels = ['all_connected'=>'All Services Connected','near_services'=>'Near Services'];
+                            @endphp
+                            <div class="col-md-6">
+                                <div class="inner-box">
+                                    <span class="label">{{__('Services')}}:</span>
+                                    <div class="content fw-7">{{ __($servicesLabels[$info->services] ?? ucfirst(str_replace('_', ' ', $info->services))) }}</div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
+                    @php
+                        $extraFeaturesLabels = ['pool' => 'Pool', 'sewage_connected' => 'Sewage Connected', 'water_well' => 'Water Well', 'balcony' => 'Balcony', 'maid_room' => 'Maid Room', 'storage_room' => 'Storage Room', 'laundry_room' => 'Laundry Room', 'central_ac' => 'Central AC', 'car_parking' => 'Car Parking'];
+                        $extraFeat = $property->more_info->extra_features ?? [];
+                        $hasExtraFeatures = is_array($extraFeat) && count($extraFeat) > 0;
+                    @endphp
+                    @if(($categoriesWithFeatures && count($categoriesWithFeatures) > 0) || $hasExtraFeatures)
                     <div class="single-property-element single-property-feature">
                         <div class="h7 title fw-7">{{__('Amenities and features')}}</div>
                         <div class="wrap-feature">
-
+                            @if($categoriesWithFeatures && count($categoriesWithFeatures) > 0)
                             @foreach($categoriesWithFeatures as $categoryName => $features)
                                 <div class="box-feature">
                                     <div class="fw-7">{{ $categoryName }}:</div>
                                     <ul>
                                         @foreach($features as $feature)
                                             <li class="feature-item">
-                                                <span class="fa-solid {{ $feature['icon'] }}"></span>
-                                                {{ $feature['name'] }}
+                                                <span class="fa-solid {{ $feature['icon'] ?? '' }}"></span>
+                                                {{ $feature['name'] ?? '' }}
                                             </li>
                                         @endforeach
                                     </ul>
                                 </div>
                             @endforeach
-
-
-
+                            @endif
+                            @if($hasExtraFeatures)
+                            <div class="box-feature">
+                                <div class="fw-7">{{__('Extra Features')}}:</div>
+                                <ul>
+                                    @foreach($extraFeat as $key)
+                                        @if(isset($extraFeaturesLabels[$key]))
+                                        <li class="feature-item"><span class="fa-solid fa-check"></span> {{ __($extraFeaturesLabels[$key]) }}</li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     <div class="single-property-element single-property-map">
                         <div id="map"></div>
                         <ul class="info-map">
@@ -385,36 +517,7 @@
                         </ul>
                     </div>
 
-                    <div class="single-property-element single-property-loan">
-                        <div class="h7 title fw-7">{{__('Loan Calculator')}}</div>
-                        <form id="loanCalculator" class="box-loan-calc">
-                            <div class="box-top">
-                                <div class="item-calc">
-                                    <label for="totalAmount" class="label">{{__('Total Amount')}}:</label>
-                                    <input type="number" id="totalAmount" value="{{$property->price->price}}" readonly placeholder="10,000" class="form-control">
-                                </div>
-                                <div class="item-calc">
-                                    <label for="downPayment" class="label">{{__('Down Payment')}}:</label>
-                                    <input type="number" id="downPayment" placeholder="3000" class="form-control">
-                                </div>
-                                <div class="item-calc">
-                                    <label for="amortizationPeriod" class="label">{{__('Amortization Period (months)')}}:</label>
-                                    <input type="number" id="amortizationPeriod" placeholder="12" class="form-control">
-                                </div>
-                                <div class="item-calc">
-                                    <label for="interestRate" class="label">{{__('Interest rate (%)')}}':</label>
-                                    <input type="number" id="interestRate" placeholder="5" class="form-control">
-                                </div>
-                            </div>
-                            <div class="box-bottom">
-                                <button type="button" id="calculateButton" class="tf-btn primary">{{__('Calculate')}}</button>
-                                <div class="d-flex gap-4">
-                                    <span class="h7 fw-7">{{__('Monthly Payment')}}:</span>
-                                    <span id="monthlyPayment" class="result h7 fw-7">$0.00</span>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                    @if($property->facilities->isNotEmpty())
                     <div class="single-property-element single-property-nearby">
                         <div class="h7 title fw-7">{{__("What’s nearby?")}}</div>
                         <p class="body-2">{{__("Explore nearby amenities to precisely locate your property and identify surrounding conveniences, providing a comprehensive overview of the living environment and the property's convenience")}}.</p>
@@ -445,8 +548,8 @@
 
                             </ul>
                         </div>
-
                     </div>
+                    @endif
                     @include('site.properties.partials.section_reviews')
                 </div>
                 <div class="col-lg-4">
@@ -558,18 +661,9 @@
                                                 {{ $item->address?->display_address ?? '-' }}
                                             </p></div>
                                         <ul class="meta-list">
-                                            <li class="item">
-                                                <i class="icon icon-bed"></i>
-                                                <span>{{ $item->more_info->bedrooms }}</span>
-                                            </li>
-                                            <li class="item">
-                                                <i class="icon icon-bathtub"></i>
-                                                <span>{{ $item->more_info->bathrooms }}</span>
-                                            </li>
-                                            <li class="item">
-                                                <i class="icon icon-ruler"></i>
-                                                <span>{{ $item->more_info->size }} m²</span>
-                                            </li>
+                                            @if($item->more_info && ($item->more_info->bedrooms !== null && $item->more_info->bedrooms !== ''))<li class="item"><i class="icon icon-bed"></i><span>{{ $item->more_info->bedrooms }}</span></li>@endif
+                                            @if($item->more_info && ($item->more_info->bathrooms !== null && $item->more_info->bathrooms !== ''))<li class="item"><i class="icon icon-bathtub"></i><span>{{ $item->more_info->bathrooms }}</span></li>@endif
+                                            @if($item->more_info && $item->more_info->size)<li class="item"><i class="icon icon-ruler"></i><span>{{ $item->more_info->size }} m²</span></li>@endif
                                         </ul>
                                     </div>
                                 </div>
@@ -593,8 +687,13 @@
                                                     </span>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <h6>${{ $item->price->price }}</h6>
-                                        <span class="text-variant-1">/m²</span>
+                                        @php
+                                            $itemCurrency = $data_settings['currency'] ?? $item->price->currency ?? 'JOD';
+                                            $itemPeriodLabels = [0 => __('day'), 1 => __('week'), 2 => __('month'), 3 => __('year')];
+                                            $itemPeriod = ($item->type == 0 && isset($itemPeriodLabels[$item->price->period ?? 2])) ? '/' . $itemPeriodLabels[$item->price->period ?? 2] : ($item->type == 1 ? '' : '/month');
+                                        @endphp
+                                        <h6>{{ $itemCurrency }} {{ number_format($item->price->price) }}</h6>
+                                        <span class="text-variant-1">{{ $itemPeriod }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -616,38 +715,6 @@
     <script src="{{asset('site/js/infobox.min.js')}}"></script>
     <script src="{{asset('assets/js/jquery.validate.min.js')}}"></script>
     <script>
-        $(document).ready(function() {
-            $('#calculateButton').on('click', function() {
-                // Retrieve values from the form
-                var totalAmount = parseFloat($('#totalAmount').val());
-                var downPayment = parseFloat($('#downPayment').val());
-                var amortizationPeriod = parseFloat($('#amortizationPeriod').val());
-                var interestRate = parseFloat($('#interestRate').val()) / 100;
-
-                // Ensure that inputs are valid numbers
-                if (isNaN(totalAmount) || isNaN(downPayment) || isNaN(amortizationPeriod) || isNaN(interestRate) || amortizationPeriod <= 0) {
-                    alert('Please enter valid numbers for all fields.');
-                    return;
-                }
-
-                // Calculate the loan amount
-                var loanAmount = totalAmount - downPayment;
-
-                // Calculate the monthly payment
-                var monthlyInterestRate = interestRate / 12;
-                var numberOfPayments = amortizationPeriod;
-                var monthlyPayment;
-
-                if (monthlyInterestRate > 0) {
-                    monthlyPayment = (loanAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments));
-                } else {
-                    monthlyPayment = loanAmount / numberOfPayments;
-                }
-
-                // Display the result
-                $('#monthlyPayment').text('$' + monthlyPayment.toFixed(2));
-            });
-        });
     </script>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -658,24 +725,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Initialize the map and set its view to a given geographical point and zoom level
-        var map = L.map('map').setView([43.052898, -76.430518], 5);
-
-        // Add a tile layer to the map (this example uses OpenStreetMap tiles)
+        @php
+            $addr = $property->address ?? null;
+            $lat = $addr && is_numeric($addr->latitude) ? $addr->latitude : 31.9454;
+            $lng = $addr && is_numeric($addr->longitude) ? $addr->longitude : 35.9284;
+        @endphp
+        var map = L.map('map').setView([{{ $lat }}, {{ $lng }}], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="{{config('app.url')}}">{{config('app.name')}}</a> contributors'
         }).addTo(map);
-
-        // Add a marker to the map at the specific latitude and longitude
-        var marker = L.marker([43.052898, -76.430518]).addTo(map);
+        var marker = L.marker([{{ $lat }}, {{ $lng }}]).addTo(map);
 
         // Define the HTML content for the popup
         var popupContent = `
         <div class="map-listing-item">
             <div class="inner-box">
                 <div class="image-box">
-                    <a href="{{ route('site.property.show', $item->slug) }}">
-                        <img data-bb-lazy="true" loading="lazy" src="{{$property->images[0]->img}}" alt="{{ Str::limit($property->title, 20) }}" class="entered loaded">
+                    <a href="{{ route('site.property.show', $property->slug) }}">
+                        <img data-bb-lazy="true" loading="lazy" src="{{ $property->images->first() ? asset($property->images->first()->img) : '' }}" alt="{{ Str::limit($property->title, 20) }}" class="entered loaded">
                     </a>
                     <span class="flag-tag primary">
                     @if($property->status==0)
@@ -706,20 +773,11 @@
                     <div class="title">
                         <a href="{{ route('site.property.show', $property->slug) }}" title="{{ Str::limit($property->title, 20) }}">{{ Str::limit($property->title, 20) }}</a>
                     </div>
-                    <div class="price"> {{$data_settings['currency']}} {{ $property->price->price }}</div>
+                    <div class="price"> {{ $data_settings['currency'] ?? 'JOD' }} {{ number_format($property->price->price) }}</div>
                     <ul class="list-info">
-                        <li>
-                            <i class="icon icon-bed"></i>
-                             {{ $property->more_info->bedrooms }}
-                        </li>
-                        <li>
-                            <i class="icon icon-bathtub"></i>
-                             {{ $property->more_info->bathrooms }}
-                        </li>
-                        <li>
-                            <i class="icon icon-ruler"></i>
-                             {{ $property->more_info->size }} m²
-                        </li>
+                        @if($property->more_info && ($property->more_info->bedrooms !== null && $property->more_info->bedrooms !== ''))<li><i class="icon icon-bed"></i> {{ $property->more_info->bedrooms }}</li>@endif
+                        @if($property->more_info && ($property->more_info->bathrooms !== null && $property->more_info->bathrooms !== ''))<li><i class="icon icon-bathtub"></i> {{ $property->more_info->bathrooms }}</li>@endif
+                        @if($property->more_info && $property->more_info->size)<li><i class="icon icon-ruler"></i> {{ $property->more_info->size }} m²</li>@endif
                     </ul>
                 </div>
             </div>

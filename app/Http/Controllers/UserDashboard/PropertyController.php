@@ -140,7 +140,7 @@ class PropertyController extends Controller
 
     }
     public function edit($id){
-        $property = Property::with('address')->findOrFail($id);
+        $property = Property::with(['address', 'more_info'])->findOrFail($id);
         $categories=Category::all();
         $facilities=Facility::all();
         $feature_categories=FeatureCategory::query()->with('features')->get();

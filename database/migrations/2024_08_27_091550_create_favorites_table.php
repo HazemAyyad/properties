@@ -13,6 +13,9 @@ class CreateFavoritesTable extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('favorites')) {
+            return;
+        }
         Schema::create('favorites', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');

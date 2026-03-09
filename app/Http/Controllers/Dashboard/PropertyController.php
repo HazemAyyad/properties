@@ -73,7 +73,7 @@ class PropertyController extends Controller
         // Get the preferred language or default to 'en'
         $preferredLang = app()->getLocale() ?? 'en';
 
-        return DataTables::of(Property::query()->where(['moderation_status' => $status])->with('user'))
+        return DataTables::of(Property::query()->where(['moderation_status' => $status])->with('user')->orderBy('created_at', 'desc'))
             ->addIndexColumn()
             ->addColumn('user', function ($row) {
                 return $row->user ? htmlspecialchars($row->user->name) : '-';
@@ -191,14 +191,23 @@ class PropertyController extends Controller
             $property->featured_3d_tour_iframe = '<iframe src="' . e($iframeInput) . '" allowfullscreen allow="xr-spatial-tracking" style="width:100%;height:400px;border:0"></iframe>';
         }
         $property->save();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'redirect' => route('admin.properties.edit', $id)]);
+        }
         return redirect()->route('admin.properties.featured-3d-tours')->with('success', __('3D Tour approved for 1 month.'));
     }
 
-    public function rejectFeatured3dTour($id)
+    public function rejectFeatured3dTour(Request $request, $id)
     {
         $property = Property::findOrFail($id);
         $property->is_3d_tour_featured = 0;
+        $property->featured_3d_tour_receipt = null;
+        $property->featured_3d_tour_until = null;
+        $property->featured_3d_tour_iframe = null;
         $property->save();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'redirect' => route('admin.properties.edit', $id)]);
+        }
         return redirect()->route('admin.properties.featured-3d-tours')->with('success', __('3D Tour request rejected.'));
     }
 

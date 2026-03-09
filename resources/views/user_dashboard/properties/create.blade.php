@@ -95,6 +95,14 @@
         color: #245da0;
         margin-top: 5px;
     }
+    a.lat-long-link {
+        color: #0d6efd;
+        font-size: 0.9rem;
+    }
+    a.lat-long-link:hover {
+        color: #0a58ca;
+        text-decoration: underline;
+    }
 
 </style>
 @endsection
@@ -303,14 +311,14 @@
                                                         <div class="form-group mb-3">
                                                             <label class="form-label" for="latitude">{{__('Latitude')}}</label>
                                                             <input type="text" class="form-control style-1" name="latitude" id="latitude" placeholder="{{__('Ex: 1.462260')}}" >
-                                                            <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow"> {{__('Go here to get Latitude from address.')}} </a>
+                                                            <a class="form-hint lat-long-link" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Latitude from address.') }}</a>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="form-group mb-3">
                                                             <label class="form-label" for="longitude">{{__('Longitude')}}</label>
                                                             <input type="text" class="form-control style-1" name="longitude" id="longitude" placeholder="{{__('Ex: 1.462260')}}" >
-                                                            <a class="form-hint" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow"> {{__('Go here to get Longitude from address.')}} </a>
+                                                            <a class="form-hint lat-long-link" href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="nofollow">{{ __('Go here to get Longitude from address.') }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -772,10 +780,12 @@
             function showCategoryFields() {
                 var slug = $('#category_id option:selected').data('slug') || '';
                 $('#category-fields-hint').toggle(!slug);
-                $('.category-fields-section').hide();
-                if (slug && $('#category-fields-' + slug).length) {
-                    $('#category-fields-' + slug).show();
-                }
+                $('.category-fields-section').each(function() {
+                    var $sec = $(this);
+                    var isVisible = slug && $sec.attr('id') === 'category-fields-' + slug;
+                    $sec.toggle(isVisible);
+                    $sec.find('input, select, textarea').prop('disabled', !isVisible);
+                });
             }
             $('#category_id').on('change', showCategoryFields);
             showCategoryFields();

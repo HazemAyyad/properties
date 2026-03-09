@@ -533,7 +533,14 @@
                                 @foreach($facilitiesLeft as $facility)
                                 <li class="item-nearby">
                                     <span class="label">{{$facility->facility->name}}:</span>
-                                    <span class="fw-7">{{$facility->distance}}</span>
+                                    <span class="fw-7">
+                                        @php
+                                            $d = $facility->distance ?? '';
+                                            $num = preg_replace('/[^\d.]/', '', $d) ?: '-';
+                                            $unit = (stripos($d, 'km') !== false || preg_match('/\d+\s*k\b/i', $d)) ? __('distance_km') : __('distance_m');
+                                        @endphp
+                                        {{ $num }} {{ $unit }}
+                                    </span>
                                 </li>
                                 @endforeach
 
@@ -542,7 +549,14 @@
                                 @foreach($facilitiesRight as $facility)
                                     <li class="item-nearby">
                                         <span class="label">{{$facility->facility->name}}:</span>
-                                        <span class="fw-7">{{$facility->distance}}</span>
+                                        <span class="fw-7">
+                                            @php
+                                                $d = $facility->distance ?? '';
+                                                $num = preg_replace('/[^\d.]/', '', $d) ?: '-';
+                                                $unit = (stripos($d, 'km') !== false || preg_match('/\d+\s*k\b/i', $d)) ? __('distance_km') : __('distance_m');
+                                            @endphp
+                                            {{ $num }} {{ $unit }}
+                                        </span>
                                     </li>
                                 @endforeach
 
@@ -642,7 +656,7 @@
                                                 </li>
 
                                                 <li class="box-icon w-32"  >
-                                                    <a href="{{ route('site.property.show', $item->slug) }}"  data-toggle="tooltip" data-placement="top" title="Visit" onclick="toggleFavorite({{ $item->id }})">
+                                                    <a href="{{ route('site.property.show', $item->slug) }}" data-toggle="tooltip" data-placement="top" title="{{ __('Visit') }}">
                                                         <span class="icon icon-eye"></span>
                                                     </a>
 

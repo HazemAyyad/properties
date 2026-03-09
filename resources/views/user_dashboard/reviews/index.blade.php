@@ -36,32 +36,45 @@
                     <tbody>
                     @if($reviews->count()>0)
                         @foreach($reviews as $review)
-
+                            @php
+                                $currency = $data_settings['currency'] ?? ($review->property->price->currency ?? 'JOD');
+                                $avatarPlaceholder = 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><circle cx="64" cy="48" r="24" fill="#999"/><ellipse cx="64" cy="110" rx="40" ry="30" fill="#999"/></svg>');
+                            @endphp
                             <tr class="file-delete" id="property-{{ $review->id }}">
                                 <td>
                                     <div class="listing-box">
                                         <div class="images">
-                                            <img src="{{$review->property->images[0]->img}}" alt="images">
+                                            @if($review->property->images->isNotEmpty())
+                                                @php
+                                                    $imgPath = ltrim(str_replace('/public', '', $review->property->images[0]->img), '/');
+                                                    $imgUrl = str_replace('/public/public/', '/public/', asset($imgPath));
+                                                @endphp
+                                                <img src="{{ $imgUrl }}" alt="{{ $review->property->title }}" loading="lazy">
+                                            @else
+                                                <div class="d-flex align-items-center justify-content-center h-100 bg-light" style="min-height:70px;"><i class="icon icon-house-line text-muted"></i></div>
+                                            @endif
                                         </div>
                                         <div class="content">
                                             <div class="title">
-                                                <a href="{{config('app.url')}}/properties/property/{{$review->property->slug}}" class="link">
-                                                    {{$review->property->title}}
+                                                <a href="{{ route('site.property.show', $review->property->slug) }}" class="link">
+                                                    {{ $review->property->title }}
                                                 </a>
                                             </div>
-
-                                            <div class="text-1 fw-7">{{$review->property->price->price}}$</div>
+                                            <div class="text-1 fw-7">{{ $currency }} {{ number_format(optional($review->property->price)->price ?? 0) }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="avatar avt-40 round">
-                                        @php
-                                            $imagePath = asset($review->user->photo);
-                                            $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
-                                        @endphp
-                                        <img src="{{$correctedImagePath}}" alt="{{ $review->user->name }}">
-
+                                        @if(!empty($review->user->photo))
+                                            @php
+                                                $userPhotoPath = ltrim(str_replace('/public', '', $review->user->photo), '/');
+                                                $userPhotoUrl = str_replace('/public/public/', '/public/', asset($userPhotoPath));
+                                            @endphp
+                                            <img src="{{ $userPhotoUrl }}" alt="{{ $review->user->name }}" loading="lazy">
+                                        @else
+                                            <img src="{{ $avatarPlaceholder }}" alt="{{ $review->user->name }}" loading="lazy">
+                                        @endif
                                     </div>
                                     <p class="note p-16">
                                         {{ $review->user->name }}

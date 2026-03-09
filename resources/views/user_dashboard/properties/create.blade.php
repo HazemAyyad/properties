@@ -108,6 +108,21 @@
 @endsection
 @section('content')
 
+    @if(isset($planLimit) && $planLimit['allowed'])
+    <div class="widget-box-2 mb-4">
+        <div class="plan-limit-box allowed" style="background: linear-gradient(135deg, #e8f4f8 0%, #d4ebf2 100%); border: 1px solid #b8dde8; border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; color: #0c5460;">
+            <div class="plan-info" style="font-size: 0.95rem;">
+                <strong style="color: #1779A7;">{{ __('Your plan') }}</strong>: {{ $planLimit['plan']->title ?? __('Plan') }}
+                &nbsp;·&nbsp;
+                {{ __('Properties') }}: {{ $planLimit['used'] }} / {{ $planLimit['limit'] === -1 ? __('Unlimited') : $planLimit['limit'] }}
+                @if($planLimit['remaining'] !== null && $planLimit['remaining'] > 0)
+                    &nbsp;({{ __('remaining') }}: {{ $planLimit['remaining'] }})
+                @endif
+            </div>
+            <a href="{{ route('user.profile.upgrade') }}" class="tf-btn outline" style="border-color: #1779A7; color: #1779A7;">{{ __('Upgrade Plan') }}</a>
+        </div>
+    </div>
+    @endif
 
     <div class="row">
         <div class="col-xl">
@@ -480,13 +495,15 @@
                                                                             </div>
                                                                             <div class="col-md-6 ">
                                                                                 <div class="form-group">
-
-                                                                                    <input type="text" required id="distance" value=""  name="distance" class="form-control style-1"
-                                                                                           placeholder="{{__('Distance (E.g: 200m, 1km...)')}}"  >
-
-
-
-
+                                                                                    <div class="input-group">
+                                                                                        <input type="number" required min="0" step="0.01" class="form-control style-1 distance-value"
+                                                                                               placeholder="{{__('Distance')}}" aria-label="{{__('Distance')}}">
+                                                                                        <select class="form-select distance-unit" style="max-width: 80px;">
+                                                                                            <option value="m">{{__('m')}}</option>
+                                                                                            <option value="km">{{__('km')}}</option>
+                                                                                        </select>
+                                                                                        <input type="hidden" name="distance" class="distance-combined">
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-2  ">
@@ -1236,8 +1253,20 @@
                 return imageInputs.length > 0;
             }, "{{ __('Images are required') }}");
 
+            // Sync distance (value + unit) to hidden field before submit
+            function syncDistanceFields() {
+                $('#facilities_div [data-repeater-item]').each(function() {
+                    var $row = $(this);
+                    var val = $row.find('.distance-value').val();
+                    var unit = $row.find('.distance-unit').val() || 'm';
+                    $row.find('.distance-combined').val(val ? (val + unit) : '');
+                });
+            }
+            $(document).on('input change', '.distance-value, .distance-unit', syncDistanceFields);
+
             $('#mainAdd').submit(function(e) {
                 e.preventDefault();
+                syncDistanceFields();
 
                 // Clear previous images errors
                 $('#dpz-multiple-files').removeClass('is-invalid');
@@ -1373,6 +1402,12 @@
                         $('#add_form').html('{{ __('Save') }}');
                         
                         var response = xhr.responseJSON;
+                        
+                        if (xhr.status == 403 && response && response.redirect) {
+                            toastr.error(response.message || '{{ __("You have reached the maximum number of properties allowed by your current plan.") }}');
+                            setTimeout(function() { window.location.href = response.redirect; }, 1500);
+                            return;
+                        }
                         
                         if (xhr.status == 422) {
                             if (response && response.errors) {

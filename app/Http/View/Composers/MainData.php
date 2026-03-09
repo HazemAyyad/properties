@@ -47,6 +47,7 @@ class MainData
                 'agents',
                 'blogs',
                 'partners',
+                'vision_goals',
                 'featured_listing_price',
                 'featured_3d_tour_price',
 

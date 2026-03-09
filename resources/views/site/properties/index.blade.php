@@ -62,6 +62,9 @@
                     <div class="tab-content">
                         <!-- Grid Layout -->
                         <div class="tab-pane fade active show" id="gridLayout" role="tabpanel">
+                            @php
+                                $avatarPlaceholder = 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><circle cx="64" cy="48" r="24" fill="#999"/><ellipse cx="64" cy="110" rx="40" ry="30" fill="#999"/></svg>');
+                            @endphp
                             <div class="row">
                                 @foreach($properties as $property)
                                     <div class="col-md-6">
@@ -108,7 +111,7 @@
                                                                 </a>
                                                             </li>
                                                             <li class="box-icon w-32">
-                                                                <a href="{{ route('site.property.show', $property->slug) }}"  data-toggle="tooltip" data-placement="top" title="Visit" onclick="toggleFavorite({{ $property->id }})">
+                                                                <a href="{{ route('site.property.show', $property->slug) }}" data-toggle="tooltip" data-placement="top" title="{{ __('Visit') }}">
                                                                     <span class="icon icon-eye"></span>
                                                                 </a>
                                                             </li>
@@ -144,11 +147,11 @@
                                             <div class="archive-bottom d-flex justify-content-between align-items-center">
                                                 <div class="d-flex gap-8 align-items-center">
                                                     <div class="avatar avt-40 round">
-                                                        @if($property->user_id!=null)
-                                                            <img src="{{$property->user->photo}}" alt="{{$property->user->name}}">
-
+                                                        @if($property->user_id!=null && !empty($property->user->photo))
+                                                            @php $userPhotoPath = ltrim(str_replace('/public', '', $property->user->photo), '/'); @endphp
+                                                            <img src="{{ asset($userPhotoPath) }}" alt="{{ $property->user->name }}" loading="lazy">
                                                         @else
-                                                            <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
+                                                            <img src="{{ $avatarPlaceholder }}" alt="{{ $property->user_id ? ($property->user->name ?? '') : config('app.name') }}" loading="lazy">
                                                         @endif
                                                     </div>
                                                     <span>
@@ -219,7 +222,7 @@
                                                             </a>
                                                         </li>
                                                         <li class="box-icon w-32">
-                                                            <a href="{{ route('site.property.show', $property->slug) }}"  data-toggle="tooltip" data-placement="top" title="Visit" onclick="toggleFavorite({{ $property->id }})">
+                                                            <a href="{{ route('site.property.show', $property->slug) }}" data-toggle="tooltip" data-placement="top" title="{{ __('Visit') }}">
                                                                 <span class="icon icon-eye"></span>
                                                             </a>
                                                         </li>
@@ -253,11 +256,11 @@
                                                 <div class="d-flex justify-content-between align-items-center archive-bottom">
                                                     <div class="d-flex gap-8 align-items-center">
                                                         <div class="avatar avt-40 round">
-                                                            @if($property->user_id!=null)
-                                                                <img src="{{$property->user->photo}}" alt="{{$property->user->name}}">
-
+                                                            @if($property->user_id!=null && !empty($property->user->photo))
+                                                                @php $userPhotoPath = ltrim(str_replace('/public', '', $property->user->photo), '/'); @endphp
+                                                                <img src="{{ asset($userPhotoPath) }}" alt="{{ $property->user->name }}" loading="lazy">
                                                             @else
-                                                                <img src="https://images.ctfassets.net/lh3zuq09vnm2/yBDals8aU8RWtb0xLnPkI/19b391bda8f43e16e64d40b55561e5cd/How_tracking_user_behavior_on_your_website_can_improve_customer_experience.png" alt="avt">
+                                                                <img src="{{ $avatarPlaceholder }}" alt="{{ $property->user_id ? ($property->user->name ?? '') : config('app.name') }}" loading="lazy">
                                                             @endif
                                                         </div>
                                                         <span>
@@ -442,18 +445,19 @@
 
 
         document.addEventListener('DOMContentLoaded', function () {
-            var tabs = document.querySelectorAll('.nav-link-item');
             var selectedTabInput = document.getElementById('selectedTab');
-
-            // Set default value to 'rent' if selectedTab is not already set
-            if (!selectedTabInput.value) {
-                selectedTabInput.value = 'rent'; // or the actual value corresponding to your 'Rent' tab
+            if (!selectedTabInput) return;
+            // Only bind to Rent/Sale tabs inside the filter form (nav-tab-form)
+            var filterTabs = document.querySelectorAll('.nav-tab-form .nav-link-item');
+            if (!selectedTabInput.value || !['rent','sale'].includes(selectedTabInput.value)) {
+                selectedTabInput.value = 'rent';
             }
-
-            tabs.forEach(function (tab) {
+            filterTabs.forEach(function (tab) {
                 tab.addEventListener('click', function () {
-                    var selectedTab = this.getAttribute('href').substring(1);
-                    selectedTabInput.value = selectedTab;
+                    var href = this.getAttribute('href');
+                    if (href && (href === '#rent' || href === '#sale')) {
+                        selectedTabInput.value = href.substring(1);
+                    }
                 });
             });
         });

@@ -549,13 +549,26 @@
                                                                                 </div>
                                                                                 <div class="col-md-6 ">
                                                                                     <div class="form-group">
-
-                                                                                        <input type="text"  required id="distance" value="{{$item->distance}}"  name="facilities[{{$loop->index}}][distance]" class="form-control"
-                                                                                               placeholder="{{__('Distance (E.g: 200m, 1km...)')}}"  >
-
-
-
-
+                                                                                    @php
+                                                                                        $distVal = ''; $distUnit = 'm';
+                                                                                        if (!empty($item->distance)) {
+                                                                                            if (preg_match('/^([\d.]+)\s*(km|m|k)?/i', trim($item->distance), $m)) {
+                                                                                                $distVal = $m[1];
+                                                                                                $distUnit = (stripos($item->distance, 'km') !== false || (isset($m[2]) && stripos($m[2], 'k') !== false)) ? 'km' : 'm';
+                                                                                            } else {
+                                                                                                $distVal = preg_replace('/[^\d.]/', '', $item->distance) ?: '';
+                                                                                            }
+                                                                                        }
+                                                                                    @endphp
+                                                                                        <div class="input-group">
+                                                                                            <input type="number" required min="0" step="0.01" class="form-control distance-value" value="{{ $distVal }}"
+                                                                                                   placeholder="{{__('Distance')}}" aria-label="{{__('Distance')}}">
+                                                                                            <select class="form-select distance-unit" style="max-width: 80px;">
+                                                                                                <option value="m" {{ $distUnit == 'm' ? 'selected' : '' }}>{{__('m')}}</option>
+                                                                                                <option value="km" {{ $distUnit == 'km' ? 'selected' : '' }}>{{__('km')}}</option>
+                                                                                            </select>
+                                                                                            <input type="hidden" name="facilities[{{$loop->index}}][distance]" class="distance-combined" value="{{ $item->distance }}">
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="col-md-2  ">
@@ -1267,8 +1280,25 @@
                 return imageInputs.length > 0;
             }, {!! json_encode(__('Images are required')) !!});
 
+            // Sync distance (value + unit) to hidden field before submit
+            function syncDistanceFields() {
+                $('#facilities_div [data-repeater-item]').each(function() {
+                    var $row = $(this);
+                    var $val = $row.find('.distance-value');
+                    var $unit = $row.find('.distance-unit');
+                    var $hidden = $row.find('.distance-combined');
+                    if ($val.length && $hidden.length) {
+                        var val = $val.val();
+                        var unit = $unit.length ? $unit.val() : 'm';
+                        $hidden.val(val ? (val + unit) : '');
+                    }
+                });
+            }
+            $(document).on('input change', '.distance-value, .distance-unit', syncDistanceFields);
+
             $('#mainAdd').submit(function(e) {
                 e.preventDefault();
+                syncDistanceFields();
 
                 // Clear previous images errors
                 $('#dpz-multiple-files').removeClass('is-invalid');

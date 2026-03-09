@@ -22,6 +22,8 @@ use App\Http\Controllers\Dashboard\CountryController;
 use App\Http\Controllers\Dashboard\CityController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\BenefitController;
+use App\Http\Controllers\Dashboard\VisionSectionController;
+use App\Http\Controllers\Dashboard\VisionGoalController;
 use App\Http\Controllers\Dashboard\FaqsController;
 use App\Http\Controllers\Dashboard\CategoryController;
 use App\Http\Controllers\Dashboard\PolicyController;
@@ -182,6 +184,20 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
         Route::post('/service/store', [ServiceController::class, 'store'])->name('store');
         Route::delete('/service/delete/{id}', [ServiceController::class, 'delete'])->name('delete');
 
+    });
+    // Vision & Goals
+    Route::as('vision.')->group(function () {
+        Route::get('vision', [VisionSectionController::class, 'edit'])->name('edit');
+        Route::post('vision/update', [VisionSectionController::class, 'update'])->name('update');
+    });
+    Route::as('vision_goals.')->group(function () {
+        Route::get('vision-goals', [VisionGoalController::class, 'index'])->name('index');
+        Route::get('get_vision_goals', [VisionGoalController::class, 'get_goals'])->name('get_goals');
+        Route::get('vision-goal/create', [VisionGoalController::class, 'create'])->name('create');
+        Route::post('vision-goal/store', [VisionGoalController::class, 'store'])->name('store');
+        Route::get('vision-goal/edit/{id}', [VisionGoalController::class, 'edit'])->name('edit');
+        Route::post('vision-goal/update/{id}', [VisionGoalController::class, 'update'])->name('update');
+        Route::delete('vision-goal/delete/{id}', [VisionGoalController::class, 'delete'])->name('delete');
     });
     //provinces
     Route::as('provinces.')->group(function () {

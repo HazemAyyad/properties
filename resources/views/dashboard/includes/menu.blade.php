@@ -181,6 +181,23 @@
                             <div data-i18n="{{__('Services')}}">{{__('Services')}}</div>
                         </a>
                     </li>
+                    <li class="menu-item {{ Route::is('admin.vision.*') || Route::is('admin.vision_goals.*') ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <div data-i18n="{{__('Vision & Goals')}}">{{__('Vision & Goals')}}</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="{{route('admin.vision.edit')}}" class="menu-link">
+                                    <div data-i18n="{{__('Edit Section')}}">{{__('Edit Section')}}</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="{{route('admin.vision_goals.index')}}" class="menu-link">
+                                    <div data-i18n="{{__('Goals')}}">{{__('Goals')}}</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="menu-item">
                         <a href="{{route('admin.countries.index')}}" class="menu-link">
 

@@ -2,8 +2,21 @@
 @section('style')
     <!-- Toastr CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <style>
+        .plan-limit-notice { background: linear-gradient(135deg, #fff9e8 0%, #fff5d6 100%); border: 1px solid #e5d4a1; border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; color: #5a4a1a; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(184, 134, 11, 0.08); }
+        .plan-limit-notice .plan-info { font-size: 1rem; line-height: 1.6; max-width: 600px; }
+        .plan-limit-notice .plan-info strong { color: #b8860b; font-weight: 600; }
+    </style>
 @endsection
 @section('content')
+    @if(isset($planLimit) && !$planLimit['allowed'])
+    <div class="plan-limit-notice">
+        <div class="plan-info">
+            {{ __('Your plan') }} <strong>{{ $planLimit['plan'] ? $planLimit['plan']->title : __('None') }}</strong> {{ __('has reached its limit') }}. {{ __('Upgrade your account') }} {{ __('to add more properties') }}.
+        </div>
+        <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade your account') }}</a>
+    </div>
+    @endif
     <div class="flat-counter-v2 tf-counter">
         <div class="counter-box">
             <div class="box-icon w-68 round">
@@ -12,8 +25,12 @@
             <div class="content-box">
                 <div class="title-count">{{__('your Listing')}}</div>
                 <div class="d-flex align-items-end">
-                    <h6 class="number" data-speed="2000" data-to="{{count($properties)}}" data-inviewport="yes">{{count($properties)}}</h6>
-                    <span class="fw-7 text-variant-2">/{{count($properties)}} {{__('remaining')}}</span>
+                    @if(isset($planLimit))
+                    <h6 class="number" data-speed="2000" data-to="{{ $planLimit['used'] }}" data-inviewport="yes">{{ $planLimit['used'] }}</h6>
+                    <span class="fw-7 text-variant-2">/ {{ $planLimit['limit'] === -1 ? __('Unlimited') : $planLimit['limit'] }}@if($planLimit['remaining'] !== null && $planLimit['remaining'] > 0) ({{ __('remaining') }}: {{ $planLimit['remaining'] }})@endif</span>
+                    @else
+                    <h6 class="number" data-speed="2000" data-to="{{ $properties->total() }}" data-inviewport="yes">{{ $properties->total() }}</h6>
+                    @endif
                 </div>
 
             </div>

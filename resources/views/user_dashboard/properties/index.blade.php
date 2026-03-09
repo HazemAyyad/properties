@@ -3,10 +3,44 @@
 
     <!-- Toastr CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <style>
+        .plan-limit-box { border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; }
+        .plan-limit-box.allowed { background: linear-gradient(135deg, #e8f4f8 0%, #d4ebf2 100%); border: 1px solid #b8dde8; color: #0c5460; }
+        .plan-limit-box.limit-reached { background: linear-gradient(135deg, #fff9e8 0%, #fff5d6 100%); border: 1px solid #e5d4a1; color: #5a4a1a; box-shadow: 0 2px 8px rgba(184, 134, 11, 0.08); }
+        .plan-limit-box .plan-info { font-size: 1rem; line-height: 1.6; }
+        .plan-limit-box.allowed .plan-info strong { color: #1779A7; }
+        .plan-limit-box.limit-reached .plan-info { max-width: 600px; }
+        .plan-limit-box.limit-reached .plan-info strong { color: #b8860b; font-weight: 600; }
+        .plan-limit-box.limit-reached .plan-meta { font-size: 0.9rem; color: #7a6a2a; margin-top: 0.35rem; }
+    </style>
 
 @endsection
 @section('content')
 
+    @if(isset($planLimit))
+    <div class="widget-box-2 mb-4">
+        <div class="plan-limit-box {{ $planLimit['allowed'] ? 'allowed' : 'limit-reached' }}">
+            <div class="plan-info">
+                @if($planLimit['allowed'])
+                    <strong>{{ __('Your plan') }}</strong>: {{ $planLimit['plan'] ? $planLimit['plan']->title : __('None') }}
+                    &nbsp;·&nbsp;
+                    {{ __('Properties') }}: {{ $planLimit['used'] }} / {{ $planLimit['limit'] === -1 ? __('Unlimited') : ($planLimit['limit'] ?? '-') }}
+                    @if($planLimit['remaining'] !== null && $planLimit['remaining'] > 0)
+                        &nbsp;({{ __('remaining') }}: {{ $planLimit['remaining'] }})
+                    @endif
+                @else
+                    <strong>{{ __('Your plan') }} {{ $planLimit['plan'] ? $planLimit['plan']->title : __('None') }}</strong> {{ __('has reached its limit') }}. {{ __('Upgrade your account') }} {{ __('to add more properties') }}.
+                    <div class="plan-meta">{{ __('Properties') }}: {{ $planLimit['used'] }} / {{ $planLimit['limit'] ?? '-' }}</div>
+                @endif
+            </div>
+            @if(!$planLimit['allowed'])
+                <a href="{{ route('user.profile.upgrade') }}" class="tf-btn primary">{{ __('Upgrade your account') }}</a>
+            @else
+                <a href="{{ route('user.properties.create') }}" class="tf-btn primary">{{ __('Add Property') }}</a>
+            @endif
+        </div>
+    </div>
+    @endif
 
     <div class="widget-box-2 wd-listing">
         <h6 class="title">{{__('My Properties')}}</h6>

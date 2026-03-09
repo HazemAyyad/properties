@@ -425,6 +425,69 @@
         </section>
         <!-- End Service & Counter -->
         @endif
+        @if(isset($data_settings['vision_goals']) && $data_settings['vision_goals'] == 1 && isset($visionSection) && $visionSection)
+        <!-- Vision & Goals -->
+        <section class="flat-section flat-benefit bg-surface">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 mb-4 mb-lg-0">
+                        <div class="box-title wow fadeInUpSmall" data-wow-delay=".2s" data-wow-duration="2000ms">
+                            <div class="text-subtitle text-primary">{{ __('Vision & Goals') }}</div>
+                            <h4 class="mt-4">
+                                {{ $visionSection->getTranslation('vision_title', app()->getLocale()) }}
+                            </h4>
+                        </div>
+                        <p class="text-variant-1 p-16 mt-3 wow fadeInUpSmall" data-wow-delay=".3s" data-wow-duration="2000ms">
+                            {{ $visionSection->getTranslation('vision_description', app()->getLocale()) }}
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        @php
+                            $goalsTitle = $visionSection->getTranslation('goals_title', app()->getLocale());
+                        @endphp
+                        @if($goalsTitle)
+                            <div class="box-title mb-3 wow fadeInUpSmall" data-wow-delay=".2s" data-wow-duration="2000ms">
+                                <h5 class="mt-0">{{ $goalsTitle }}</h5>
+                            </div>
+                        @endif
+                        <div class="row">
+                            @foreach($visionGoals as $goal)
+                                <div class="col-md-6 mb-4">
+                                    <div class="box-benefit wow fadeInUpSmall" data-wow-delay=".{{ $loop->iteration }}s" data-wow-duration="2000ms">
+                                        @if($goal->icon)
+                                            @php
+                                                $imagePath = asset($goal->icon);
+                                                $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
+                                            @endphp
+                                            <div class="icon-box mb-3">
+                                                <img class="icon" src="{{ $correctedImagePath }}" alt="icon" style="height: 60px;width: 60px">
+                                            </div>
+                                        @endif
+                                        <div class="content">
+                                            <h6 class="title">
+                                                {{ $goal->getTranslation('title', app()->getLocale()) }}
+                                            </h6>
+                                            @php
+                                                $desc = $goal->getTranslation('description', app()->getLocale());
+                                            @endphp
+                                            @if($desc)
+                                                <p class="description mt-2">{{ $desc }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            @if($visionGoals->isEmpty())
+                                <p class="text-variant-1">{{ __('No goals available yet.') }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- End Vision & Goals -->
+        @endif
         @if(isset($data_settings['benefits']) && $data_settings['benefits'] == 1)
 
             <!-- Benefit -->
@@ -1078,18 +1141,18 @@
         // });
 
         document.addEventListener('DOMContentLoaded', function () {
-            var tabs = document.querySelectorAll('.nav-link-item');
             var selectedTabInput = document.getElementById('selectedTab');
-
-            // Set default value to 'rent' if selectedTab is not already set
-            if (!selectedTabInput.value) {
-                selectedTabInput.value = 'rent'; // or the actual value corresponding to your 'Rent' tab
+            if (!selectedTabInput) return;
+            var filterTabs = document.querySelectorAll('.nav-tab-form .nav-link-item');
+            if (!selectedTabInput.value || !['rent','sale'].includes(selectedTabInput.value)) {
+                selectedTabInput.value = 'rent';
             }
-
-            tabs.forEach(function (tab) {
+            filterTabs.forEach(function (tab) {
                 tab.addEventListener('click', function () {
-                    var selectedTab = this.getAttribute('href').substring(1);
-                    selectedTabInput.value = selectedTab;
+                    var href = this.getAttribute('href');
+                    if (href && (href === '#rent' || href === '#sale')) {
+                        selectedTabInput.value = href.substring(1);
+                    }
                 });
             });
         });

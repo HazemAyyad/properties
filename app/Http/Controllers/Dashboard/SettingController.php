@@ -248,6 +248,7 @@ class SettingController extends Controller
                 case 'agents':
                 case 'blogs':
                 case 'partners':
+                case 'vision_goals':
                     $setting->value = $request->input($setting->key, 0); // Set to 0 if unchecked
                     break;
             }

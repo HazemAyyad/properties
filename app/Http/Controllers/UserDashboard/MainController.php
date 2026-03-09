@@ -14,6 +14,7 @@ use App\Models\Jordan\Hod;
 use App\Models\Jordan\Village;
 use App\Models\State;
 use App\Models\User;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -51,15 +52,16 @@ class MainController extends Controller
 
 
 // Fetch reviews for each property
-          $propertyIds = $properties->pluck('id');
-          $reviews = PropertyReviews::query()
+        $propertyIds = $properties->pluck('id');
+        $reviews = PropertyReviews::query()
             ->whereIn('property_id', $propertyIds)
             ->with('user')
             ->get()
-            ->groupBy('property_id'); 
+            ->groupBy('property_id');
 
+        $planLimit = app(PlanLimitService::class)->canCreateProperty();
 
-        return view('user_dashboard.index',compact('properties','reviews'));
+        return view('user_dashboard.index', compact('properties', 'reviews', 'planLimit'));
     }
     public function get_users(Request $request)
     {

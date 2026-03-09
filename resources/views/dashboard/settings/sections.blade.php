@@ -31,7 +31,7 @@
                             @csrf
                             <div class="row">
                                 @foreach ($settings as $setting)
-                                    @if(in_array($setting->key, ['gallary_properties', 'cities', 'services', 'statistics', 'benefits', '4_top', 'people_says', 'agents', 'blogs', 'partners']))
+                                    @if(in_array($setting->key, ['gallary_properties', 'cities', 'services', 'statistics', 'benefits', '4_top', 'people_says', 'agents', 'blogs', 'partners', 'vision_goals']))
                                     <div class="form-check form-check-primary mt-4 col-md-4">
                                         <input class="form-check-input" type="checkbox" id="{{ $setting->key }}" name="{{ $setting->key }}" value="1" {{ $setting->value == 1 ? 'checked' : '' }}>
                                         <label class="form-check-label" for="{{ $setting->key }}">{{ ucfirst(str_replace('_', ' ', $setting->key)) }}</label>

@@ -1,4 +1,37 @@
 {{-- Shared category-specific filter sections (matches create form) --}}
+<style>
+.filter-category-section .filter-extra-features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 16px;
+    margin-top: 8px;
+}
+.filter-category-section .filter-amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 15px;
+    color: #5c6368;
+    font-weight: 400;
+}
+.filter-category-section .filter-amenity-item:hover {
+    color: #161e2d;
+}
+.filter-category-section .filter-amenity-item .tf-checkbox {
+    flex-shrink: 0;
+}
+.filter-category-section .filter-amenity-item .tf-checkbox:checked + .text-cb-amenities {
+    color: #161e2d;
+    font-weight: 500;
+}
+@media (max-width: 576px) {
+    .filter-category-section .filter-extra-features {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {{-- شقة Apartment --}}
 <div class="filter-category-section" data-category="apartment" style="display:none; width:100%;">
     <div class="group-select mb-2" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; width: 100%;">
@@ -45,15 +78,15 @@
             </select>
         </div>
     </div>
-    <div class="group-checkbox" style="width: 100%;">
-        <div class="text-1">{{__('Extra Features')}}</div>
-        <div class="group-amenities mt-8" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; width: 100%;">
+    <div class="form-style group-checkbox mt-3">
+        <label class="title-select text-variant-1 d-block mb-2">{{__('Extra Features')}}</label>
+        <div class="group-amenities filter-extra-features">
             @php $aptFeat = ['pool'=>'Pool','sewage_connected'=>'Sewage Connected','water_well'=>'Water Well','balcony'=>'Balcony','maid_room'=>'Maid Room','storage_room'=>'Storage Room','laundry_room'=>'Laundry Room','central_ac'=>'Central AC','car_parking'=>'Car Parking']; $exF = request('extra_features',[]); @endphp
             @foreach($aptFeat as $k=>$l)
-                <fieldset class="amenities-item">
+                <label class="amenities-item filter-amenity-item" for="apt_ef_{{ $k }}">
                     <input type="checkbox" class="tf-checkbox style-1" name="extra_features[]" value="{{ $k }}" id="apt_ef_{{ $k }}" {{ in_array($k, (array)$exF) ? 'checked' : '' }}>
-                    <label for="apt_ef_{{ $k }}" class="text-cb-amenities">{{ __($l) }}</label>
-                </fieldset>
+                    <span class="text-cb-amenities">{{ __($l) }}</span>
+                </label>
             @endforeach
         </div>
     </div>
@@ -95,14 +128,14 @@
             </select>
         </div>
     </div>
-    <div class="group-checkbox" style="width: 100%;">
-        <div class="text-1">{{__('Extra Features')}}</div>
-        <div class="group-amenities mt-8" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; width: 100%;">
+    <div class="form-style group-checkbox mt-3">
+        <label class="title-select text-variant-1 d-block mb-2">{{__('Extra Features')}}</label>
+        <div class="group-amenities filter-extra-features">
             @foreach(['pool'=>'Pool','sewage_connected'=>'Sewage Connected','water_well'=>'Water Well'] as $k=>$l)
-                <fieldset class="amenities-item">
+                <label class="amenities-item filter-amenity-item" for="villa_ef_{{ $k }}">
                     <input type="checkbox" class="tf-checkbox style-1" name="extra_features[]" value="{{ $k }}" id="villa_ef_{{ $k }}" {{ in_array($k, (array)request('extra_features',[])) ? 'checked' : '' }}>
-                    <label for="villa_ef_{{ $k }}" class="text-cb-amenities">{{ __($l) }}</label>
-                </fieldset>
+                    <span class="text-cb-amenities">{{ __($l) }}</span>
+                </label>
             @endforeach
         </div>
     </div>
@@ -181,14 +214,14 @@
             <input type="number" name="bathrooms" class="form-control" placeholder="{{__('Bathrooms')}}" value="{{ request('bathrooms') }}">
         </div>
     </div>
-    <div class="group-checkbox" style="width: 100%;">
-        <div class="text-1">{{__('Extra Features')}}</div>
-        <div class="group-amenities mt-8" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; width: 100%;">
+    <div class="form-style group-checkbox mt-3">
+        <label class="title-select text-variant-1 d-block mb-2">{{__('Extra Features')}}</label>
+        <div class="group-amenities filter-extra-features">
             @foreach(['pool'=>'Pool','sewage_connected'=>'Sewage Connected','water_well'=>'Water Well'] as $k=>$l)
-                <fieldset class="amenities-item">
+                <label class="amenities-item filter-amenity-item" for="farm_ef_{{ $k }}">
                     <input type="checkbox" class="tf-checkbox style-1" name="extra_features[]" value="{{ $k }}" id="farm_ef_{{ $k }}" {{ in_array($k, (array)request('extra_features',[])) ? 'checked' : '' }}>
-                    <label for="farm_ef_{{ $k }}" class="text-cb-amenities">{{ __($l) }}</label>
-                </fieldset>
+                    <span class="text-cb-amenities">{{ __($l) }}</span>
+                </label>
             @endforeach
         </div>
     </div>

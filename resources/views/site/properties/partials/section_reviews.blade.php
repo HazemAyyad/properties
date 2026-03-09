@@ -10,11 +10,18 @@
 
             <li class="list-review-item">
                 <div class="avatar avt-60 round">
-                    @php
-                        $imagePath = asset($review->user->photo);
-                        $correctedImagePath = str_replace('/public/public/', '/public/', $imagePath);
-                    @endphp
-                    <img src="{{$correctedImagePath}}" alt="avatar">
+                    @if(!empty($review->user->photo))
+                        @php
+                            $userPhotoPath = ltrim(str_replace('/public', '', $review->user->photo), '/');
+                            $userPhotoUrl = str_replace('/public/public/', '/public/', asset($userPhotoPath));
+                        @endphp
+                        <img src="{{ $userPhotoUrl }}" alt="{{ $review->user->name }}">
+                    @else
+                        @php
+                            $avatarPlaceholder = 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><rect width="128" height="128" fill="#e0e0e0"/><circle cx="64" cy="48" r="24" fill="#999"/><ellipse cx="64" cy="110" rx="40" ry="30" fill="#999"/></svg>');
+                        @endphp
+                        <img src="{{ $avatarPlaceholder }}" alt="{{ $review->user->name }}">
+                    @endif
                 </div>
                 <div class="content">
                     <div class="name h7 fw-7 text-black">{{$review->user->name}}
@@ -50,7 +57,7 @@
         </ul>
     </div>
     @auth('web')
-        @if(!$property->reviews->contains('user_id', auth()->id()))
+        @if(auth()->id() != $property->user_id && !$property->reviews->contains('user_id', auth()->id()))
     <div class="wrap-form-comment">
         <h6>Write A Review</h6>
         <div id="comments" class="comments">

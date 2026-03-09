@@ -4,7 +4,7 @@ namespace App\Http\Controllers\UserDashboard;
 
 use App\Events\NotificationEvent;
 use App\Http\Controllers\Controller;
-
+use App\Services\PlanLimitService;
 use App\Models\Country;
 use App\Models\Dashboard\Category;
 use App\Models\Dashboard\FeatureCategory;
@@ -65,12 +65,13 @@ class PropertyController extends Controller
         $slug = $this->generateUniqueSlug($request->name, 'slug', $lang);
         return response()->json(['slug' => $slug]);
     }
-    public function index(){
-        $properties=Property::query()
-            ->where('user_id',Auth::id())
+    public function index()
+    {
+        $properties = Property::query()
+            ->where('user_id', Auth::id())
             ->with([
                 'images' => function ($query) {
-                    $query->take(1); // Limit to the first image
+                    $query->take(1);
                 },
                 'price',
                 'more_info',
@@ -79,8 +80,10 @@ class PropertyController extends Controller
                 },
                 'user'
             ])->paginate(10);
-                return view('user_dashboard.properties.index',compact('properties'));
 
+        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+
+        return view('user_dashboard.properties.index', compact('properties', 'planLimit'));
     }
     public function reviews(){
         $user = Auth::user(); // Get the authenticated user
@@ -89,9 +92,9 @@ class PropertyController extends Controller
         $properties = $user->properties()->pluck('id'); // Get all property IDs owned by the user
 
         // Fetch all reviews for the user's properties
-        $reviews = PropertyReviews::whereIn('property_id', $properties) // Match reviews by property_id
-        ->with('property','user') // Eager load the property relationship
-        ->paginate(10);
+        $reviews = PropertyReviews::whereIn('property_id', $properties)
+            ->with(['property.images', 'property.price', 'user'])
+            ->paginate(10);
 
         return view('user_dashboard.reviews.index',compact('reviews'));
 
@@ -120,7 +123,14 @@ class PropertyController extends Controller
 
     }
 
-    public function create(){
+    public function create()
+    {
+        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        if (!$planLimit['allowed']) {
+            return redirect()
+                ->route('user.profile.upgrade')
+                ->with('error', $planLimit['message']);
+        }
 
         $categories=Category::all();
         $facilities=Facility::all();
@@ -135,8 +145,8 @@ class PropertyController extends Controller
         })->unique()->values(); // Remove duplicates and reindex
 
 
-                return view('user_dashboard.properties.create',compact('icons','categories',
-                    'countries','feature_categories','facilities','uniqueCurrencies'));
+                return view('user_dashboard.properties.create', compact('icons', 'categories',
+                    'countries', 'feature_categories', 'facilities', 'uniqueCurrencies', 'planLimit'));
 
     }
     public function edit($id){
@@ -158,7 +168,16 @@ class PropertyController extends Controller
             'countries','feature_categories','facilities','uniqueCurrencies','property'));
 
     }
-    public function store(Request $request){
+    public function store(Request $request)
+    {
+        $planLimit = app(PlanLimitService::class)->canCreateProperty();
+        if (!$planLimit['allowed']) {
+            return response()->json([
+                'message' => $planLimit['message'],
+                'redirect' => route('user.profile.upgrade'),
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'slug' => 'required',
@@ -397,10 +416,18 @@ class PropertyController extends Controller
             return response(["responseJSON" => $errors,"input"=>$input, "message" => 'Verify that the data is correct, fill in all fields'], 422);
         }
         if ($validator->passes()) {
-             $data=$request->all();
+             $property = Property::query()->where('id', $property_id)->first();
+             if (!$property) {
+                 return response()->json(['message' => __('Property not found')], 404);
+             }
+             if (Auth::id() == $property->user_id) {
+                 return response()->json(['message' => __('You cannot review your own property')], 403);
+             }
+             if (PropertyReviews::where('user_id', Auth::id())->where('property_id', $property_id)->exists()) {
+                 return response()->json(['message' => __('You have already reviewed this property')], 422);
+             }
             DB::beginTransaction();
             try {
-                 $property=Property::query()->where('id',$property_id)->first();
                  $property_review=PropertyReviews::query()->create([
                      'user_id'=>Auth::id(),
                      'property_id'=>$property_id,

@@ -25,6 +25,8 @@ use App\Models\PolicyCategory;
 use App\Models\Property;
 use App\Models\Dashboard\Service;
 use App\Models\Dashboard\Setting;
+use App\Models\Dashboard\VisionSection;
+use App\Models\Dashboard\VisionGoal;
 use App\Models\Slider;
 use App\Models\State;
 use App\Models\User;
@@ -84,8 +86,19 @@ class SiteController extends Controller
         $sliders= Slider::where('page', 'slider')->get();
         $governorates = \App\Models\Jordan\Governorate::orderBy('governorate_name_ar')->get();
         $filterCategories = Category::where('status', 1)->orderBy('id')->get();
+
+        $visionSection = VisionSection::query()->where('is_active', true)->first();
+        $visionGoals = collect();
+        if ($visionSection) {
+            $visionGoals = VisionGoal::query()
+                ->where('vision_section_id', $visionSection->id)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
+        }
+
         return view('site.index',compact('categories','filterCategories','top_properties','features','agents',
-        'people_says','benefits','services','locations','partners','blogs','sliders','governorates'));
+        'people_says','benefits','services','locations','partners','blogs','sliders','governorates','visionSection','visionGoals'));
     }
     public function privacy_policy()
     {
@@ -148,13 +161,24 @@ class SiteController extends Controller
 
         // Filters
         if ($keyword) {
-            $propertiesQuery->where('title', 'like', "%{$keyword}%");
+            // Normalize keyword to catch cases like "test 2" vs "test-2"
+            $normalizedKeyword = str_replace(' ', '-', $keyword);
+
+            $propertiesQuery->where(function ($q) use ($keyword, $normalizedKeyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('title', 'like', "%{$normalizedKeyword}%")
+                    ->orWhere('slug', 'like', "%{$keyword}%")
+                    ->orWhere('slug', 'like', "%{$normalizedKeyword}%");
+            });
         }
 
         if ($selectedTab) {
             $typeValues = is_array($selectedTab) ? $selectedTab : [$selectedTab];
-            $mapped = collect($typeValues)->map(fn($t) => $t === 'rent' ? 0 : ($t === 'sale' ? 1 : $t))->toArray();
-            $propertiesQuery->whereIn('type', $mapped);
+            $mapped = collect($typeValues)->filter(fn($t) => $t === 'rent' || $t === 'sale')
+                ->map(fn($t) => $t === 'rent' ? 0 : 1)->values()->toArray();
+            if (!empty($mapped)) {
+                $propertiesQuery->whereIn('type', $mapped);
+            }
         }
 
         if ($categoryId) {
@@ -173,15 +197,36 @@ class SiteController extends Controller
             $propertiesQuery->whereHas('more_info', fn($q) => $q->where('bedrooms', $bedrooms));
         }
 
-        if (!is_null($minPrice) && !is_null($maxPrice)) {
-            $propertiesQuery->whereHas('price', function ($q) use ($minPrice, $maxPrice) {
-                $q->whereBetween('price', [(float) $minPrice, (float) $maxPrice]);
+        // Price & size: skip filter when slider is at "full range" (e.g. min_currency-max_currency, min_size-max_size)
+        $sliderLimits = Setting::whereIn('key', ['min_currency', 'max_currency', 'min_size', 'max_size'])->pluck('value', 'key');
+        $minPriceF = (float) ($minPrice ?? 0);
+        $maxPriceF = (float) ($maxPrice ?? 1000000);
+        $sliderMinPrice = (float) ($sliderLimits['min_currency'] ?? 0);
+        $sliderMaxPrice = (float) ($sliderLimits['max_currency'] ?? 1000000);
+        $isFullPriceRange = ($minPriceF <= $sliderMinPrice && $maxPriceF >= $sliderMaxPrice) || ($maxPriceF - $minPriceF >= 990000);
+        if (!$isFullPriceRange) {
+            $propertiesQuery->whereHas('price', function ($q) use ($minPriceF, $maxPriceF) {
+                $q->whereBetween('price', [$minPriceF, $maxPriceF]);
             });
         }
 
-        if ($minSize || $maxSize) {
-            $propertiesQuery->whereHas('more_info', function ($q) use ($minSize, $maxSize) {
-                $q->whereBetween('size', [$minSize, $maxSize]);
+        $minSizeF = (float) ($minSize ?? 0);
+        $maxSizeF = (float) ($maxSize ?? 10000);
+        $sliderMinSize = (float) ($sliderLimits['min_size'] ?? 0);
+        $sliderMaxSize = (float) ($sliderLimits['max_size'] ?? 10000);
+        $isFullSizeRange = ($minSizeF <= $sliderMinSize && $maxSizeF >= $sliderMaxSize) || ($maxSizeF - $minSizeF >= 9000);
+        if (!$isFullSizeRange) {
+            $propertiesQuery->whereHas('more_info', function ($q) use ($minSizeF, $maxSizeF) {
+                $q->where(function ($sq) use ($minSizeF, $maxSizeF) {
+                    $sq->whereBetween('size', [$minSizeF, $maxSizeF])
+                        ->orWhere(function ($o) use ($minSizeF, $maxSizeF) {
+                            $o->where('size', '<=', $maxSizeF)
+                                ->where(function ($inner) use ($minSizeF) {
+                                    $inner->where('size_max', '>=', $minSizeF)
+                                        ->orWhereNull('size_max');
+                                });
+                        });
+                });
             });
         }
 
@@ -232,17 +277,16 @@ class SiteController extends Controller
             $propertiesQuery->whereHas('address', fn($q) => $q->where('plot_number', 'like', '%' . $plotNumber . '%'));
         }
 
-        // Featured listing first (approved and valid until date), then apply sort
-        $propertiesQuery->orderByRaw('(CASE WHEN properties.is_featured=1 AND properties.featured_listing_until IS NOT NULL AND properties.featured_listing_until >= CURDATE() THEN 0 ELSE 1 END) ASC');
-
-        // Sorting
+        // Sorting: when user chooses "Sort by Price", respect price order strictly.
+        // When sorting by date, show featured first then by date.
         if ($sortField === 'price') {
-            // Sort by related table: property_prices.price
             $propertiesQuery->leftJoin('property_prices', 'properties.id', '=', 'property_prices.property_id')
                 ->orderBy('property_prices.price', $sortDirection)
-                ->select('properties.*'); // To avoid ambiguous column error
+                ->select('properties.*');
         } else {
-            $propertiesQuery->orderBy($sortField, $sortDirection);
+            // Featured first (when sorting by date), then by sort field
+            $propertiesQuery->orderByRaw('(CASE WHEN properties.is_featured=1 AND properties.featured_listing_until IS NOT NULL AND properties.featured_listing_until >= CURDATE() THEN 0 ELSE 1 END) ASC')
+                ->orderBy($sortField, $sortDirection);
         }
 
         $properties = $propertiesQuery->paginate($perPage);

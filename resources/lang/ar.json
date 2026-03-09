@@ -71,7 +71,9 @@
   "Successful Transactions": "المعاملات الناجحة",
   "Monthly Traffic": "حركة المرور الشهرية",
   "Learn More": "تعلم أكثر",
+  "Vision & Goals": "الرؤية والأهداف",
   "Our Benefits": "فوائدنا",
+  "No goals available yet.": "لا توجد أهداف متاحة بعد."
   "Why Choose": "لماذا اخترت",
   "Top Properties": "أفضل العقارات",
   "Best Property Value": "أفضل قيمة للعقار",
@@ -948,5 +950,20 @@
   "Paste the full iframe HTML or the src URL of the 3D tour embed.": "الصق كود iframe الكامل أو رابط src للجولة ثلاثية الأبعاد.",
   "Edit iframe": "تعديل iframe",
   "Edit 3D Tour iframe": "تعديل iframe جولة 3D",
-  "3D Tour iframe updated.": "تم تحديث iframe جولة 3D."
+  "3D Tour iframe updated.": "تم تحديث iframe جولة 3D.",
+  "distance_m": "م",
+  "distance_km": "كم",
+  "Your plan": "خطتك",
+  "Upgrade Plan": "ترقية الخطة",
+  "Upgrade your account": "رقّي حسابك",
+  "to add more properties": "لإضافة عقارات أكثر",
+  "Unlimited": "غير محدود",
+  "You need an active subscription plan before adding properties.": "تحتاج إلى خطة اشتراك نشطة قبل إضافة العقارات.",
+  "You need an active plan. Upgrade your account to add properties.": "تحتاج خطة نشطة. رقّي حسابك لإضافة العقارات.",
+  "You have reached the maximum number of properties allowed by your current plan.": "لقد وصلت إلى الحد الأقصى لعدد العقارات المسموح به في خطتك الحالية.",
+  "Please upgrade your plan to add more properties.": "يرجى ترقية خطتك لإضافة المزيد من العقارات.",
+  "Your plan :plan has reached its limit. Upgrade your account to add more properties.": "خطة :plan وصلت لحدها. رقّي حسابك لإضافة عقارات أكثر.",
+  "has reached its limit": "وصلت لحدها",
+  "Plan": "الخطة",
+  "None": "لا يوجد"
 }

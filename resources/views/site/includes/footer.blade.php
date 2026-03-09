@@ -543,14 +543,26 @@
                 let icon = $('#favorite-icon-' + propertyId);
                 if (response.status === 'added') {
                     icon.removeClass('icon-heart').addClass('fa-solid fa-heart');
-                    alert('Property added to favorites.');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('{{ __("Added to favorites") }}', '', { timeOut: 2500, closeButton: true });
+                    } else {
+                        alert('{{ __("Property added to favorites.") }}');
+                    }
                 } else if (response.status === 'removed') {
                     icon.removeClass('fa-solid fa-heart').addClass('icon-heart');
-                    alert('Property removed from favorites.');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.info('{{ __("Removed from favorites") }}', '', { timeOut: 2500, closeButton: true });
+                    } else {
+                        alert('{{ __("Property removed from favorites.") }}');
+                    }
                 }
             },
             error: function() {
-                alert('There was an error. Please try again.');
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('{{ __("There was an error. Please try again.") }}');
+                } else {
+                    alert('{{ __("There was an error. Please try again.") }}');
+                }
             },
             complete: function() {
                 // Hide and remove the loader

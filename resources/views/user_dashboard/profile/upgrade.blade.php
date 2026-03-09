@@ -16,6 +16,11 @@
     </style>
 @endsection
 @section('content')
+    @if(session('error'))
+    <div class="plan-limit-msg" style="background: linear-gradient(135deg, #fff8e6 0%, #fff3cd 100%); border: 1px solid #e8d88a; border-radius: 12px; padding: 1rem 1.25rem; color: #6c5a2b; margin-bottom: 1.5rem; font-size: 0.95rem;">
+        {{ session('error') }}
+    </div>
+    @endif
     <div class="widget-box-2">
         <div class="upgrade-hero">
             <h5 class="mb-1">{{ __('Upgrade Plan') }}</h5>

@@ -10,10 +10,11 @@
 
 // Initialize slider:
 $(document).ready(function () {
-    // Parse the query parameters from the URL
     const urlParams = new URLSearchParams(window.location.search);
-    const minValue = urlParams.get('min-value') || minCurrency; // Default to 100 if not found
-    const maxValue = urlParams.get('max-value') || maxCurrency; // Default to 650000 if not found
+    const hiddenMin = document.querySelector('input[name="min-value"]');
+    const hiddenMax = document.querySelector('input[name="max-value"]');
+    const minValue = urlParams.get('min-value') ?? (hiddenMin ? hiddenMin.value : null) ?? minCurrency;
+    const maxValue = urlParams.get('max-value') ?? (hiddenMax ? hiddenMax.value : null) ?? maxCurrency;
 
     $(".noUi-handle").on("click", function () {
         $(this).width(50);
@@ -26,12 +27,13 @@ $(document).ready(function () {
         prefix: currency+' ',
     });
 
-    // Initialize noUiSlider with values from the query parameters or default values
+    // Allow 0 for "no minimum" - use lower of 0 and minCurrency
+    const rangeMin = Math.min(0, minCurrency);
     noUiSlider.create(rangeSlider, {
-        start: [minValue, maxValue], // Set initial values from URL params or defaults
+        start: [Number(minValue) || rangeMin, Number(maxValue) || maxCurrency],
         step: 1,
         range: {
-            min: [minCurrency],
+            min: [rangeMin],
             max: [maxCurrency],
         },
         format: moneyFormat,
@@ -52,10 +54,11 @@ $(document).ready(function () {
 
 
 $(document).ready(function () {
-    // Parse the query parameters from the URL for second slider
     const urlParams = new URLSearchParams(window.location.search);
-    const minValue2 = urlParams.get('min-value2') || minSize; // Default to 500 if not found
-    const maxValue2 = urlParams.get('max-value2') || maxSize; // Default to 1500 if not found
+    const hiddenMin2 = document.querySelector('input[name="min-value2"]');
+    const hiddenMax2 = document.querySelector('input[name="max-value2"]');
+    const minValue2 = urlParams.get('min-value2') ?? (hiddenMin2 ? hiddenMin2.value : null) ?? minSize;
+    const maxValue2 = urlParams.get('max-value2') ?? (hiddenMax2 ? hiddenMax2.value : null) ?? maxSize;
 
     // Handle click event for the second slider handles
     $(".noUi-handle2").on("click", function () {
@@ -69,12 +72,12 @@ $(document).ready(function () {
         postfix: ' '+unitSize, // Square meters format
     });
 
-    // Initialize the second slider with values from the query parameters or default values
+    const rangeMin2 = Math.min(0, minSize);
     noUiSlider.create(rangeSlider2, {
-        start: [minValue2, maxValue2], // Set initial values from URL params or defaults
+        start: [Number(minValue2) || rangeMin2, Number(maxValue2) || maxSize],
         step: 1,
         range: {
-            min: [minSize],
+            min: [rangeMin2],
             max: [maxSize],
         },
         format: moneyFormat2,

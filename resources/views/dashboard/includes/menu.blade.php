@@ -20,7 +20,6 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
-        {{-- 1. Dashboard --}}
         <li class="menu-item {{ Route::is('admin.dashboard') ? 'active' : '' }}">
             <a href="{{ route('admin.dashboard') }}" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-smart-home"></i>
@@ -28,28 +27,30 @@
             </a>
         </li>
 
-        {{-- 2. Roles --}}
-        <li class="menu-item {{ Route::is('admin.roles.*') ? 'active' : '' }}">
-            <a href="{{ route('admin.roles.index') }}" class="menu-link">
+        <li class="menu-item {{ Route::is('admin.roles.*') || Route::is('admin.staff.*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-lock"></i>
-                <div data-i18n="{{ __('Role Management') }}">{{ __('Role Management') }}</div>
+                <div data-i18n="{{ __('Access & Staff') }}">{{ __('Access & Staff') }}</div>
             </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ Route::is('admin.roles.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.roles.index') }}" class="menu-link">
+                        <div data-i18n="{{ __('Role Management') }}">{{ __('Role Management') }}</div>
+                    </a>
+                </li>
+                <li class="menu-item {{ Route::is('admin.staff.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.staff.index') }}" class="menu-link">
+                        <div data-i18n="{{ __('Staff') }}">{{ __('Staff') }}</div>
+                    </a>
+                </li>
+            </ul>
         </li>
 
-        {{-- 3. Staff --}}
-        <li class="menu-item {{ Route::is('admin.staff.*') ? 'active' : '' }}">
-            <a href="{{ route('admin.staff.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-app-window"></i>
-                <div data-i18n="{{ __('Staff') }}">{{ __('Staff') }}</div>
-            </a>
-        </li>
-
-        {{-- 4. Users Management --}}
         @can('User Management')
         <li class="menu-item {{ Route::is('admin.users.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-users"></i>
-                <div data-i18n="{{ __('Users Management') }}">{{ __('Users Management') }}</div>
+                <div data-i18n="{{ __('Users') }}">{{ __('Users') }}</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item {{ Route::is('admin.users.index') ? 'active' : '' }}">
@@ -66,11 +67,10 @@
         </li>
         @endcan
 
-        {{-- 5. Properties Management --}}
         <li class="menu-item {{ Route::is('admin.properties.*') || Route::is('admin.categories.index') || Route::is('admin.feature_categories.*') || Route::is('admin.property_features.*') || Route::is('admin.property_facilities.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-building"></i>
-                <div data-i18n="{{ __('Properties Management') }}">{{ __('Properties Management') }}</div>
+                <div data-i18n="{{ __('Properties') }}">{{ __('Properties') }}</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item {{ request()->routeIs('admin.properties.index') && request()->route('status') == '1' ? 'active' : '' }}">
@@ -121,7 +121,6 @@
             </ul>
         </li>
 
-        {{-- 6. Subscriptions & Plans --}}
         <li class="menu-item {{ Route::is('admin.plans.*') || Route::is('admin.plan_features.*') || Route::is('admin.plan-upgrade-requests.*') || Route::is('admin.subscriptions.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-credit-card"></i>
@@ -151,11 +150,10 @@
             </ul>
         </li>
 
-        {{-- 7. Content Management (Site Management) --}}
-        <li class="menu-item {{ Route::is('admin.partners.*') || Route::is('admin.agents.*') || Route::is('admin.people_say.*') || Route::is('admin.benefits.*') || Route::is('admin.services.*') || Route::is('admin.vision.*') || Route::is('admin.vision_goals.*') || Route::is('admin.countries.*') || Route::is('admin.faqs.*') || Route::is('admin.policies.*') || Route::is('admin.blogs.*') || Route::is('admin.provinces.*') ? 'active open' : '' }}">
+        <li class="menu-item {{ Route::is('admin.partners.*') || Route::is('admin.agents.*') || Route::is('admin.people_say.*') || Route::is('admin.benefits.*') || Route::is('admin.services.*') || Route::is('admin.vision.*') || Route::is('admin.vision_goals.*') || Route::is('admin.faqs.*') || Route::is('admin.policies.*') || Route::is('admin.blogs.*') || Route::is('admin.settings.page_slider') || (Route::is('admin.settings.page') && in_array(request()->route('page_name'), ['sections', 'about_us'])) ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-file-text"></i>
-                <div data-i18n="{{ __('Site Management') }}">{{ __('Site Management') }}</div>
+                <div data-i18n="{{ __('Site Content') }}">{{ __('Site Content') }}</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item {{ Route::is('admin.partners.*') ? 'active' : '' }}">
@@ -200,9 +198,14 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item {{ Route::is('admin.countries.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.countries.index') }}" class="menu-link">
-                        <div data-i18n="{{ __('Countries') }}">{{ __('Countries') }}</div>
+                <li class="menu-item {{ Route::is('admin.settings.page') && request()->route('page_name') == 'sections' ? 'active' : '' }}">
+                    <a href="{{ route('admin.settings.page', 'sections') }}" class="menu-link">
+                        <div data-i18n="{{ __('Sections') }}">{{ __('Sections') }}</div>
+                    </a>
+                </li>
+                <li class="menu-item {{ Route::is('admin.settings.page_slider') ? 'active' : '' }}">
+                    <a href="{{ route('admin.settings.page_slider') }}" class="menu-link">
+                        <div data-i18n="{{ __('Slider') }}">{{ __('Slider') }}</div>
                     </a>
                 </li>
                 <li class="menu-item {{ Route::is('admin.faqs.*') ? 'active' : '' }}">
@@ -215,14 +218,28 @@
                         <div data-i18n="{{ __('Policies') }}">{{ __('Policies') }}</div>
                     </a>
                 </li>
+                <li class="menu-item {{ Route::is('admin.settings.page') && request()->route('page_name') == 'about_us' ? 'active' : '' }}">
+                    <a href="{{ route('admin.settings.page', 'about_us') }}" class="menu-link">
+                        <div data-i18n="{{ __('About Us') }}">{{ __('About Us') }}</div>
+                    </a>
+                </li>
                 <li class="menu-item {{ Route::is('admin.blogs.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.blogs.index') }}" class="menu-link">
                         <div data-i18n="{{ __('Blogs') }}">{{ __('Blogs') }}</div>
                     </a>
                 </li>
-                <li class="menu-item {{ Route::is('admin.settings.page') && request()->route('page_name') == 'about_us' ? 'active' : '' }}">
-                    <a href="{{ route('admin.settings.page', 'about_us') }}" class="menu-link">
-                        <div data-i18n="{{ __('About Us') }}">{{ __('About Us') }}</div>
+            </ul>
+        </li>
+
+        <li class="menu-item {{ Route::is('admin.countries.*') || Route::is('admin.provinces.*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-map-pin"></i>
+                <div data-i18n="{{ __('Locations') }}">{{ __('Locations') }}</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ Route::is('admin.countries.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.countries.index') }}" class="menu-link">
+                        <div data-i18n="{{ __('Countries') }}">{{ __('Countries') }}</div>
                     </a>
                 </li>
                 <li class="menu-item {{ Route::is('admin.provinces.*') ? 'active' : '' }}">
@@ -233,29 +250,11 @@
             </ul>
         </li>
 
-        {{-- 8. Settings --}}
-        <li class="menu-item {{ Route::is('admin.settings.*') ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <li class="menu-item {{ Route::is('admin.settings.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.settings.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-settings"></i>
                 <div data-i18n="{{ __('Settings') }}">{{ __('Settings') }}</div>
             </a>
-            <ul class="menu-sub">
-                <li class="menu-item {{ (Route::is('admin.settings.page') && request()->route('page_name') == 'settings') || Route::is('admin.settings.index') ? 'active' : '' }}">
-                    <a href="{{ route('admin.settings.index') }}" class="menu-link">
-                        <div data-i18n="{{ __('General Settings') }}">{{ __('General Settings') }}</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ Route::is('admin.settings.page') && request()->route('page_name') == 'sections' ? 'active' : '' }}">
-                    <a href="{{ route('admin.settings.page', 'sections') }}" class="menu-link">
-                        <div data-i18n="{{ __('Sections') }}">{{ __('Sections') }}</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ Route::is('admin.settings.page_slider') ? 'active' : '' }}">
-                    <a href="{{ route('admin.settings.page_slider') }}" class="menu-link">
-                        <div data-i18n="{{ __('Slider') }}">{{ __('Slider') }}</div>
-                    </a>
-                </li>
-            </ul>
         </li>
     </ul>
 </aside>

@@ -11,23 +11,20 @@ use Ramsey\Uuid\Uuid;
 
 class SettingController extends Controller
 {
-    public function index(){
+    public function index()
+    {
+        $keys = [
+            'whatsapp', 'youtube', 'twitter', 'facebook', 'instagram', 'linkedin',
+            'slogan', 'slogan_ar', 'contact_us', 'contact_us_ar', 'main_logo', 'secondary_logo',
+        ];
+        $setting = [];
+        foreach ($keys as $key) {
+            $setting[$key] = Setting::query()->where('key', $key)->first()?->value ?? '';
+        }
 
+        $settings = Setting::all();
 
-        $setting['whatsapp'] = Setting::query()->where('key','whatsapp')->first()->value;
-        $setting['youtube'] = Setting::query()->where('key','youtube')->first()->value;
-        $setting['twitter'] = Setting::query()->where('key','twitter')->first()->value;
-        $setting['facebook'] = Setting::query()->where('key','facebook')->first()->value;
-        $setting['instagram'] = Setting::query()->where('key','instagram')->first()->value;
-        $setting['linkedin'] = Setting::query()->where('key','linkedin')->first()->value;
-        $setting['slogan'] = Setting::query()->where('key','slogan')->first()->value;
-        $setting['slogan_ar'] = Setting::query()->where('key','slogan_ar')->first()->value;
-        $setting['contact_us'] = Setting::query()->where('key','contact_us')->first()->value;
-        $setting['contact_us_ar'] = Setting::query()->where('key','contact_us_ar')->first()->value;
-        $setting['main_logo'] = Setting::query()->where('key','main_logo')->first()->value;
-        $setting['secondary_logo'] = Setting::query()->where('key','secondary_logo')->first()->value;
-
-        return view('dashboard.settings.index',compact('setting'));
+        return view('dashboard.settings.index', compact('setting', 'settings'));
 
     }
     public function page($page_name)

@@ -78,16 +78,15 @@
                                 <textarea   class="form-control" id="desc_contact_us" required name="contact_us_ar"  rows="5">{{$setting['contact_us_ar']}}</textarea>
                             </div>
                             <div class="row">
-                                @foreach ($settings as $setting)
-
-                                    @if($setting->key == 'address')
+                                @foreach ($settings as $settingItem)
+                                    @if($settingItem->key == 'address')
                                         <div class="form-group mb-3">
                                             <label class="form-label" for="address">{{ __('Address (EN)') }}</label>
-                                            <textarea id="why_choose_us" name="address" class="form-control" rows="5">{{ $setting->value }}</textarea>
+                                            <textarea id="why_choose_us" name="address" class="form-control" rows="5">{{ $settingItem->value }}</textarea>
                                         </div>
                                         <div class="form-group mb-3">
                                             <label class="form-label" for="address_ar">{{ __('Address (AR)') }}</label>
-                                            <textarea id="why_choose_us_ar" name="address_ar" class="form-control" rows="5">{{ $setting->value_ar }}</textarea>
+                                            <textarea id="why_choose_us_ar" name="address_ar" class="form-control" rows="5">{{ $settingItem->value_ar }}</textarea>
                                         </div>
                                     @endif
                                 @endforeach

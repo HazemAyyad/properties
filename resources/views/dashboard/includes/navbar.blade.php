@@ -97,7 +97,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="javascript:void(0);">
+                            <div class="dropdown-item cursor-default">
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="avatar avatar-online">
@@ -113,34 +113,11 @@
                                         <small class="text-muted">{{ $admin->type ?? __('Administrator') }}</small>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         </li>
+                        <li><div class="dropdown-divider"></div></li>
                         <li>
-                            <div class="dropdown-divider"></div>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);">
-                                <i class="ti ti-user me-2 ti-sm"></i>
-                                <span class="align-middle">{{ __('Profile') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);">
-                                <i class="ti ti-settings me-2 ti-sm"></i>
-                                <span class="align-middle">{{ __('Account Settings') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);">
-                                <i class="ti ti-lock me-2 ti-sm"></i>
-                                <span class="align-middle">{{ __('Change Password') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <div class="dropdown-divider"></div>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('admin.logout') }}"
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="ti ti-logout me-2 ti-sm"></i>
                                 <span class="align-middle">{{ __('Log Out') }}</span>

@@ -15,11 +15,25 @@ class SettingController extends Controller
     {
         $keys = [
             'whatsapp', 'youtube', 'twitter', 'facebook', 'instagram', 'linkedin',
-            'slogan', 'slogan_ar', 'contact_us', 'contact_us_ar', 'main_logo', 'secondary_logo',
+            'slogan', 'contact_us', 'main_logo', 'secondary_logo',
+            'site_name', 'favicon', 'address',
         ];
         $setting = [];
+        $rows = Setting::query()->whereIn('key', $keys)->get()->keyBy('key');
+
         foreach ($keys as $key) {
-            $setting[$key] = Setting::query()->where('key', $key)->first()?->value ?? '';
+            $row = $rows->get($key);
+            if ($row) {
+                $setting[$key] = $row->value ?? '';
+                if (in_array($key, ['slogan', 'contact_us', 'address', 'site_name'])) {
+                    $setting[$key . '_ar'] = $row->value_ar ?? '';
+                }
+            } else {
+                $setting[$key] = '';
+                if (in_array($key, ['slogan', 'contact_us', 'address', 'site_name'])) {
+                    $setting[$key . '_ar'] = '';
+                }
+            }
         }
 
         $settings = Setting::all();
@@ -259,23 +273,55 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
-        // Loop through all request inputs
+        $arKeys = ['slogan_ar', 'contact_us_ar', 'address_ar', 'site_name_ar'];
+
         foreach ($request->all() as $name => $value) {
+            if ($name === '_token') {
+                continue;
+            }
+            // Arabic values: update value_ar on the main key row (e.g. slogan_ar -> row key "slogan")
+            if (in_array($name, $arKeys)) {
+                $mainKey = str_replace('_ar', '', $name);
+                $setting = Setting::query()->where('key', $mainKey)->first();
+                if ($setting) {
+                    $setting->value_ar = $value;
+                    $setting->save();
+                } else {
+                    Setting::query()->updateOrInsert(
+                        ['key' => $mainKey, 'page' => 'settings'],
+                        ['value' => '', 'value_ar' => $value, 'name' => $mainKey, 'name_ar' => $mainKey, 'created_at' => now(), 'updated_at' => now()]
+                    );
+                }
+                continue;
+            }
             // Check if the input is a file and handle file uploads
             if ($request->hasFile($name)) {
                 $file = $request->file($name);
                 $file_name = '/uploads/settings/' . Uuid::uuid4() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/settings/'), $file_name);
 
-                // Update the setting in the database with the file path
-                Setting::query()->where('key', $name)->update([
-                    'value' => $file_name,
-                ]);
+                Setting::query()->updateOrInsert(
+                    ['key' => $name, 'page' => 'settings'],
+                    ['value' => $file_name, 'value_ar' => null, 'name' => $name, 'name_ar' => $name, 'created_at' => now(), 'updated_at' => now()]
+                );
             } else {
-                // Update other settings
-                Setting::query()->where('key', $name)->update([
-                    'value' => $value,
-                ]);
+                $setting = Setting::query()->where('key', $name)->first();
+                if ($setting) {
+                    $setting->value = $value;
+                    $setting->updated_at = now();
+                    $setting->save();
+                } else {
+                    \DB::table('settings')->insert([
+                        'key' => $name,
+                        'value' => $value,
+                        'value_ar' => null,
+                        'name' => $name,
+                        'name_ar' => $name,
+                        'page' => 'settings',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
 

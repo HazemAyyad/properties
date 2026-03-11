@@ -38,6 +38,8 @@ class MainData
                 'linkedin',
                 'main_logo',
                 'secondary_logo',
+                'favicon',
+                'site_name',
                 'address',
                 'gallary_properties',
                 'cities',
@@ -57,6 +59,9 @@ class MainData
         $data_settings=[];
         foreach ($settings_all as $item){
             $data_settings[$item->key]=$item->value;
+            if (!empty($item->value_ar)) {
+                $data_settings[$item->key.'_ar']=$item->value_ar;
+            }
         }
             $view->with('lang', ['ar','en'] );
             $view->with('data_settings', $data_settings);

@@ -38,6 +38,14 @@
 
 
                             <div class="form-group">
+                                <label class="form-label" for="site_name">{{__('Site Name')}}</label>
+                                <input type="text" class="form-control" id="site_name" value="{{ $setting['site_name'] ?? '' }}" name="site_name" placeholder="{{__('Site Name')}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="site_name_ar">{{__('Site Name (Arabic)')}}</label>
+                                <input type="text" class="form-control" id="site_name_ar" value="{{ $setting['site_name_ar'] ?? '' }}" name="site_name_ar" placeholder="{{__('Site Name (Arabic)')}}"/>
+                            </div>
+                            <div class="form-group">
                                 <label class="form-label" for="whatsapp">{{__('Whatsapp')}}</label>
                                 <input type="text" class="form-control" id="whatsapp" value="{{$setting['whatsapp']}}" name="whatsapp"  placeholder="{{__('Whatsapp')}}" required/>
                             </div>
@@ -66,16 +74,16 @@
                                 <textarea   class="form-control" id="slogan" required name="slogan"  rows="5">{{$setting['slogan']}}</textarea>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="slogan">{{__('Slogan Ar')}}</label>
-                                <textarea   class="form-control" id="slogan" required name="slogan_ar"  rows="5">{{$setting['slogan_ar']}}</textarea>
+                                <label class="form-label" for="slogan_ar">{{__('Slogan Ar')}}</label>
+                                <textarea class="form-control" id="slogan_ar" name="slogan_ar" rows="5">{{ $setting['slogan_ar'] ?? '' }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="desc_contact_us">{{__('Description Contact Us')}}</label>
-                                <textarea   class="form-control" id="desc_contact_us" required name="contact_us"  rows="5">{{$setting['contact_us']}}</textarea>
+                                <textarea class="form-control" id="desc_contact_us" required name="contact_us" rows="5">{{ $setting['contact_us'] ?? '' }}</textarea>
                             </div>
-                               <div class="form-group">
-                                <label class="form-label" for="desc_contact_us">{{__('Description Contact Us Ar')}}</label>
-                                <textarea   class="form-control" id="desc_contact_us" required name="contact_us_ar"  rows="5">{{$setting['contact_us_ar']}}</textarea>
+                            <div class="form-group">
+                                <label class="form-label" for="desc_contact_us_ar">{{__('Description Contact Us Ar')}}</label>
+                                <textarea class="form-control" id="desc_contact_us_ar" name="contact_us_ar" rows="5">{{ $setting['contact_us_ar'] ?? '' }}</textarea>
                             </div>
                             <div class="row">
                                 @foreach ($settings as $settingItem)
@@ -119,6 +127,24 @@
                                     </div>
 
                                 </div>
+                                <div class="col-md-6">
+                                    <!-- Favicon / Icon Section -->
+                                    <div class="form-group">
+                                        <label class="form-label" for="favicon">{{__('Favicon / Site Icon')}}</label>
+                                        @if(isset($setting['favicon']) && !empty($setting['favicon']))
+                                            <div class="mb-3">
+                                                <img id="favicon_preview" src="{{ asset($setting['favicon']) }}" alt="Favicon" style="max-width: 32px; max-height: 32px;">
+                                            </div>
+                                        @else
+                                            <div class="mb-3">
+                                                <img id="favicon_preview" src="#" alt="Favicon" style="max-width: 32px; max-height: 32px; display: none;">
+                                            </div>
+                                        @endif
+                                        <input type="file" class="form-control" id="favicon" name="favicon" accept=".ico,.png" onchange="previewImage('favicon', 'favicon_preview')" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-6">
                                     <!-- Secondary Logo Section -->
                                     <div class="form-group">

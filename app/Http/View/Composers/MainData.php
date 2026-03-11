@@ -33,6 +33,8 @@ class MainData
                 'instagram',
                 'slogan',
                 'slogan_ar',
+                'contact_us',
+                'contact_us_ar',
                 'linkedin',
                 'main_logo',
                 'secondary_logo',

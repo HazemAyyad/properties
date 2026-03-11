@@ -37,7 +37,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="footer-cl-1">
 
-                        <p class="text-variant-2">{{__('Specializes in providing high-class tours for those in need. Contact Us')}}</p>
+                        <p class="text-variant-2">{{ app()->getLocale() === 'ar' ? ($data_settings['contact_us_ar'] ?? __('MILKY Real Estate connects buyers, sellers, and investors through a trusted digital platform.')) : ($data_settings['contact_us'] ?? __('MILKY Real Estate connects buyers, sellers, and investors through a trusted digital platform.')) }}</p>
                         <ul class="mt-12">
                             <li class="mt-12 d-flex align-items-center gap-8">
                                 <i class="icon icon-mapPinLine fs-20 text-variant-2"></i>

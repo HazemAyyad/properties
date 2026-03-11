@@ -57,7 +57,7 @@
                 <div class="card mb-4">
                     <div class="card-header"><h5 class="mb-0">{{ __('Transfer receipt') }}</h5></div>
                     <div class="card-body text-center">
-                        <img src="{{ url($request->transfer_receipt) }}" alt="{{ __('Transfer receipt') }}" class="img-fluid rounded" style="max-height: 400px;">
+                        <img src="{{ $request->transfer_receipt_url }}" alt="{{ __('Transfer receipt') }}" class="img-fluid rounded" style="max-height: 400px;">
                     </div>
                 </div>
             </div>

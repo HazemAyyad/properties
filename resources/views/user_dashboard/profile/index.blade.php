@@ -154,9 +154,16 @@
             @if($latestProcessedRequest->isAccepted())
                 <div class="alert alert-success mb-0">
                     <strong>{{ __('Request accepted') }}</strong>
-                    <p class="mb-1 mt-1">{{ __('Your account plan was upgraded to') }} <strong>{{ $latestProcessedRequest->plan ? $latestProcessedRequest->plan->title : '' }}</strong>.</p>
+                    <p class="mb-1 mt-1">{{ __('Your account plan was upgraded to') }} <strong>{{ $latestProcessedRequest->plan ? $latestProcessedRequest->plan->title : '' }}</strong>. {{ __('Your account has been upgraded.') }}</p>
+                    @if($user->subscription_started_at || $user->subscription_ends_at)
+                        <p class="mb-1 small">
+                            @if($user->subscription_started_at) {{ __('Subscription starts') }}: {{ $user->subscription_started_at->format('Y-m-d') }}@endif
+                            @if($user->subscription_started_at && $user->subscription_ends_at) — @endif
+                            @if($user->subscription_ends_at) {{ __('Subscription ends') }}: {{ $user->subscription_ends_at->format('Y-m-d') }}@endif
+                        </p>
+                    @endif
                     @if($latestProcessedRequest->admin_notes)
-                        <p class="mb-0 small">{{ __('Admin notes') }}: {{ $latestProcessedRequest->admin_notes }}</p>
+                        <p class="mb-1 small">{{ __('Admin notes') }}: {{ $latestProcessedRequest->admin_notes }}</p>
                     @endif
                     <p class="mb-0 small text-muted">{{ __('Processed on') }}: {{ $latestProcessedRequest->processed_at ? $latestProcessedRequest->processed_at->format('Y-m-d H:i') : $latestProcessedRequest->updated_at->format('Y-m-d H:i') }}</p>
                 </div>

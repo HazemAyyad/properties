@@ -142,7 +142,8 @@ class UserController extends Controller
         $file = $request->file('transfer_receipt');
         $filename = time() . '_' . $file->getClientOriginalName();
         $file->move($uploadPath, $filename);
-        $path = '/public/uploads/transfer_receipts/' . $filename;
+        // Store path without /public for consistency; accessor handles both formats for old records
+        $path = 'uploads/transfer_receipts/' . $filename;
 
         $upgradeRequest = PlanUpgradeRequest::create([
             'user_id' => $user->id,
@@ -192,7 +193,7 @@ class UserController extends Controller
         $chatId = config('services.telegram_notify.chat_id');
 
         // Encode URL so Telegram doesn't truncate at spaces (e.g. filenames like "ChatGPT Image Mar 11, 2026.png")
-        $transferReceiptUrl = $this->encodeUrlForTelegram(url($upgradeRequest->transfer_receipt));
+        $transferReceiptUrl = $this->encodeUrlForTelegram($upgradeRequest->transfer_receipt_url);
 
         $plan = $upgradeRequest->plan ? $upgradeRequest->plan->load('features') : null;
         $featureLines = $plan ? $plan->features->where('status', 1)->map(fn ($f) => '— ' . $f->title)->implode("\n") : '';

@@ -52,11 +52,16 @@ class PlanUpgradeRequest extends Model
 
     /**
      * URL to the transfer receipt image for display.
+     * Handles both legacy paths (/public/uploads/...) and normalized paths (uploads/...).
      */
     public function getTransferReceiptUrlAttribute(): string
     {
         $path = $this->transfer_receipt ?? '';
-        $path = ltrim(str_replace('/public', '', $path), '/');
+        if (empty($path) || !is_string($path)) {
+            return '';
+        }
+        $path = str_replace('/public/', '', $path);
+        $path = ltrim($path, '/');
         return $path ? asset($path) : '';
     }
 }

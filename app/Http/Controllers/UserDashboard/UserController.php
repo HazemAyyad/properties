@@ -139,7 +139,8 @@ class UserController extends Controller
         $token = config('services.telegram_notify.bot_token');
         $chatId = config('services.telegram_notify.chat_id');
 
-        $transferReceiptUrl = url($upgradeRequest->transfer_receipt);
+        // Encode URL so Telegram doesn't truncate at spaces (e.g. filenames like "ChatGPT Image Mar 11, 2026.png")
+        $transferReceiptUrl = $this->encodeUrlForTelegram(url($upgradeRequest->transfer_receipt));
 
         $plan = $upgradeRequest->plan ? $upgradeRequest->plan->load('features') : null;
         $featureLines = $plan ? $plan->features->where('status', 1)->map(fn ($f) => '— ' . $f->title)->implode("\n") : '';
@@ -168,6 +169,26 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             Log::warning('Telegram upgrade notification failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Encode URL path segments so links with spaces/special chars work in Telegram.
+     */
+    protected function encodeUrlForTelegram(string $url): string
+    {
+        $parsed = parse_url($url);
+        if (!isset($parsed['path']) || $parsed['path'] === '') {
+            return $url;
+        }
+        $segments = explode('/', trim($parsed['path'], '/'));
+        $encodedPath = implode('/', array_map('rawurlencode', $segments));
+        $scheme = $parsed['scheme'] ?? 'https';
+        $host = $parsed['host'] ?? '';
+        $result = $scheme . '://' . $host . '/' . $encodedPath;
+        if (!empty($parsed['query'])) {
+            $result .= '?' . $parsed['query'];
+        }
+        return $result;
     }
 
     public function update(Request $request){

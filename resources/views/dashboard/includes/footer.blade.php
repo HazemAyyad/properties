@@ -10,7 +10,7 @@
                 <script>
                     document.write(new Date().getFullYear());
                 </script>
-                , made with ❤️ by <a href="{{env('SITE_URL')}}" target="_blank" class="fw-semibold">{{config('app.name')}} </a>
+                , made with ❤️ by <a href="{{ env('SITE_URL', url('/')) }}" target="_blank" class="fw-semibold">{{ $data_settings['site_name'] ?? config('app.name') }}</a>
             </div>
 
         </div>

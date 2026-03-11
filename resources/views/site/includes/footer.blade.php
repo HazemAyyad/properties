@@ -41,7 +41,7 @@
                         <ul class="mt-12">
                             <li class="mt-12 d-flex align-items-center gap-8">
                                 <i class="icon icon-mapPinLine fs-20 text-variant-2"></i>
-                                <p class="text-white">{{$data_settings['address']}}</p>
+                                <p class="text-white">{{ app()->getLocale() === 'ar' ? ($data_settings['address_ar'] ?? $data_settings['address'] ?? '') : ($data_settings['address'] ?? '') }}</p>
                             </li>
                             <li class="mt-12 d-flex align-items-center gap-8">
                                 <i class="icon icon-phone2 fs-20 text-variant-2"></i>

@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\UserDashboard;
 
 use App\Http\Controllers\Controller;
+use App\Services\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
@@ -46,6 +47,10 @@ class SocialAuthController extends Controller
                         'password' => encrypt('123456dummy')
                     ]
                 );
+
+                if ($newUser->wasRecentlyCreated) {
+                    app(TelegramNotificationService::class)->sendNewUserNotification($newUser, ucfirst($provider));
+                }
 
                 Auth::login($newUser);
                 return redirect()->intended('user/dashboard');

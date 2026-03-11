@@ -1,4 +1,8 @@
 {
   "distance_m": "m",
-  "distance_km": "km"
+  "distance_km": "km",
+  "New user registered": "New user registered",
+  "Registration source": "Registration source",
+  "Website": "Website",
+  "Registered at": "Registered at"
 }

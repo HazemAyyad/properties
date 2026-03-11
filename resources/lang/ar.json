@@ -992,5 +992,9 @@
   "Status": "الحالة",
   "Property usage": "استخدام العقارات",
   "Action": "إجراء",
-  "Plan Upgrade Requests": "طلبات ترقية الخطة"
+  "Plan Upgrade Requests": "طلبات ترقية الخطة",
+  "New user registered": "تسجيل مستخدم جديد",
+  "Registration source": "مصدر التسجيل",
+  "Website": "الموقع",
+  "Registered at": "تاريخ التسجيل"
 }

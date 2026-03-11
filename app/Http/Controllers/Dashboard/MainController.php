@@ -14,6 +14,7 @@ use App\Models\Dashboard\VisionSection;
 use App\Models\PlanUpgradeRequest;
 use App\Models\State;
 use App\Models\User;
+use App\Services\RevenueAnalyticsService;
 use App\Services\SubscriptionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -192,6 +193,9 @@ class MainController extends Controller
         $chartNewUsersLast30 = User::where('created_at', '>=', now()->subDays(30))->count();
         $chartUpgradeRequestsLast30 = PlanUpgradeRequest::where('created_at', '>=', now()->subDays(30))->count();
 
+        // ---- Revenue analytics (accepted/approved payments only) ----
+        $revenueAnalytics = app(RevenueAnalyticsService::class)->getDashboardData();
+
         return view('dashboard.index', compact(
             'cards',
             'subscriptionOverview',
@@ -204,7 +208,8 @@ class MainController extends Controller
             'cmsHealth',
             'chartPropertiesByStatus',
             'chartNewUsersLast30',
-            'chartUpgradeRequestsLast30'
+            'chartUpgradeRequestsLast30',
+            'revenueAnalytics'
         ));
     }
     public function get_users(Request $request)

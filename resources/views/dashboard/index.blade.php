@@ -57,6 +57,290 @@
             </div>
         @endif
 
+        {{-- Revenue analytics (accepted/approved payments only) --}}
+        @if(isset($revenueAnalytics))
+        @php
+            $rev = $revenueAnalytics;
+            $cur = $rev['currency'] ?? 'JOD';
+        @endphp
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="mb-3"><i class="ti ti-chart-line me-2"></i>{{ __('Revenue analytics') }}</h5>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100 border-success">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-success"><i class="ti ti-currency-dollar ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['total_revenue'], 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('Total revenue') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-calendar-day ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['revenue_today'], 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('Today') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-info"><i class="ti ti-calendar-week ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['revenue_this_week'], 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('This week') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-secondary"><i class="ti ti-calendar-month ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['revenue_this_month'], 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('This month') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-dark"><i class="ti ti-calendar-year ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['revenue_this_year'], 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('This year') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-primary"><i class="ti ti-credit-card ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['by_source']['subscription'] ?? 0, 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('Subscription revenue') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-info"><i class="ti ti-star ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['by_source']['featured_listing'] ?? 0, 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('Featured listing revenue') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-dark"><i class="ti ti-video ti-md"></i></span>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ number_format($rev['by_source']['featured_3d_tour'] ?? 0, 2) }} {{ $cur }}</h5>
+                            <small class="text-muted">{{ __('3D tour revenue') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Income source breakdown + Pending payments attention --}}
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">{{ __('Revenue by source') }}</h6>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $totalRev = $rev['total_revenue'];
+                            $totalRev = $totalRev ?: 1;
+                        @endphp
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span><span class="badge bg-primary me-1">Subscription</span></span>
+                                <span>{{ number_format($rev['by_source']['subscription'] ?? 0, 2) }} {{ $cur }} ({{ $rev['by_source_percent']['subscription'] ?? 0 }}%)</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-primary" style="width: {{ $rev['by_source_percent']['subscription'] ?? 0 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span><span class="badge bg-info me-1">Featured listing</span></span>
+                                <span>{{ number_format($rev['by_source']['featured_listing'] ?? 0, 2) }} {{ $cur }} ({{ $rev['by_source_percent']['featured_listing'] ?? 0 }}%)</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-info" style="width: {{ $rev['by_source_percent']['featured_listing'] ?? 0 }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span><span class="badge bg-dark me-1">3D tour</span></span>
+                                <span>{{ number_format($rev['by_source']['featured_3d_tour'] ?? 0, 2) }} {{ $cur }} ({{ $rev['by_source_percent']['featured_3d_tour'] ?? 0 }}%)</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-dark" style="width: {{ $rev['by_source_percent']['featured_3d_tour'] ?? 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-warning">
+                    <div class="card-header">
+                        <h6 class="mb-0 text-warning"><i class="ti ti-clock me-1"></i>{{ __('Pending payment requests') }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <a href="{{ route('admin.plan-upgrade-requests.index') }}" class="text-decoration-none">
+                                <span class="badge bg-warning">{{ $rev['pending']['pending_plan_upgrades'] ?? 0 }}</span> {{ __('Plan upgrades') }}
+                            </a>
+                        </p>
+                        <p class="mb-2">
+                            <a href="{{ route('admin.properties.featured-listings') }}" class="text-decoration-none">
+                                <span class="badge bg-warning">{{ $rev['pending']['pending_featured_listing'] ?? 0 }}</span> {{ __('Featured listing') }}
+                            </a>
+                        </p>
+                        <p class="mb-0">
+                            <a href="{{ route('admin.properties.featured-3d-tours') }}" class="text-decoration-none">
+                                <span class="badge bg-warning">{{ $rev['pending']['pending_featured_3d'] ?? 0 }}</span> {{ __('3D tour') }}
+                            </a>
+                        </p>
+                        <p class="mt-2 mb-0 small text-muted">{{ __('Approved') }}: <span class="badge bg-success">{{ ($rev['approved_counts']['accepted_plan_upgrades'] ?? 0) + ($rev['approved_counts']['approved_featured_listing'] ?? 0) + ($rev['approved_counts']['approved_featured_3d'] ?? 0) }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Revenue trends: last 30 days + monthly this year --}}
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">{{ __('Revenue last 30 days') }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    @foreach(array_slice($rev['last_30_days'] ?? [], -14, 14, true) as $date => $amount)
+                                        <tr>
+                                            <td class="text-muted small">{{ \Carbon\Carbon::parse($date)->format('M d') }}</td>
+                                            <td class="text-end"><strong>{{ number_format($amount, 2) }} {{ $cur }}</strong></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-0 small text-muted">{{ __('Total last 30 days') }}: <strong>{{ number_format(array_sum($rev['last_30_days'] ?? []), 2) }} {{ $cur }}</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">{{ __('Monthly revenue this year') }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            @foreach($rev['by_month_this_year'] ?? [] as $month => $amount)
+                                <div class="col-4 col-md-2">
+                                    <div class="border rounded p-2 text-center">
+                                        <div class="small text-muted">{{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('M') }}</div>
+                                        <div class="fw-bold small">{{ number_format($amount, 0) }}</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <p class="mb-0 mt-2 small text-muted">{{ __('Year total') }}: <strong>{{ number_format($rev['revenue_this_year'], 2) }} {{ $cur }}</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Recent accepted payments table --}}
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="ti ti-checks me-2"></i>{{ __('Recent accepted payments') }}</h5>
+                        <span class="badge bg-success">{{ __('Realized revenue') }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        @if(($rev['recent_accepted'] ?? collect())->isEmpty())
+                            <p class="text-muted p-4 mb-0">{{ __('No accepted payments yet') }}</p>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('Date') }}</th>
+                                            <th>{{ __('User') }}</th>
+                                            <th>{{ __('Type') }}</th>
+                                            <th>{{ __('Related') }}</th>
+                                            <th>{{ __('Amount') }}</th>
+                                            <th>{{ __('Status') }}</th>
+                                            <th>{{ __('Source') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($rev['recent_accepted'] as $pay)
+                                            <tr>
+                                                <td>{{ $pay->date->format('Y-m-d H:i') }}</td>
+                                                <td>{{ $pay->user_name }}</td>
+                                                <td>
+                                                    @if($pay->type === 'subscription') <span class="badge bg-primary">{{ __('Subscription') }}</span>
+                                                    @elseif($pay->type === 'featured_listing') <span class="badge bg-info">{{ __('Featured Listing') }}</span>
+                                                    @else <span class="badge bg-dark">{{ __('3D Tour') }}</span>
+                                                    @endif
+                                                </td>
+                                                <td><span class="text-truncate d-inline-block" style="max-width:140px">{{ $pay->related }}</span></td>
+                                                <td><strong>{{ number_format($pay->amount, 2) }} {{ $pay->currency }}</strong></td>
+                                                <td><span class="badge bg-success">{{ __('Approved') }}</span></td>
+                                                <td><span class="badge bg-secondary">{{ $pay->source }}</span></td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Summary cards row 1 --}}
         <div class="row g-4 mb-4">
             <div class="col-sm-6 col-xl-3">

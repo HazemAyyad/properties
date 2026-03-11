@@ -76,12 +76,6 @@
                             </span>
                         </li>
                         @endif
-                        @if($user->plan->extra_support && trim((string)$user->plan->extra_support) !== '' && trim((string)$user->plan->extra_support) !== 'none')
-                            <li class="item">
-                                <span class="check-icon icon-tick"></span>
-                                <span>{{ $user->plan->extra_support }}</span>
-                            </li>
-                        @endif
                         @foreach($user->plan->features as $feature)
                             @if($feature->status != 0)
                                 <li class="item">

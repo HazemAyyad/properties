@@ -92,10 +92,6 @@ class PlanController extends Controller
                 'number_of_properties' => $request->filled('number_of_properties') ? (int) $request->number_of_properties : 1,
                 'price_monthly'=>$request->price_monthly,
                 'price_yearly'=>$request->filled('price_yearly') ? $request->price_yearly : 0,
-                'extra_support' => [
-                    'en' => $request->input('extra_support.en'),
-                    'ar' => $request->input('extra_support.ar'),
-                ],
                 'status' => 1,
             ]);
 
@@ -134,10 +130,6 @@ class PlanController extends Controller
                 'number_of_properties' => $request->filled('number_of_properties') ? (int) $request->number_of_properties : 1,
                 'price_monthly'=>$request->price_monthly,
                 'price_yearly'=>$request->filled('price_yearly') ? $request->price_yearly : 0,
-                'extra_support' => [
-                    'en' => $request->input('extra_support.en'),
-                    'ar' => $request->input('extra_support.ar'),
-                ],
                 'status'=>$request->status,
             ]);
             return response()->json(['success'=>"The process has successfully"]);

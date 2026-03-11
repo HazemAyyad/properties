@@ -26,6 +26,26 @@ class PlanSeeder extends Seeder
         DB::statement('ALTER TABLE plan_features AUTO_INCREMENT = 1');
         DB::statement('ALTER TABLE plans AUTO_INCREMENT = 1');
 
+        // Former extra_support content: now seeded as plan_features (single source of truth).
+        $supportFeatureBySlug = [
+            'trial' => ['en' => 'none', 'ar' => 'لا يوجد'],
+            'standard-subscription' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
+            'extra' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
+            'light' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
+            'unique-client' => [
+                'en' => 'Advertising management + marketing support or periodic consultations',
+                'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
+            ],
+            'featured-listing' => [
+                'en' => 'Advertising management + marketing support or periodic consultations',
+                'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
+            ],
+            'featuring-client' => [
+                'en' => 'Advertising management + marketing support or periodic consultations',
+                'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
+            ],
+        ];
+
         $plans = [
             [
                 'slug' => 'trial',
@@ -35,7 +55,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => 1,
                 'price_monthly' => 0,
                 'price_yearly' => 0,
-                'extra_support' => ['en' => 'none', 'ar' => 'لا يوجد'],
                 'status' => 1,
                 'is_default' => true,
             ],
@@ -48,7 +67,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => 1,
                 'price_monthly' => 30,
                 'price_yearly' => 90,
-                'extra_support' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
                 'status' => 1,
             ],
             [
@@ -60,7 +78,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => 3,
                 'price_monthly' => 50,
                 'price_yearly' => 300,
-                'extra_support' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
                 'status' => 1,
             ],
             [
@@ -72,7 +89,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => 6,
                 'price_monthly' => 80,
                 'price_yearly' => 960,
-                'extra_support' => ['en' => 'limited support', 'ar' => 'دعم محدود'],
                 'status' => 1,
             ],
             [
@@ -84,10 +100,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => Plan::UNLIMITED_PROPERTIES,
                 'price_monthly' => 100,
                 'price_yearly' => 1200,
-                'extra_support' => [
-                    'en' => 'Advertising management + marketing support or periodic consultations',
-                    'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
-                ],
                 'status' => 1,
             ],
             [
@@ -99,10 +111,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => 1,
                 'price_monthly' => 20,
                 'price_yearly' => 20,
-                'extra_support' => [
-                    'en' => 'Advertising management + marketing support or periodic consultations',
-                    'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
-                ],
                 'status' => 1,
             ],
             [
@@ -114,10 +122,6 @@ class PlanSeeder extends Seeder
                 'number_of_properties' => Plan::UNLIMITED_PROPERTIES,
                 'price_monthly' => 500,
                 'price_yearly' => 6000,
-                'extra_support' => [
-                    'en' => 'Advertising management + marketing support or periodic consultations',
-                    'ar' => 'إدارة إعلانية + دعم تسويقي أو استشارات دورية',
-                ],
                 'status' => 1,
             ],
         ];
@@ -129,6 +133,18 @@ class PlanSeeder extends Seeder
                 ['slug' => $data['slug']],
                 array_merge($data, Schema::hasColumn('plans', 'is_default') ? ['is_default' => $isDefault] : [])
             );
+        }
+
+        // Seed one plan_feature per plan from former extra_support content (preserves same meaning).
+        foreach ($supportFeatureBySlug as $slug => $title) {
+            $plan = Plan::where('slug', $slug)->first();
+            if ($plan) {
+                PlanFeature::query()->create([
+                    'plan_id' => $plan->id,
+                    'title' => $title,
+                    'status' => 1,
+                ]);
+            }
         }
 
         $trial = Plan::where('slug', 'trial')->first();

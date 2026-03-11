@@ -141,14 +141,15 @@ class UserController extends Controller
 
         $transferReceiptUrl = url($upgradeRequest->transfer_receipt);
 
-        $plan = $upgradeRequest->plan;
+        $plan = $upgradeRequest->plan ? $upgradeRequest->plan->load('features') : null;
+        $featureLines = $plan ? $plan->features->where('status', 1)->map(fn ($f) => '— ' . $f->title)->implode("\n") : '';
         $planDetails = $plan ? (
             $plan->title . "\n"
             . '— ' . $plan->description . "\n"
             . '— ' . __('Cost') . ': ' . $plan->price_monthly . ' JOD'
             . ($plan->duration_months ? ' / ' . $plan->duration_months . ' ' . __('months') : '') . "\n"
             . '— ' . __('Properties') . ': ' . ($plan->number_of_properties == -1 ? __('Unlimited') : $plan->number_of_properties) . "\n"
-            . ($plan->extra_support ? '— ' . __('Extra support') . ': ' . $plan->extra_support . "\n" : '')
+            . ($featureLines !== '' ? $featureLines . "\n" : '')
         ) : '';
 
         $message = __('New plan upgrade request') . "\n\n"

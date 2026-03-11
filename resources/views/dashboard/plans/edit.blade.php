@@ -52,10 +52,6 @@
                                                         <label class="form-label" for="description_{{ $locale }}">{{__('Description')}} ({{ strtoupper($locale) }})</label>
                                                         <input type="text" class="form-control" name="description[{{ $locale }}]" value="{{ $plan->getTranslation('description', $locale) }}" id="description_{{ $locale }}" placeholder="{{ __('Description') . strtoupper($locale) }}" required>
                                                     </div>
-                                                    <div class="form-group mb-3">
-                                                        <label class="form-label" for="extra_support_{{ $locale }}">{{__('Extra support')}} ({{ strtoupper($locale) }})</label>
-                                                        <input type="text" class="form-control" name="extra_support[{{ $locale }}]" value="{{ $plan->getTranslation('extra_support', $locale) }}" id="extra_support_{{ $locale }}" placeholder="{{ __('Extra support') . ' ' . strtoupper($locale) }}">
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -81,6 +77,10 @@
                             <div class="form-group mb-3">
                                 <label class="form-label" for="price_yearly">{{__('price yearly')}}</label>
                                 <input type="text" class="form-control" name="price_yearly" id="price_yearly" value="{{$plan->price_yearly}}" placeholder="{{__('price yearly')}}" >
+                            </div>
+                            <div class="alert alert-info mb-3">
+                                <strong>{{ __('Plan features') }}:</strong>
+                                <a href="{{ route('admin.plan_features.index') }}">{{ __('Manage plan features from Plan Features section') }}</a>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">

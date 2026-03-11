@@ -85,16 +85,10 @@
                                 <span class="check-icon icon-tick"></span>
                                 <span class="item-text">{{ __('Properties') }}: {{ $plan->number_of_properties_display }}</span>
                             </li>
-                            @if($plan->extra_support && trim((string)$plan->extra_support) !== '' && trim((string)$plan->extra_support) !== 'none')
+                            @foreach($plan->features->where('status', 1) as $feature)
                                 <li class="item">
                                     <span class="check-icon icon-tick"></span>
-                                    <span class="item-text">{{ $plan->extra_support }}</span>
-                                </li>
-                            @endif
-                            @foreach($plan->features as $feature)
-                                <li class="item">
-                                    <span class="check-icon icon-tick {{$feature->status ==0?'disable':''}}"></span>
-                                    <span class="item-text">{{$feature->title}}</span>
+                                    <span class="item-text">{{ $feature->title }}</span>
                                 </li>
                             @endforeach
                         </ul>

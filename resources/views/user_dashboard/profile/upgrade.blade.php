@@ -70,9 +70,6 @@
                                         <li><span class="check-icon icon-tick"></span><span>{{ $plan->duration_months }} {{ $plan->duration_months == 1 ? __('month') : __('months') }}</span></li>
                                     @endif
                                     <li><span class="check-icon icon-tick"></span><span>{{ __('Properties') }}: {{ $plan->number_of_properties_display }}</span></li>
-                                    @if($plan->extra_support && trim((string)$plan->extra_support) !== '' && trim((string)$plan->extra_support) !== 'none')
-                                        <li><span class="check-icon icon-tick"></span><span>{{ $plan->extra_support }}</span></li>
-                                    @endif
                                     @foreach($plan->features as $feature)
                                         @if($feature->status != 0)
                                             <li><span class="check-icon icon-tick"></span><span>{{ $feature->title }}</span></li>

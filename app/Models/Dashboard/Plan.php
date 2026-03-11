@@ -11,10 +11,11 @@ class Plan extends Model
     use HasFactory,HasTranslations;
      protected $guarded=[];
     // Define which fields are translatable
+    // Note: extra_support is deprecated; plan features are the single source of truth (see plan_features table).
+    // Column plans.extra_support is kept temporarily for backward compatibility; do not use in app logic.
     public $translatable = [
         'title',
         'description',
-        'extra_support',
     ];
 
     public const UNLIMITED_PROPERTIES = -1;

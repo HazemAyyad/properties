@@ -56,17 +56,13 @@
                                                             <label class="form-label" for="description_{{ $locale }}">{{__('Description')}} ({{ strtoupper($locale) }})</label>
                                                             <input type="text" class="form-control" name="description[{{ $locale }}]"   id="description_{{ $locale }}" placeholder="{{ __('Description') . strtoupper($locale) }}" required>
                                                         </div>
-
-                                                        <div class="form-group mb-3">
-                                                            <label class="form-label" for="extra_support_{{ $locale }}">{{__('Extra support')}} ({{ strtoupper($locale) }})</label>
-                                                            <input type="text" class="form-control" name="extra_support[{{ $locale }}]" id="extra_support_{{ $locale }}" placeholder="{{ __('Extra support') . ' ' . strtoupper($locale) }}">
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
+                                <p class="text-muted small mb-2">{{ __('Plan features (benefits/bullets) are managed in the Plan Features section after creating the plan.') }}</p>
                                 <div class="form-group mb-3">
                                     <label class="form-label" for="slug">{{__('Slug')}}</label>
                                     <input type="text" class="form-control" name="slug" id="slug" placeholder="e.g. trial, standard-subscription">

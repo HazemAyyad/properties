@@ -38,4 +38,25 @@ class PlanUpgradeRequest extends Model
     {
         return $this->status === self::STATUS_REJECTED;
     }
+
+    /**
+     * When the request was processed (accepted/rejected). Uses updated_at when status is not pending.
+     */
+    public function getProcessedAtAttribute(): ?\Carbon\Carbon
+    {
+        if ($this->isPending()) {
+            return null;
+        }
+        return $this->updated_at;
+    }
+
+    /**
+     * URL to the transfer receipt image for display.
+     */
+    public function getTransferReceiptUrlAttribute(): string
+    {
+        $path = $this->transfer_receipt ?? '';
+        $path = ltrim(str_replace('/public', '', $path), '/');
+        return $path ? asset($path) : '';
+    }
 }

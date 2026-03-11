@@ -63,6 +63,7 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function()
 
         Route::as('profile.')->prefix('profile')->group(function () {
             Route::get('/', [UserController::class, 'profile'])->name('index');
+            Route::get('/upgrade-history', [UserController::class, 'upgradeHistory'])->name('upgrade.history');
             Route::post('/update', [UserController::class, 'update'])->name('update');
             Route::post('/update/password', [UserController::class, 'update_password'])->name('update_password');
             Route::delete('/delete', [UserController::class, 'delete_account'])->name('delete_account');

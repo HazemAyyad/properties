@@ -10,6 +10,7 @@ use App\Models\Dashboard\Plan;
 use App\Models\Dashboard\Setting;
 use App\Models\PlanUpgradeRequest;
 use App\Models\User;
+use App\Services\PlanLimitService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,8 @@ class UserController extends Controller
         $subscriptionResult = app(SubscriptionService::class)->ensureSubscriptionValid($user);
         $user = $subscriptionResult['user']->load(['plan.features']);
         $subscriptionInfo = app(SubscriptionService::class)->getSubscriptionInfo($user);
+        $subscriptionStatus = app(SubscriptionService::class)->getSubscriptionStatus($user);
+        $planLimit = app(PlanLimitService::class)->canCreateProperty($user);
 
         $pendingRequest = PlanUpgradeRequest::where('user_id', $user->id)
             ->where('status', PlanUpgradeRequest::STATUS_PENDING)
@@ -34,7 +37,51 @@ class UserController extends Controller
             ->latest()
             ->first();
 
-        return view('user_dashboard.profile.index', compact('user', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult'));
+        $upgradeHistory = PlanUpgradeRequest::where('user_id', $user->id)
+            ->with('plan')
+            ->latest()
+            ->limit(20)
+            ->get();
+
+        $latestProcessedRequest = PlanUpgradeRequest::where('user_id', $user->id)
+            ->whereIn('status', [PlanUpgradeRequest::STATUS_ACCEPTED, PlanUpgradeRequest::STATUS_REJECTED])
+            ->with('plan')
+            ->latest()
+            ->first();
+
+        $showExpiredPlanAlert = ($subscriptionResult['was_downgraded'] ?? false)
+            || (($subscriptionInfo['is_basic'] ?? false) && $user->last_plan_id);
+
+        return view('user_dashboard.profile.index', compact(
+            'user', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult',
+            'subscriptionStatus', 'planLimit', 'upgradeHistory', 'latestProcessedRequest',
+            'showExpiredPlanAlert'
+        ));
+    }
+
+    /**
+     * Full upgrade request history page.
+     */
+    public function upgradeHistory()
+    {
+        $user = Auth::user();
+        $user->load(['plan.features']);
+        $subscriptionInfo = app(SubscriptionService::class)->getSubscriptionInfo($user);
+
+        $upgradeHistory = PlanUpgradeRequest::where('user_id', $user->id)
+            ->with('plan')
+            ->latest()
+            ->paginate(15);
+
+        $latestProcessedRequest = PlanUpgradeRequest::where('user_id', $user->id)
+            ->whereIn('status', [PlanUpgradeRequest::STATUS_ACCEPTED, PlanUpgradeRequest::STATUS_REJECTED])
+            ->with('plan')
+            ->latest()
+            ->first();
+
+        return view('user_dashboard.profile.upgrade_history', compact(
+            'user', 'subscriptionInfo', 'upgradeHistory', 'latestProcessedRequest'
+        ));
     }
 
     public function upgradeForm()
@@ -48,8 +95,13 @@ class UserController extends Controller
             ->with('plan')
             ->latest()
             ->first();
+        $latestProcessedRequest = PlanUpgradeRequest::where('user_id', $user->id)
+            ->whereIn('status', [PlanUpgradeRequest::STATUS_ACCEPTED, PlanUpgradeRequest::STATUS_REJECTED])
+            ->with('plan')
+            ->latest()
+            ->first();
         $plans = Plan::where('status', 1)->with('features')->orderBy('price_monthly')->get();
-        return view('user_dashboard.profile.upgrade', compact('user', 'plans', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult'));
+        return view('user_dashboard.profile.upgrade', compact('user', 'plans', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult', 'latestProcessedRequest'));
     }
 
     public function storeUpgradeRequest(Request $request)
@@ -194,21 +246,21 @@ class UserController extends Controller
     public function update(Request $request){
         $user = User::find(Auth::id());
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'description' => 'required',
-            'company' => 'required',
-            'position' => 'required',
-            'office_no' => 'required',
-            'office_address' => 'required',
-            'job' => 'required',
-            'location' => 'required',
-            'facebook' => 'required|url',  // Validate as URL
-            'twitter' => 'required|url',   // Validate as URL
-            'linkedin' => 'required|url',  // Validate as URL
-             'mobile' => 'required|unique:users,mobile,'.Auth::id(),
-             'email' => 'required|unique:users,email,'.Auth::id(),
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validation for photo
-            'agent_poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validation for agent poster
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'company' => 'nullable|string|max:255',
+            'position' => 'nullable|string|max:255',
+            'office_no' => 'nullable|string|max:50',
+            'office_address' => 'nullable|string|max:255',
+            'job' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'facebook' => 'nullable|url|max:500',
+            'twitter' => 'nullable|url|max:500',
+            'linkedin' => 'nullable|url|max:500',
+            'mobile' => 'required|unique:users,mobile,'.Auth::id(),
+            'email' => 'required|email|unique:users,email,'.Auth::id(),
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'agent_poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
         if ($validator->fails()) {
             $errors = $validator->errors();
@@ -235,7 +287,7 @@ class UserController extends Controller
             }
 
             $user->update($data);
-            return response()->json(['success'=>"The process has successfully"]);
+            return response()->json(['success' => __('Profile updated successfully.')]);
         }
     }
     public function delete_account($id)
@@ -252,33 +304,34 @@ class UserController extends Controller
 
     public function update_password(Request $request)
     {
-//        return $request->all();
         $messages = [
-            'password_confirmation.same' => __('Password does not match'),
-            'password.required' => __('Please enter the password'),
+            'current_password.required' => __('Current password is required.'),
+            'current_password.current_password' => __('The current password is incorrect.'),
+            'password.required' => __('Please enter the new password.'),
+            'password.min' => __('Password must be at least :min characters.'),
+            'password.confirmed' => __('New password confirmation does not match.'),
         ];
 
         $validator = Validator::make($request->all(), [
-            'password' => 'required|same:password|min:6',
-            'password_confirmation' => 'required|same:password|min:6',
+            'current_password' => 'required|current_password:web',
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|same:password',
         ], $messages);
+
         $user = User::query()->where('id', Auth::id())->first();
         if ($validator->fails()) {
             $errors = $validator->errors();
-            $input = $request->all();
-            return response(["responseJSON" => $errors, "input" => $input, "message" => __('Verify that the data is correct, fill in all fields')], 422);
+            return response([
+                'responseJSON' => $errors,
+                'input' => $request->all(),
+                'message' => __('Verify that the data is correct, fill in all fields'),
+            ], 422);
         }
 
-        if ($validator->passes()) {
+        $user->password = Hash::make($request->password);
+        $user->save();
 
-            $user->password = Hash::make($request->password);
-            $user->save();
-
-            return response()->json(['success' => __('The process has successfully')]);
-
-
-        }
-
+        return response()->json(['success' => __('Password updated successfully.')]);
     }
 
 

@@ -41,6 +41,27 @@
             @endif
         </div>
 
+        {{-- Show latest accepted/rejected result so user sees outcome clearly --}}
+        @if(isset($latestProcessedRequest) && $latestProcessedRequest)
+            @if($latestProcessedRequest->isAccepted())
+                <div class="alert alert-success mb-4">
+                    <strong>{{ __('Your last request was accepted') }}</strong>
+                    <p class="mb-1 mt-1">{{ __('Your plan was upgraded to') }} <strong>{{ $latestProcessedRequest->plan ? $latestProcessedRequest->plan->title : '' }}</strong>.</p>
+                    @if($latestProcessedRequest->admin_notes)
+                        <p class="mb-0 small">{{ __('Admin notes') }}: {{ $latestProcessedRequest->admin_notes }}</p>
+                    @endif
+                </div>
+            @elseif($latestProcessedRequest->isRejected())
+                <div class="alert alert-danger mb-4">
+                    <strong>{{ __('Your last request was rejected') }}</strong>
+                    @if($latestProcessedRequest->admin_notes)
+                        <p class="mb-2">{{ __('Admin notes') }}: {{ $latestProcessedRequest->admin_notes }}</p>
+                    @endif
+                    <p class="mb-0">{{ __('You can submit a new upgrade request below.') }}</p>
+                </div>
+            @endif
+        @endif
+
         @if($pendingRequest ?? null)
             <div class="pending-box">
                 <h6 class="text-warning-dark mb-2">⏳ {{ __('Pending request') }}</h6>
@@ -96,6 +117,7 @@
             <div class="box">
                 <button type="submit" id="btnSubmit" class="tf-btn primary">{{ __('Send upgrade request') }}</button>
                 <a href="{{ route('user.profile.index') }}" class="tf-btn outline ms-2">{{ __('Back to profile') }}</a>
+                <a href="{{ route('user.profile.upgrade.history') }}" class="tf-btn outline ms-2">{{ __('View upgrade history') }}</a>
             </div>
         </form>
         @endif

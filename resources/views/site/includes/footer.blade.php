@@ -105,7 +105,10 @@
     <div class="bottom-footer">
         <div class="container">
             <div class="content-footer-bottom">
-                <div class="copyright">©2024 {{config('app.name')}}. {{__('All Rights Reserved')}}.</div>
+                @php
+                    $footerName = $data_settings['site_name'] ?? config('app.name');
+                @endphp
+                <div class="copyright">©{{ date('Y') }} {{ $footerName }}. {{__('All Rights Reserved')}}.</div>
 
                 <ul class="menu-bottom">
                     <li><a href="{{route('site.services')}}">{{__('Terms Of Services')}}</a> </li>

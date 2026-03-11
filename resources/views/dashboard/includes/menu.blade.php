@@ -46,7 +46,6 @@
             </ul>
         </li>
 
-        @can('User Management')
         <li class="menu-item {{ Route::is('admin.users.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-users"></i>
@@ -65,7 +64,6 @@
                 </li>
             </ul>
         </li>
-        @endcan
 
         <li class="menu-item {{ Route::is('admin.properties.*') || Route::is('admin.categories.index') || Route::is('admin.feature_categories.*') || Route::is('admin.property_features.*') || Route::is('admin.property_facilities.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">

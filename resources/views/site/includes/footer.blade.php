@@ -178,14 +178,9 @@
                     </div>
                     <div class="text-variant-1 auth-line">{{__('or sign up with')}}</div>
                     <div class="login-social">
-
                         <a href="{{ route('site.auth.social','google') }}" class="btn-login-social">
                             <img src="{{asset('/site/images/logo/google.jpg')}}" alt="img">
                             {{__('Continue with Google')}}
-                        </a>
-                        <a href="{{ route('site.auth.social','twitter') }}" class="btn-login-social">
-                            <img src="{{asset('/site/images/logo/tw.jpg')}}" alt="img">
-                            {{__('Continue with Twitter')}}
                         </a>
                     </div>
                     <button type="submit" class="tf-btn primary w-100">{{__('Login')}}</button>

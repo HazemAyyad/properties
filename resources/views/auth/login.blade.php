@@ -91,10 +91,6 @@
                                         <img src="{{ asset('site/images/logo/google.jpg') }}" alt="Google">
                                         {{ __('Continue with Google') }}
                                     </a>
-                                    <a href="{{ route('site.auth.social', 'twitter') }}">
-                                        <img src="{{ asset('site/images/logo/tw.jpg') }}" alt="Twitter">
-                                        {{ __('Continue with Twitter') }}
-                                    </a>
                                 </div>
                             </div>
                         </form>

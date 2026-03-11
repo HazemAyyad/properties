@@ -8,6 +8,7 @@ use App\Mail\PlanUpgradeRequestNotification;
 use App\Models\Dashboard\Admin;
 use App\Models\Dashboard\Plan;
 use App\Models\Dashboard\Setting;
+use App\Http\Controllers\UserDashboard\InvoicesController;
 use App\Models\PlanUpgradeRequest;
 use App\Models\User;
 use App\Services\PlanLimitService;
@@ -52,10 +53,12 @@ class UserController extends Controller
         $showExpiredPlanAlert = ($subscriptionResult['was_downgraded'] ?? false)
             || (($subscriptionInfo['is_basic'] ?? false) && $user->last_plan_id);
 
+        $billingItems = InvoicesController::getBillingItemsForUser($user);
+
         return view('user_dashboard.profile.index', compact(
             'user', 'pendingRequest', 'subscriptionInfo', 'subscriptionResult',
             'subscriptionStatus', 'planLimit', 'upgradeHistory', 'latestProcessedRequest',
-            'showExpiredPlanAlert'
+            'showExpiredPlanAlert', 'billingItems'
         ));
     }
 

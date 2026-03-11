@@ -49,8 +49,32 @@ class PlanUpgradeRequestController extends Controller
 
     public function show($id)
     {
-        $request = PlanUpgradeRequest::with(['user', 'plan'])->findOrFail($id);
-        return view('dashboard.plan_upgrade_requests.show', compact('request'));
+        $request = PlanUpgradeRequest::with(['user.plan.features', 'plan.features'])->findOrFail($id);
+        $user = $request->user;
+
+        $userOtherRequests = collect();
+        $userHasOtherPending = false;
+        if ($user) {
+            $userOtherRequests = PlanUpgradeRequest::where('user_id', $user->id)
+                ->where('id', '!=', $request->id)
+                ->with('plan')
+                ->latest()
+                ->limit(10)
+                ->get();
+            $userHasOtherPending = PlanUpgradeRequest::where('user_id', $user->id)
+                ->where('id', '!=', $request->id)
+                ->where('status', PlanUpgradeRequest::STATUS_PENDING)
+                ->exists();
+        }
+
+        $requestedPlanAlreadyActive = $user && $user->plan_id === $request->plan_id;
+
+        return view('dashboard.plan_upgrade_requests.show', compact(
+            'request',
+            'userOtherRequests',
+            'userHasOtherPending',
+            'requestedPlanAlreadyActive'
+        ));
     }
 
     public function accept(Request $request, $id)

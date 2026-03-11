@@ -382,56 +382,78 @@
             </div>
         </div>
 
-        {{-- 6. Billing / Receipts (upgrade receipts) --}}
-        @if(isset($upgradeHistory) && $upgradeHistory->isNotEmpty())
+        {{-- 6. Billing & Receipts (unified: plan upgrade + featured listing + 3D tour) --}}
         <div class="profile-card">
-            <h6 class="card-title mb-0">
-                <span class="collapse-toggle w-100" data-bs-toggle="collapse" data-bs-target="#collapseBilling" aria-expanded="false" aria-controls="collapseBilling">
+            <h6 class="card-title mb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#collapseBilling" aria-expanded="false" aria-controls="collapseBilling">
                     <span>{{ __('Billing & receipts') }}</span>
                     <span class="collapse-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
                 </span>
+                <a href="{{ route('user.invoices.index') }}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation()">{{ __('View all') }}</a>
             </h6>
             <div id="collapseBilling" class="collapse collapse-body">
-            <p class="text-muted small mb-2">{{ __('Transfer receipts for your upgrade requests.') }}</p>
-            <div class="table-responsive">
-                <table class="table table-bordered history-table">
-                    <thead>
-                        <tr>
-                            <th>{{ __('Date') }}</th>
-                            <th>{{ __('Requested plan') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('Receipt') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($upgradeHistory->take(5) as $req)
-                        <tr>
-                            <td>{{ $req->created_at->format('Y-m-d H:i') }}</td>
-                            <td>{{ $req->plan ? $req->plan->title : '—' }}</td>
-                            <td>
-                                @if($req->status === \App\Models\PlanUpgradeRequest::STATUS_PENDING)
-                                    <span class="badge bg-warning text-dark">{{ __('Pending') }}</span>
-                                @elseif($req->status === \App\Models\PlanUpgradeRequest::STATUS_ACCEPTED)
-                                    <span class="badge bg-success">{{ __('Accepted') }}</span>
-                                @else
-                                    <span class="badge bg-danger">{{ __('Rejected') }}</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($req->transfer_receipt_url)
-                                    <a href="{{ $req->transfer_receipt_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">{{ __('View receipt') }}</a>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <p class="text-muted small mb-2">{{ __('Plan upgrades, featured listings, and 3D tour payments.') }}</p>
+            @if(isset($billingItems) && $billingItems->isNotEmpty())
+                @php
+                    $totalCount = $billingItems->count();
+                    $pendingCount = $billingItems->where('status', 'pending')->count();
+                    $approvedCount = $billingItems->where('status', 'approved')->count();
+                    $rejectedCount = $billingItems->where('status', 'rejected')->count();
+                @endphp
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><strong>{{ $totalCount }}</strong><br>{{ __('Total') }}</div></div>
+                    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><strong>{{ $pendingCount }}</strong><br>{{ __('Pending') }}</div></div>
+                    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small text-success"><strong>{{ $approvedCount }}</strong><br>{{ __('Approved') }}</div></div>
+                    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small text-danger"><strong>{{ $rejectedCount }}</strong><br>{{ __('Rejected') }}</div></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered history-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Type') }}</th>
+                                <th>{{ __('Related Item') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('Receipt') }}</th>
+                                <th>{{ __('Notes') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($billingItems->take(10) as $item)
+                            <tr>
+                                <td>{{ $item->date ? $item->date->format('Y-m-d H:i') : '—' }}</td>
+                                <td>{{ $item->type_label ?? '—' }}</td>
+                                <td>{{ $item->related_item ?? '—' }}</td>
+                                <td>
+                                    @if(($item->status ?? '') === 'approved')
+                                        <span class="badge bg-success">{{ __('Approved') }}</span>
+                                    @elseif(($item->status ?? '') === 'rejected')
+                                        <span class="badge bg-danger">{{ __('Rejected') }}</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark">{{ __('Pending') }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(!empty($item->receipt_url))
+                                        <a href="{{ $item->receipt_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">{{ __('View') }}</a>
+                                    @elseif(!empty($item->receipt_path))
+                                        @php $url = \App\Http\Controllers\UserDashboard\InvoicesController::normalizeReceiptUrl($item->receipt_path); @endphp
+                                        @if($url)<a href="{{ $url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">{{ __('View') }}</a>@else—@endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="small">{{ Str::limit($item->notes ?? '—', 35) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-muted mb-0">{{ __('No billing records yet.') }} <a href="{{ route('user.invoices.index') }}">{{ __('My Invoices') }}</a></p>
+            @endif
             </div>
         </div>
-        @endif
     </div>
 
 @endsection

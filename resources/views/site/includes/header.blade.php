@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{config('app.name')}}</title>
+    <title>{{ $data_settings['site_name'] ?? config('app.name') }}</title>
 
     <meta name="author" content="themesflat.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -26,8 +26,11 @@
     <link rel="stylesheet"type="text/css" href="{{asset('/site/css-rtl/styles.css')}}"/>
     @endif
     <!-- Favicon and Touch Icons  -->
-    <link rel="shortcut icon" href="{{asset('/site/images/logo/favicon.png')}}">
-    <link rel="apple-touch-icon-precomposed" href="{{asset('/site/images/logo/favicon.png')}}">
+    @php
+        $faviconPath = $data_settings['favicon'] ?? '/site/images/logo/favicon.png';
+    @endphp
+    <link rel="shortcut icon" href="{{ asset($faviconPath) }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ asset($faviconPath) }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {{--    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">--}}

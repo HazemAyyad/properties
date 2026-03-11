@@ -23,6 +23,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Yajra\DataTables\DataTables;
@@ -396,6 +398,7 @@ class PropertyController extends Controller
 
                 // Dispatch the event
                 event(new NotificationEvent($data));
+                $this->sendTelegramNewPropertyNotification($property);
                 DB::commit();
                 return response()->json(['success'=>"The process has successfully"]);
             }catch (\Throwable $e) {
@@ -406,6 +409,42 @@ class PropertyController extends Controller
 
         }
     }
+
+    /**
+     * Send Telegram notification to admin when a user adds a new property.
+     */
+    protected function sendTelegramNewPropertyNotification(Property $property): void
+    {
+        $token = config('services.telegram_notify.bot_token');
+        $chatId = config('services.telegram_notify.chat_id');
+        if (empty($token) || empty($chatId)) {
+            return;
+        }
+
+        $property->load(['user', 'category']);
+        $user = $property->user;
+        $categoryName = $property->category ? $property->category->name : '—';
+        $requestUrl = url(route('admin.properties.edit', $property->id, false));
+
+        $message = __('New property added by user') . "\n\n"
+            . __('User') . ': ' . ($user->name ?? '') . ' (' . ($user->email ?? '') . ")\n"
+            . __('Property') . ': ' . ($property->title ?? '') . "\n"
+            . __('Category') . ': ' . $categoryName . "\n"
+            . __('Contact') . ': ' . ($property->contact_name ?? '') . ' / ' . ($property->contact_phone ?? '') . "\n\n"
+            . __('View in admin') . ": " . $requestUrl;
+
+        $apiUrl = 'https://api.telegram.org/bot' . $token . '/sendMessage';
+        try {
+            Http::timeout(10)->asForm()->post($apiUrl, [
+                'chat_id' => $chatId,
+                'text' => $message,
+                'disable_web_page_preview' => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Telegram new property notification failed: ' . $e->getMessage());
+        }
+    }
+
     public function store_reviews(Request $request,$property_id){
         $validator = Validator::make($request->all(), [
             'rating' => 'required',

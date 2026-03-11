@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{config('app.name')}}</title>
+    <title>{{ $data_settings['site_name'] ?? config('app.name') }}</title>
 
     <meta name="author" content="{{config('app.url')}}">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -24,8 +24,11 @@
     @endif
 
     <!-- Favicon and Touch Icons  -->
-    <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
-    <link rel="apple-touch-icon-precomposed" href="{{asset('favicon.ico')}}">
+    @php
+        $faviconPath = $data_settings['favicon'] ?? '/site/images/logo/favicon.png';
+    @endphp
+    <link rel="shortcut icon" href="{{ asset($faviconPath) }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ asset($faviconPath) }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 
     <style>
@@ -80,8 +83,8 @@
                             <div class="inner-container d-flex justify-content-between align-items-center">
                                 <!-- Logo Box -->
                                 <div class="logo-box d-flex">
-                                    <div class="logo"><a href="{{route('site.index')}}">
-                                            <img src="{{asset('/site/images/logo/logo@2x.png')}}" alt="logo" width="174" height="44"></a></div>
+                                    <div class="logo"><a href="{{ route('site.index') }}">
+                                            <img src="{{ asset($data_settings['main_logo'] ?? '/site/images/logo/logo@2x.png') }}" alt="{{ $data_settings['site_name'] ?? 'logo' }}" width="120" height="44" style="object-fit: contain;"></a></div>
                                     <div class="button-show-hide">
                                         <span class="icon icon-categories"></span>
                                     </div>
@@ -161,7 +164,7 @@
                     <div class="menu-backdrop"></div>
                     <nav class="menu-box">
                         <div class="nav-logo">
-                            <a href="{{route('site.index')}}"><img src="{{asset('/site/images/logo/logo@2x.png')}}" alt="nav-logo" width="174" height="44"></a></div>
+                            <a href="{{ route('site.index') }}"><img src="{{ asset($data_settings['main_logo'] ?? '/site/images/logo/logo@2x.png') }}" alt="{{ $data_settings['site_name'] ?? 'nav-logo' }}" width="174" height="44" style="object-fit: contain;"></a></div>
                         <div class="bottom-canvas">
                             <div class="menu-outer"></div>
                             <div class="button-mobi-sell">

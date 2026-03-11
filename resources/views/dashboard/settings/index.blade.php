@@ -46,6 +46,14 @@
                                 <input type="text" class="form-control" id="site_name_ar" value="{{ $setting['site_name_ar'] ?? '' }}" name="site_name_ar" placeholder="{{__('Site Name (Arabic)')}}"/>
                             </div>
                             <div class="form-group">
+                                <label class="form-label" for="phone">{{__('Phone')}}</label>
+                                <input type="text" class="form-control" id="phone" value="{{ $setting['phone'] ?? '' }}" name="phone" placeholder="{{__('Phone')}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="email">{{__('Email')}}</label>
+                                <input type="email" class="form-control" id="email" value="{{ $setting['email'] ?? '' }}" name="email" placeholder="{{__('Email')}}"/>
+                            </div>
+                            <div class="form-group">
                                 <label class="form-label" for="whatsapp">{{__('Whatsapp')}}</label>
                                 <input type="text" class="form-control" id="whatsapp" value="{{$setting['whatsapp']}}" name="whatsapp"  placeholder="{{__('Whatsapp')}}" required/>
                             </div>

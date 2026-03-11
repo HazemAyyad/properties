@@ -16,7 +16,7 @@ class SettingController extends Controller
         $keys = [
             'whatsapp', 'youtube', 'twitter', 'facebook', 'instagram', 'linkedin',
             'slogan', 'contact_us', 'main_logo', 'secondary_logo',
-            'site_name', 'favicon', 'address',
+            'site_name', 'favicon', 'address', 'phone', 'email',
         ];
         $setting = [];
         $rows = Setting::query()->whereIn('key', $keys)->get()->keyBy('key');

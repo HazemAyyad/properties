@@ -4,7 +4,7 @@
         <div class="container">
             <div class="content-footer-top">
                 <div class="footer-logo">
-                    <img src="{{asset($data_settings['secondary_logo'])}}" alt="logo-footer" >
+                    <img src="{{ asset($data_settings['secondary_logo'] ?? '') }}" alt="logo-footer" class="footer-logo-img" style="max-width: 180px; max-height: 60px; width: auto; height: auto; object-fit: contain;">
                 </div>
                 <div class="wd-social">
                     <span>{{__('Follow Us')}}:</span>
